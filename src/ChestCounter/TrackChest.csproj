@@ -18,4 +18,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\lib\FortniteReplayReader\FortniteReplayReader.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- JavaScript interpreter for script add-ons, run in a sandbox (no .NET access, time and memory limits). MIT license. -->
+    <PackageReference Include="Jint" Version="4.16.4" />
+  </ItemGroup>
 </Project>

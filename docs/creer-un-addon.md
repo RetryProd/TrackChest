@@ -1,10 +1,14 @@
 # Créer un add-on
 
-Un add-on ajoute des **compteurs** et/ou un **thème** à l'overlay de TrackChest. C'est un fichier de données, jamais du
-code : il n'y a rien à programmer, seulement un fichier JSON à remplir.
+Un add-on change l'overlay de TrackChest. Il peut :
+
+- ajouter des **compteurs** (un fichier JSON à remplir, sans programmation) ;
+- changer les couleurs avec un **thème** (même principe) ;
+- tout modifier, ajouter ou supprimer avec un **script** JavaScript (voir [Scripts](#6-scripts--tout-modifier)).
 
 TrackChest valide lui-même chaque add-on. Un add-on ne peut ni lancer un programme, ni lire des fichiers, ni utiliser
-Internet : il ne peut faire que ce qu'il déclare dans ses `permissions`, que le joueur voit avant d'installer.
+Internet : il ne peut faire que ce qu'il déclare dans ses `permissions`, que le joueur voit avant d'installer. Les
+scripts tournent dans un bac à sable.
 
 ## Le plus rapide
 
@@ -86,8 +90,10 @@ Toute autre clé est refusée.
 | `stats.read` | lire les statistiques (coffres, parties, trésors) pour calculer un compteur |
 | `overlay.rows` | ajouter des lignes à l'overlay |
 | `overlay.theme` | changer les couleurs de l'overlay |
+| `overlay.script` | exécuter `script.js`, qui peut modifier, ajouter ou supprimer tout ce qu'affiche l'overlay |
 
-Les compteurs demandent `stats.read` et `overlay.rows`. Un thème demande `overlay.theme`.
+Les compteurs demandent `stats.read` et `overlay.rows`. Un thème demande `overlay.theme`. Un script demande
+`stats.read` et `overlay.script`.
 
 ### Compteurs
 
@@ -133,7 +139,7 @@ Copie le dépôt du catalogue sur ton PC, puis, dans son dossier :
 
 | Commande | Effet |
 |---|---|
-| `.\scripts\addon.ps1 nouveau mon-addon` | crée `addons\mon-addon\manifest.json` à remplir (`-Type theme` pour un thème) |
+| `.\scripts\addon.ps1 nouveau mon-addon` | crée `addons\mon-addon\manifest.json` à remplir (`-Type theme` pour un thème, `-Type script` pour un script avec `script.js`) |
 | `.\scripts\addon.ps1 verifier [mon-addon]` | affiche toutes les erreurs d'un add-on (ou de tous) : clé inconnue, couleur invalide, fichier en trop… |
 | `.\scripts\addon.ps1 empaqueter mon-addon` | crée `dist\mon-addon-1.0.0.zip` ; avec `-Exe chemin\TrackChest.exe`, applique aussi le contrôle de TrackChest |
 | `.\scripts\addon.ps1 aide` | liste des commandes |
@@ -184,3 +190,93 @@ Le point d'entrée est le site du catalogue : <https://trackchest-addons.pages.d
 
 Le catalogue est signé : tout fichier modifié après publication est refusé par TrackChest, et un add-on dangereux peut
 être révoqué à distance. Le fonctionnement complet est dans [Fonctionnement et sécurité](add-ons.md).
+
+## 6. Scripts : tout modifier
+
+Un add-on à script contient deux fichiers : `manifest.json` (avec les permissions `stats.read` et `overlay.script`) et
+`script.js`. Le script définit une fonction `overlay(view, data)`. TrackChest l'appelle à chaque mise à jour de
+l'overlay : elle reçoit l'overlay tel qu'il va s'afficher, le modifie comme elle veut, puis le renvoie.
+
+```powershell
+.\scripts\addon.ps1 nouveau mon-script -Type script   # crée manifest.json et un script.js d'exemple
+```
+
+```javascript
+// Retire la ligne « Jeton pirate », renomme l'en-tête et ajoute le record de coffres en une partie.
+function overlay(view, data) {
+  view.header = "MES COFFRES";
+  view.rows = view.rows.filter(function (row) { return row.label !== "Jeton pirate"; });
+
+  var record = 0;
+  data.matches.forEach(function (m) { if (m.chests > record) record = m.chests; });
+  view.rows.push({ label: "Record", value: String(record), detail: "· en une partie", color: "#FFC860" });
+
+  return view;
+}
+```
+
+Si plusieurs scripts sont actifs, chacun reçoit le résultat du précédent, dans l'ordre d'installation. Les compteurs et
+le thème d'autres add-ons sont appliqués avant les scripts.
+
+### `view` : ce que le script peut changer
+
+| Champ | Contenu | Limite |
+|---|---|---|
+| `header` | texte de l'en-tête (« COFFRES ») | 24 caractères |
+| `total` | grand chiffre de gauche | 16 caractères |
+| `totalCaption` | légende sous le total (« total ») | 24 caractères |
+| `current` | grand chiffre de droite (dernière partie ou partie en cours), `null` = « — » | 16 caractères |
+| `currentCaption` | légende sous ce chiffre | 24 caractères |
+| `badge` | badge en haut à droite (« ● PARTIE EN COURS »), `null` = aucun | 32 caractères |
+| `rows` | lignes de l'overlay, dans l'ordre d'affichage | 16 lignes au maximum |
+
+Chaque ligne de `rows` : `label` (24 caractères), `value` (32), `detail` (48, texte gris après la valeur, `null` =
+aucun), `color` (couleur de la valeur, `#RRGGBB`, facultatif), `treasure` (`true` = couleur de la ligne Trésors).
+
+Pour **supprimer** une ligne, retire-la de `rows` ; pour l'**ajouter**, ajoute un objet ; pour la **modifier**, change
+ses champs ; pour **réordonner**, change l'ordre du tableau. Un champ absent du résultat garde sa valeur. Les textes
+trop longs sont coupés, les caractères de contrôle retirés.
+
+### `data` : les statistiques
+
+| Champ | Contenu |
+|---|---|
+| `player` | nom du compte suivi |
+| `inProgress` | `true` pendant une partie |
+| `language` | langue de l'interface (`fr`) |
+| `total` | `{ matches, chests, opened }` sur tout l'historique du compte |
+| `session` | `{ matches, chests }` depuis le lancement de TrackChest |
+| `matches` | les parties, **la plus récente en premier** (500 au maximum) |
+
+Chaque partie de `matches` : `start` (date ISO), `durationSeconds`, `playlist`, `placement`, `totalPlayers`,
+`eliminations`, `chests` (total TrackChest), `opened`, `destroyed`, `sprites`, `cannons`, `wanted` (`null` si inconnu),
+`treasures`, `inSession`, et `chestList` : chaque coffre avec `time` (secondes), `kind` (type) et `destroyed`.
+
+### Bac à sable et limites
+
+Le script tourne dans un interpréteur JavaScript intégré à TrackChest, sans aucun accès à Windows : pas de fichiers,
+pas d'Internet (`fetch`, `require` et consorts n'existent pas), pas de programme. Seules des données JSON entrent et
+sortent.
+
+| Limite | Valeur |
+|---|---|
+| taille de `script.js` | 32 Ko, UTF-8 sans BOM |
+| temps par mise à jour | 1 seconde |
+| instructions | 2 millions |
+| mémoire | 64 Mo |
+| profondeur de récursion | 64 |
+
+Si le script dépasse une limite, plante ou renvoie un résultat invalide (couleur mal formée, plus de 16 lignes…),
+l'overlay s'affiche sans lui. Après trois échecs de suite, il est mis de côté jusqu'au prochain redémarrage de
+TrackChest ou à sa réactivation. L'erreur s'affiche dans la fenêtre **Add-on**, sous le nom de l'add-on.
+
+### Tester et proposer un script
+
+1. `.\scripts\addon.ps1 empaqueter mon-script -Exe chemin\TrackChest.exe` : TrackChest compile le script et vérifie
+   qu'il définit `overlay()`.
+2. Dans TrackChest : **Add-on → Ajouter un fichier…**, choisis le `.zip`, puis regarde l'overlay. Pour un aperçu sans
+   lancer Fortnite : `TrackChest.exe --overlay-preview apercu.png` (voir [Compilation](compilation.md)).
+3. Pour le proposer : sur le site, coche **Ajouter un script**, colle ton code, télécharge les deux fichiers, puis
+   **Proposer sur GitHub** ouvre la page d'envoi du dépôt : glisses-y `manifest.json` et `script.js`.
+
+Un script est relu avec plus d'attention qu'un compteur : écris un code clair et commente ce qu'il fait.

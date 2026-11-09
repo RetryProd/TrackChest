@@ -68,7 +68,7 @@ internal sealed partial class CounterWindow
             head.Controls.Add(TextLabel("Add-on", 16, Ink, FontStyle.Bold), 0, 0);
             head.Controls.Add(guide, 1, 0);
             layout.Controls.Add(head, 0, 0);
-            layout.Controls.Add(TextLabel("Compteurs et thèmes pour l’overlay. Aucun code : seulement des réglages vérifiés.", 9, Muted), 0, 1);
+            layout.Controls.Add(TextLabel("Compteurs, thèmes et scripts pour l’overlay. Les scripts tournent dans un bac à sable.", 9, Muted), 0, 1);
             layout.Controls.Add(_list, 0, 2);
             _list.SizeChanged += (_, _) => FitRows();
 
@@ -205,7 +205,11 @@ internal sealed partial class CounterWindow
                 AddonTier.Community => "Add-on de la communauté : contrôlé automatiquement, mais pas relu.",
                 _ => "Add-on local NON vérifié : n’installe que des fichiers dont tu connais la provenance.",
             };
-            var text = $"Installer « {name} » {version} ?\n\nCet add-on pourra seulement :\n• {string.Join("\n• ", permissions.Select(AddonRules.Describe))}\n\n{origin}\nIl ne contient aucun code et ne peut ni lire tes fichiers ni utiliser Internet.";
+            var list = permissions.ToList();
+            var safety = list.Contains(AddonRules.OverlayScript)
+                ? "Son script tourne dans un bac à sable : il ne peut ni lire tes fichiers ni utiliser Internet. Il peut en revanche changer tout ce qu’affiche l’overlay : installe-le seulement si tu fais confiance à son origine."
+                : "Il ne contient aucun code et ne peut ni lire tes fichiers ni utiliser Internet.";
+            var text = $"Installer « {name} » {version} ?\n\nCet add-on pourra seulement :\n• {string.Join("\n• ", list.Select(AddonRules.Describe))}\n\n{origin}\n{safety}";
             return MessageBox.Show(this, text, "TrackChest", MessageBoxButtons.YesNo,
                 tier == AddonTier.Verified ? MessageBoxIcon.Question : MessageBoxIcon.Warning) == DialogResult.Yes;
         }
@@ -233,8 +237,11 @@ internal sealed partial class CounterWindow
                     Rebuild();
                 };
                 var state = addon.State.Revoked ? "RÉVOQUÉ · " : addon.IsActive ? "" : "désactivé · ";
-                _list.Controls.Add(Row(addon.Manifest.Name, addon.Manifest.Version, $"{state}{TierText(addon.Tier)}",
-                    TierColor(addon.Tier), addon.Manifest.Description, toggle, remove));
+                var kind = addon.Manifest.HasScript ? " · script" : "";
+                var scriptError = addon.IsActive ? AddonRuntime.ScriptError(addon.Manifest.Id) : null;
+                _list.Controls.Add(Row(addon.Manifest.Name, addon.Manifest.Version,
+                    scriptError != null ? $"Erreur du script : {scriptError}" : $"{state}{TierText(addon.Tier)}{kind}",
+                    scriptError != null ? Gold : TierColor(addon.Tier), addon.Manifest.Description, toggle, remove));
             }
 
             _list.Controls.Add(Header("Catalogue"));

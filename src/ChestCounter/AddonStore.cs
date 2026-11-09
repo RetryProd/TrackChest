@@ -313,16 +313,60 @@ public sealed class AddonStore
 public static class AddonRuntime
 {
     private static volatile IReadOnlyList<AddonCounter> _counters = Array.Empty<AddonCounter>();
+    private static volatile IReadOnlyList<(string Id, string Source)> _scripts = Array.Empty<(string, string)>();
+    private static readonly Dictionary<string, (int Failures, string Message)> ScriptErrors = new();
+    private const int MaxFailures = 3;
 
-    /// <summary>Reads the enabled add-ons: counters for the next overlay update, theme applied at once.</summary>
+    /// <summary>Reads the enabled add-ons: counters and scripts for the next overlay update, theme applied at once.</summary>
     public static void Load(AddonStore store)
     {
         var active = store.Load().Where(a => a.IsActive).ToList();
         var counters = active.Where(a => a.Manifest.Permissions.Contains(AddonRules.OverlayRows))
             .SelectMany(a => a.Manifest.Counters).Take(10).ToList();
         _counters = counters;
+        _scripts = active.Where(a => a.Manifest.HasScript && a.Manifest.Script != null)
+            .Select(a => (a.Manifest.Id, a.Manifest.Script!)).ToList();
+        lock (ScriptErrors) ScriptErrors.Clear(); // a reload (enable, update) gives every script a new chance
         var theme = active.LastOrDefault(a => a.Manifest.Theme != null && a.Manifest.Permissions.Contains(AddonRules.OverlayTheme))?.Manifest.Theme;
         NativeOverlay.SetTheme(theme?.ToOverlayTheme());
+    }
+
+    /// <summary>Last error of a script add-on (null = none), shown in the Add-on window.</summary>
+    public static string? ScriptError(string id)
+    {
+        lock (ScriptErrors) return ScriptErrors.TryGetValue(id, out var e) ? e.Message : null;
+    }
+
+    /// <summary>
+    /// Runs the script add-ons one after the other on the overlay (each gets the result of the previous one).
+    /// A script that fails keeps the previous view; after three failures in a row it is skipped until the next reload.
+    /// </summary>
+    public static OverlayView ApplyScripts(OverlayView view, TrackerData data, IReadOnlyList<MatchRecord> session, MatchRecord? last, bool inProgress)
+    {
+        var scripts = _scripts;
+        if (scripts.Count == 0) return view;
+        var dataJson = AddonScript.DataJson(data, session, last, inProgress);
+        foreach (var (id, source) in scripts)
+        {
+            lock (ScriptErrors)
+            {
+                if (ScriptErrors.TryGetValue(id, out var state) && state.Failures >= MaxFailures) continue;
+            }
+            try
+            {
+                view = AddonScript.Apply(source, view, dataJson);
+                lock (ScriptErrors) ScriptErrors.Remove(id);
+            }
+            catch (Exception ex)
+            {
+                lock (ScriptErrors)
+                {
+                    var failures = ScriptErrors.TryGetValue(id, out var state) ? state.Failures + 1 : 1;
+                    ScriptErrors[id] = (failures, ex.Message);
+                }
+            }
+        }
+        return view;
     }
 
     public static List<OverlayRow> CounterRows(TrackerData data, IReadOnlyList<MatchRecord> session, MatchRecord? last)

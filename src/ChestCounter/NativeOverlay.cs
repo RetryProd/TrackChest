@@ -10,12 +10,15 @@ namespace ChestCounter;
 /// </summary>
 /// <summary>What the overlay shows. <see cref="Current"/> null = no match in progress.</summary>
 /// <param name="Detail">Optional secondary text drawn small and grey after the value.</param>
-public sealed record OverlayRow(string Label, string Value, bool Treasure = false, string? Detail = null);
+/// <param name="Color">Value colour "#RRGGBB" set by a script add-on (null = theme colour).</param>
+public sealed record OverlayRow(string Label, string Value, bool Treasure = false, string? Detail = null, string? Color = null);
 
 /// <param name="Current">Right counter (match in progress, or last match); null = "—".</param>
 /// <param name="CurrentLive">Right counter is the match in progress (gold).</param>
 /// <param name="Badge">Header badge ("● EN DIRECT" / "● LIVE", "● PARTIE EN COURS" / "● MATCH IN PROGRESS") or null.</param>
-public sealed record OverlayView(string Total, string? Current, string CurrentCaption, bool CurrentLive, string? Badge, IReadOnlyList<OverlayRow> Rows);
+/// <param name="HeaderText">Header text (null = "COFFRES"); TotalCaption: caption under the total (null = "total"). Both set by script add-ons.</param>
+public sealed record OverlayView(string Total, string? Current, string CurrentCaption, bool CurrentLive, string? Badge, IReadOnlyList<OverlayRow> Rows,
+    string? HeaderText = null, string? TotalCaption = null);
 
 [SupportedOSPlatform("windows")]
 public static class NativeOverlay
@@ -398,10 +401,10 @@ public static class NativeOverlay
         try
         {
             // Header: "COFFRES" ... "● EN DIRECT" [lock]
-            var headerW = TextWidth(hdc, _fontHeader, Header, out _headerH) + S(16) + (v.Badge != null ? TextWidth(hdc, _fontHeader, v.Badge, out _) : 0) + S(30);
+            var headerW = TextWidth(hdc, _fontHeader, v.HeaderText ?? Header, out _headerH) + S(16) + (v.Badge != null ? TextWidth(hdc, _fontHeader, v.Badge, out _) : 0) + S(30);
 
             // Two counters side by side.
-            _col1W = Math.Max(TextWidth(hdc, _fontBig, v.Total, out _bigH), TextWidth(hdc, _fontCaption, CaptionTotal, out _captionH));
+            _col1W = Math.Max(TextWidth(hdc, _fontBig, v.Total, out _bigH), TextWidth(hdc, _fontCaption, v.TotalCaption ?? CaptionTotal, out _captionH));
             _col2W = Math.Max(TextWidth(hdc, _fontBig, v.Current ?? "—", out _), Math.Max(TextWidth(hdc, _fontCaption, v.CurrentCaption, out _), TextWidth(hdc, _fontCaption, OverlayModel.LastMatchCaption, out _)));
             var countersW = _col1W + S(ColGap) + _col2W;
 
@@ -497,7 +500,7 @@ public static class NativeOverlay
             DeleteObject(border);
 
             // Header
-            Text(hdc, _fontHeader, _theme.Muted, Header, x, y, right, y + _headerH);
+            Text(hdc, _fontHeader, _theme.Muted, v.HeaderText ?? Header, x, y, right, y + _headerH);
             if (v.Badge != null)
             {
                 Text(hdc, _fontHeader, _theme.Accent, v.Badge, x, y, _lockRect.Left - S(6), y + _headerH, DT_RIGHT);
@@ -516,7 +519,7 @@ public static class NativeOverlay
             var sep = new RECT { Left = x + _col1W + S(ColGap) / 2, Top = y + S(8), Right = x + _col1W + S(ColGap) / 2 + 1, Bottom = y + _bigH + _captionH };
             FillRect(hdc, ref sep, _brushLine);
             y += _bigH;
-            Text(hdc, _fontCaption, _theme.Muted, CaptionTotal, x, y, x + _col1W + S(4), y + _captionH);
+            Text(hdc, _fontCaption, _theme.Muted, v.TotalCaption ?? CaptionTotal, x, y, x + _col1W + S(4), y + _captionH);
             Text(hdc, _fontCaption, _theme.Muted, v.CurrentCaption, x2, y, right + S(4), y + _captionH);
             y += _captionH + S(12);
 
@@ -529,7 +532,7 @@ public static class NativeOverlay
                 {
                     Text(hdc, _fontLabel, _theme.Muted, row.Label, x, y, x + _labelW, y + _rowH);
                     var vx = x + _labelW + S(12);
-                    Text(hdc, _fontSmall, row.Treasure ? _theme.Treasure : _theme.Text, row.Value, vx, y, right + S(4), y + _rowH);
+                    Text(hdc, _fontSmall, row.Color != null ? OverlayTheme.FromHex(row.Color) : row.Treasure ? _theme.Treasure : _theme.Text, row.Value, vx, y, right + S(4), y + _rowH);
                     if (row.Detail != null)
                     {
                         var dx = vx + TextWidth(hdc, _fontSmall, row.Value, out _) + S(6);

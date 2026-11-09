@@ -54,11 +54,12 @@ public static class OverlayModel
             Detail: L.T("· cumul estimé", "· estimated cumulative chance", "· probabilidad acumulada estimada")));
 
         // Fortnite finalizes the replay at the end of the match.
-        if (inProgress)
-        {
-            return new OverlayView(L.N(total), "…", L.T("en cours", "in progress", "en curso"), true,
-                L.T("● PARTIE EN COURS", "● MATCH IN PROGRESS", "● PARTIDA EN CURSO"), rows);
-        }
-        return new OverlayView(L.N(total), last != null ? L.N(last.ChestsTotal) : null, LastMatchCaption, false, null, rows);
+        var view = inProgress
+            ? new OverlayView(L.N(total), "…", L.T("en cours", "in progress", "en curso"), true,
+                L.T("● PARTIE EN COURS", "● MATCH IN PROGRESS", "● PARTIDA EN CURSO"), rows)
+            : new OverlayView(L.N(total), last != null ? L.N(last.ChestsTotal) : null, LastMatchCaption, false, null, rows);
+
+        // Script add-ons (permission overlay.script) may change, add or remove anything in the view.
+        return AddonRuntime.ApplyScripts(view, d, session, last, inProgress);
     }
 }

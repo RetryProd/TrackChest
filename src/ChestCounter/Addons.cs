@@ -5,9 +5,10 @@ using System.Text.RegularExpressions;
 
 namespace ChestCounter;
 
-// Add-ons are DATA, never code: a manifest.json that declares extra overlay counters and/or overlay colours.
-// TrackChest reads and validates it itself, so an add-on cannot run anything on the PC. What an add-on may touch
-// is limited by its declared permissions, which the player sees before installing.
+// An add-on is a manifest.json that declares extra overlay counters and/or overlay colours, which TrackChest reads and
+// validates itself, plus, for a script add-on (permission overlay.script), a script.js run in a sandbox (AddonScript):
+// no .NET, file or network access, only JSON in and out, with time and memory limits. What an add-on may touch is
+// limited by its declared permissions, which the player sees before installing.
 
 /// <summary>Where an add-on comes from: verified = reviewed and signed catalog, community = catalog, local = a file picked by hand.</summary>
 public enum AddonTier { Verified, Community, Local }
@@ -57,12 +58,18 @@ public sealed class AddonManifest
     public List<string> Permissions { get; set; } = new();
     public List<AddonCounter> Counters { get; set; } = new();
     public AddonTheme? Theme { get; set; }
+
+    /// <summary>Source of script.js (permission overlay.script), read from the package; never part of manifest.json.</summary>
+    [JsonIgnore]
+    public string? Script { get; set; }
+
+    public bool HasScript => Permissions.Contains(AddonRules.OverlayScript);
 }
 
 public static class AddonRules
 {
-    public const string StatsRead = "stats.read", OverlayRows = "overlay.rows", OverlayTheme = "overlay.theme";
-    public static readonly string[] AllPermissions = [StatsRead, OverlayRows, OverlayTheme];
+    public const string StatsRead = "stats.read", OverlayRows = "overlay.rows", OverlayTheme = "overlay.theme", OverlayScript = "overlay.script";
+    public static readonly string[] AllPermissions = [StatsRead, OverlayRows, OverlayTheme, OverlayScript];
     public static readonly string[] Metrics = ["chests", "opened", "destroyed", "sprites", "wanted", "cannons", "treasures", "matches"];
     public static readonly string[] Scopes = ["total", "last", "session"];
     public const int MaxCounters = 8, MaxZipBytes = 64 * 1024, MaxManifestBytes = 16 * 1024;
@@ -111,8 +118,10 @@ public static class AddonRules
             }
             if (m.Theme.IsEmpty) errors.Add("le thème est vide.");
         }
-        if (counters.Count == 0 && m.Theme == null) errors.Add("l’add-on ne contient ni compteur ni thème.");
-        if (permissions.Contains(StatsRead) && counters.Count == 0) errors.Add("permission stats.read sans compteur.");
+        var script = permissions.Contains(OverlayScript);
+        if (script && !permissions.Contains(StatsRead)) errors.Add("le script demande aussi la permission stats.read.");
+        if (counters.Count == 0 && m.Theme == null && !script) errors.Add("l’add-on ne contient ni compteur, ni thème, ni script.");
+        if (permissions.Contains(StatsRead) && counters.Count == 0 && !script) errors.Add("permission stats.read sans compteur ni script.");
         if (permissions.Contains(OverlayRows) && counters.Count == 0) errors.Add("permission overlay.rows sans compteur.");
         if (permissions.Contains(OverlayTheme) && m.Theme == null) errors.Add("permission overlay.theme sans thème.");
         return errors;
@@ -124,6 +133,9 @@ public static class AddonRules
         StatsRead => L.T("Lire tes statistiques (coffres, parties, trésors)", "Read your statistics (chests, matches, treasures)", "Leer tus estadísticas (cofres, partidas, tesoros)"),
         OverlayRows => L.T("Ajouter des lignes à l’overlay", "Add lines to the overlay", "Añadir líneas al overlay"),
         OverlayTheme => L.T("Changer les couleurs de l’overlay", "Change the overlay colours", "Cambiar los colores del overlay"),
+        OverlayScript => L.T("Exécuter un script qui peut modifier, ajouter ou supprimer tout ce qu’affiche l’overlay (bac à sable : pas d’accès aux fichiers ni à Internet)",
+            "Run a script that can change, add or remove anything shown in the overlay (sandbox: no file or Internet access)",
+            "Ejecutar un script que puede cambiar, añadir o quitar todo lo que muestra el overlay (sin acceso a archivos ni a Internet)"),
         _ => permission,
     };
 }
@@ -151,26 +163,17 @@ public static class AddonPackage
             throw new InvalidDataException(L.T("Fichier d’add-on vide ou trop gros.", "Add-on file is empty or too large.", "Archivo de add-on vacío o demasiado grande."));
 
         byte[] manifestBytes;
+        byte[]? scriptBytes = null;
         try
         {
             using var archive = new ZipArchive(new MemoryStream(zip), ZipArchiveMode.Read);
-            if (archive.Entries.Count != 1 || archive.Entries[0].FullName != "manifest.json")
-                throw new InvalidDataException(L.T("Un add-on ne contient que manifest.json (pas de code, pas d’autres fichiers).", "An add-on holds only manifest.json (no code, no other files).", "Un add-on solo contiene manifest.json (sin código ni otros archivos)."));
-            var entry = archive.Entries[0];
-            if (entry.Length > AddonRules.MaxManifestBytes)
-                throw new InvalidDataException(L.T("manifest.json est trop gros.", "manifest.json is too large.", "manifest.json es demasiado grande."));
-
-            using var input = entry.Open();
-            using var buffer = new MemoryStream();
-            var chunk = new byte[4096];
-            int read;
-            while ((read = input.Read(chunk, 0, chunk.Length)) > 0)
-            {
-                buffer.Write(chunk, 0, read);
-                if (buffer.Length > AddonRules.MaxManifestBytes)
-                    throw new InvalidDataException(L.T("manifest.json est trop gros.", "manifest.json is too large.", "manifest.json es demasiado grande."));
-            }
-            manifestBytes = buffer.ToArray();
+            var names = archive.Entries.Select(e => e.FullName).ToList();
+            var allowed = names.Count is 1 or 2 && names.Contains("manifest.json") && names.All(n => n is "manifest.json" or AddonScript.FileName);
+            if (!allowed)
+                throw new InvalidDataException(L.T("Un add-on contient manifest.json, et script.js s’il a un script : aucun autre fichier.", "An add-on holds manifest.json, plus script.js for a script add-on: no other file.", "Un add-on contiene manifest.json y, si tiene script, script.js: ningún otro archivo."));
+            manifestBytes = ReadEntry(archive.GetEntry("manifest.json")!, AddonRules.MaxManifestBytes, "manifest.json");
+            if (archive.GetEntry(AddonScript.FileName) is { } scriptEntry)
+                scriptBytes = ReadEntry(scriptEntry, AddonScript.MaxScriptBytes, AddonScript.FileName);
         }
         catch (InvalidDataException) { throw; }
         catch (Exception ex) when (ex is IOException or NotSupportedException)
@@ -178,7 +181,39 @@ public static class AddonPackage
             throw new InvalidDataException(L.T("Fichier d’add-on illisible.", "Unreadable add-on file.", "Archivo de add-on ilegible."), ex);
         }
 
-        return ParseManifest(manifestBytes);
+        var manifest = ParseManifest(manifestBytes);
+        if (manifest.HasScript != (scriptBytes != null))
+            throw new InvalidDataException(manifest.HasScript
+                ? L.T("La permission overlay.script demande un fichier script.js.", "The overlay.script permission needs a script.js file.", "El permiso overlay.script necesita un archivo script.js.")
+                : L.T("script.js demande la permission overlay.script.", "script.js needs the overlay.script permission.", "script.js necesita el permiso overlay.script."));
+        if (scriptBytes != null)
+        {
+            if (scriptBytes.Length >= 3 && scriptBytes[0] == 0xEF && scriptBytes[1] == 0xBB && scriptBytes[2] == 0xBF)
+                throw new InvalidDataException("script.js ne doit pas avoir de BOM (UTF-8 sans BOM).");
+            string source;
+            try { source = new System.Text.UTF8Encoding(false, true).GetString(scriptBytes); }
+            catch (System.Text.DecoderFallbackException ex) { throw new InvalidDataException("script.js doit être en UTF-8.", ex); }
+            AddonScript.Check(source);
+            manifest.Script = source;
+        }
+        return manifest;
+    }
+
+    /// <summary>Reads a zip entry, stopping as soon as it goes over the limit (zip bombs).</summary>
+    private static byte[] ReadEntry(ZipArchiveEntry entry, int limit, string name)
+    {
+        var tooBig = L.T($"{name} est trop gros.", $"{name} is too large.", $"{name} es demasiado grande.");
+        if (entry.Length > limit) throw new InvalidDataException(tooBig);
+        using var input = entry.Open();
+        using var buffer = new MemoryStream();
+        var chunk = new byte[4096];
+        int read;
+        while ((read = input.Read(chunk, 0, chunk.Length)) > 0)
+        {
+            buffer.Write(chunk, 0, read);
+            if (buffer.Length > limit) throw new InvalidDataException(tooBig);
+        }
+        return buffer.ToArray();
     }
 
     public static AddonManifest ParseManifest(byte[] json)
