@@ -51,7 +51,8 @@ public sealed class AddonManifest
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
     public string Version { get; set; } = "";
-    public string Author { get; set; } = "";
+    /// <summary>Old field, no longer part of the format: still read (so older packages stay valid) but never shown.</summary>
+    public string? Author { get; set; }
     public string Description { get; set; } = "";
     public List<string> Permissions { get; set; } = new();
     public List<AddonCounter> Counters { get; set; } = new();
@@ -84,7 +85,6 @@ public static class AddonRules
         if (!IsId(m.Id)) errors.Add("id invalide (3 à 40 caractères : minuscules, chiffres et tirets).");
         if (!IsText(m.Name, 1, 40)) errors.Add("name invalide (1 à 40 caractères).");
         if (!IsVersion(m.Version)) errors.Add("version invalide (format 1.0.0).");
-        if (!IsText(m.Author, 1, 40)) errors.Add("author invalide (1 à 40 caractères).");
         if (!IsText(m.Description, 0, 200)) errors.Add("description invalide (200 caractères maximum).");
 
         var permissions = m.Permissions ?? new();

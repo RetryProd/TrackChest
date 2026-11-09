@@ -58,7 +58,8 @@ public sealed class CatalogEntry
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
     public string Version { get; set; } = "";
-    public string Author { get; set; } = "";
+    /// <summary>Old field, ignored (older catalogs).</summary>
+    public string? Author { get; set; }
     public string Description { get; set; } = "";
     public List<string> Permissions { get; set; } = new();
     /// <summary>"verified" (reviewed) or "community" (automatic checks only).</summary>
@@ -70,7 +71,7 @@ public sealed class CatalogEntry
     public AddonTier TierValue => Tier == "verified" ? AddonTier.Verified : AddonTier.Community;
 
     public bool IsValid() =>
-        AddonRules.IsId(Id) && AddonRules.IsText(Name, 1, 40) && AddonRules.IsVersion(Version) && AddonRules.IsText(Author, 1, 40)
+        AddonRules.IsId(Id) && AddonRules.IsText(Name, 1, 40) && AddonRules.IsVersion(Version)
         && AddonRules.IsText(Description, 0, 200) && Tier is "verified" or "community"
         && Permissions.All(p => AddonRules.AllPermissions.Contains(p)) && AddonRules.IsSha256(Sha256)
         && Size is > 0 and <= AddonRules.MaxZipBytes

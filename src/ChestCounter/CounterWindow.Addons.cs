@@ -185,7 +185,7 @@ internal sealed partial class CounterWindow
             {
                 var zip = File.ReadAllBytes(dialog.FileName);
                 var manifest = AddonPackage.Read(zip);
-                if (!Confirm(manifest.Name, manifest.Version, manifest.Author, manifest.Permissions, AddonTier.Local)) return;
+                if (!Confirm(manifest.Name, manifest.Version, manifest.Permissions, AddonTier.Local)) return;
                 _addons.Install(zip, AddonTier.Local);
                 _changed();
                 Rebuild();
@@ -196,16 +196,16 @@ internal sealed partial class CounterWindow
             }
         }
 
-        /// <summary>Shows who, which version and what the add-on may do, before anything is installed.</summary>
-        private bool Confirm(string name, string version, string author, IEnumerable<string> permissions, AddonTier tier)
+        /// <summary>Shows the name, version, trust level and what the add-on may do, before anything is installed.</summary>
+        private bool Confirm(string name, string version, IEnumerable<string> permissions, AddonTier tier)
         {
             var origin = tier switch
             {
                 AddonTier.Verified => "Add-on vérifié : relu et signé par le catalogue TrackChest.",
                 AddonTier.Community => "Add-on de la communauté : contrôlé automatiquement, mais pas relu.",
-                _ => "Add-on local NON vérifié : n’installe que des fichiers dont tu connais l’auteur.",
+                _ => "Add-on local NON vérifié : n’installe que des fichiers dont tu connais la provenance.",
             };
-            var text = $"Installer « {name} » {version} (par {author}) ?\n\nCet add-on pourra seulement :\n• {string.Join("\n• ", permissions.Select(AddonRules.Describe))}\n\n{origin}\nIl ne contient aucun code et ne peut ni lire tes fichiers ni utiliser Internet.";
+            var text = $"Installer « {name} » {version} ?\n\nCet add-on pourra seulement :\n• {string.Join("\n• ", permissions.Select(AddonRules.Describe))}\n\n{origin}\nIl ne contient aucun code et ne peut ni lire tes fichiers ni utiliser Internet.";
             return MessageBox.Show(this, text, "TrackChest", MessageBoxButtons.YesNo,
                 tier == AddonTier.Verified ? MessageBoxIcon.Question : MessageBoxIcon.Warning) == DialogResult.Yes;
         }
@@ -233,7 +233,7 @@ internal sealed partial class CounterWindow
                     Rebuild();
                 };
                 var state = addon.State.Revoked ? "RÉVOQUÉ · " : addon.IsActive ? "" : "désactivé · ";
-                _list.Controls.Add(Row(addon.Manifest.Name, addon.Manifest.Version, $"{state}{TierText(addon.Tier)} · par {addon.Manifest.Author}",
+                _list.Controls.Add(Row(addon.Manifest.Name, addon.Manifest.Version, $"{state}{TierText(addon.Tier)}",
                     TierColor(addon.Tier), addon.Manifest.Description, toggle, remove));
             }
 
@@ -253,7 +253,7 @@ internal sealed partial class CounterWindow
                     };
                     button.Click += async (_, _) =>
                     {
-                        if (_busy || !Confirm(entry.Name, entry.Version, entry.Author, entry.Permissions, entry.TierValue)) return;
+                        if (_busy || !Confirm(entry.Name, entry.Version, entry.Permissions, entry.TierValue)) return;
                         // Immediate feedback while the file is downloaded and checked.
                         button.Enabled = false;
                         button.Glyph = PillGlyph.None;
@@ -261,7 +261,7 @@ internal sealed partial class CounterWindow
                         await InstallFromCatalog(entry);
                         if (!IsDisposed) Rebuild();   // back to "Installé" (or to "Installer" after an error)
                     };
-                    _list.Controls.Add(Row(entry.Name, entry.Version, $"{TierText(entry.TierValue)} · par {entry.Author}", TierColor(entry.TierValue), entry.Description, button));
+                    _list.Controls.Add(Row(entry.Name, entry.Version, TierText(entry.TierValue), TierColor(entry.TierValue), entry.Description, button));
                 }
             }
             _list.ResumeLayout(true);

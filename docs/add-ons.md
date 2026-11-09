@@ -1,7 +1,7 @@
 # Add-ons
 
 Cette page décrit le système d'add-ons du point de vue du code de TrackChest. Pour **écrire** un add-on, voir
-[Créer un add-on](creer-un-addon.md) (le même guide, avec un générateur de manifeste, est publié avec le catalogue :
+[Créer un add-on](creer-un-addon.md) (le générateur de manifeste est publié avec le catalogue :
 <https://trackchest-addons.pages.dev/>, c'est là qu'on propose un add-on). Pour **publier** le catalogue, voir
 [addons-registry/README.md](../addons-registry/README.md).
 
@@ -22,7 +22,6 @@ plus.
   "id": "stats-detail",
   "name": "Statistiques détaillées",
   "version": "1.0.0",
-  "author": "TrackChest",
   "description": "Ajoute à l'overlay les coffres cassés, les coffres d'esprit, les cartes Wanted et les canons à butin.",
   "permissions": ["stats.read", "overlay.rows"],
   "counters": [
@@ -72,7 +71,7 @@ Au plus 10 lignes d'add-ons sont affichées en tout. Un seul thème est actif : 
 | Communauté | catalogue signé, non relu | avertissement à l'installation |
 | Local | fichier choisi par le joueur (**Ajouter un fichier…**) | avertissement fort |
 
-Avant toute installation, une fenêtre affiche le nom, la version, l'auteur, le niveau et les permissions.
+Avant toute installation, une fenêtre affiche le nom, la version, le niveau de confiance et les permissions.
 
 ### Catalogue signé (`AddonStore.cs`)
 

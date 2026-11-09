@@ -35,7 +35,6 @@ UTF-8 **sans BOM**. Le nom du dossier est identique à l'`id`.
   "id": "mon-compteur",
   "name": "Mon compteur",
   "version": "1.0.0",
-  "author": "TonPseudo",
   "description": "Affiche mes coffres cassés et mes canons à butin.",
   "permissions": ["stats.read", "overlay.rows"],
   "counters": [
@@ -53,7 +52,6 @@ UTF-8 **sans BOM**. Le nom du dossier est identique à l'`id`.
   "id": "mon-theme",
   "name": "Mon thème",
   "version": "1.0.0",
-  "author": "TonPseudo",
   "description": "Un overlay rouge sombre.",
   "permissions": ["overlay.theme"],
   "theme": {
@@ -74,7 +72,6 @@ UTF-8 **sans BOM**. Le nom du dossier est identique à l'`id`.
 | `id` | 3 à 40 caractères : minuscules, chiffres et tirets (`mon-addon`). Unique dans le catalogue |
 | `name` | 1 à 40 caractères |
 | `version` | format `1.0.0`. Augmente-la à chaque modification, sinon les joueurs ne voient pas de mise à jour |
-| `author` | 1 à 40 caractères |
 | `description` | 200 caractères maximum |
 | `permissions` | la liste de ce que l'add-on utilise (voir ci-dessous). Une permission inutilisée est refusée |
 | `counters` | jusqu'à 8 compteurs (facultatif) |
@@ -136,7 +133,7 @@ Copie le dépôt du catalogue sur ton PC, puis, dans son dossier :
 
 | Commande | Effet |
 |---|---|
-| `.\scripts\addon.ps1 nouveau mon-addon` | crée `addons\mon-addon\manifest.json` à remplir (`-Type theme` pour un thème, `-Auteur` pour ton pseudo) |
+| `.\scripts\addon.ps1 nouveau mon-addon` | crée `addons\mon-addon\manifest.json` à remplir (`-Type theme` pour un thème) |
 | `.\scripts\addon.ps1 verifier [mon-addon]` | affiche toutes les erreurs d'un add-on (ou de tous) : clé inconnue, couleur invalide, fichier en trop… |
 | `.\scripts\addon.ps1 empaqueter mon-addon` | crée `dist\mon-addon-1.0.0.zip` ; avec `-Exe chemin\TrackChest.exe`, applique aussi le contrôle de TrackChest |
 | `.\scripts\addon.ps1 aide` | liste des commandes |
