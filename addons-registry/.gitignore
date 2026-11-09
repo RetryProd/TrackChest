@@ -1,0 +1,3 @@
+# Ne jamais publier la clé privée de signature.
+*.key
+!addon-public.key

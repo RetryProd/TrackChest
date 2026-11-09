@@ -1,0 +1,20 @@
+# Compilation
+**/bin/
+**/obj/
+dist/
+
+# Parties enregistrées par Fortnite : elles contiennent les pseudos d'autres joueurs
+*.replay
+
+# Clés de signature du catalogue : seule la clé publique est versionnée
+*.key
+!assets/addon-public.key
+!addons-registry/addon-public.key
+
+# Catalogue d'add-ons construit (généré par Build-Index.ps1)
+addons-registry/site/*
+!addons-registry/site/.gitkeep
+
+# Outils et fichiers temporaires
+.wrangler/
+*.tmp

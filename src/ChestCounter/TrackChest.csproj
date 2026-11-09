@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <OutputType>WinExe</OutputType>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>TrackChest</AssemblyName>
+    <RootNamespace>ChestCounter</RootNamespace>
+    <PublishTrimmed>false</PublishTrimmed>
+    <ApplicationIcon>..\..\assets\TrackChest.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\assets\TrackChest.ico" LogicalName="TrackChest.ico" />
+    <!-- Public key of the add-on catalog (made by the addon-keygen option) and its default address: optional files. -->
+    <EmbeddedResource Include="..\..\assets\addon-public.key" LogicalName="addon-public.key" Condition="Exists('..\..\assets\addon-public.key')" />
+    <EmbeddedResource Include="..\..\assets\addon-catalog.txt" LogicalName="addon-catalog.txt" Condition="Exists('..\..\assets\addon-catalog.txt')" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\lib\FortniteReplayReader\FortniteReplayReader.csproj" />
+  </ItemGroup>
+</Project>

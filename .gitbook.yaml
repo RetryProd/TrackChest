@@ -1,0 +1,7 @@
+# Configuration de GitBook (Git Sync). La documentation part de la racine du dépôt :
+# README.md est la page d'accueil et SUMMARY.md le sommaire.
+root: ./
+
+structure:
+  readme: README.md
+  summary: SUMMARY.md
