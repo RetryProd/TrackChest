@@ -30,15 +30,15 @@ $text = [IO.File]::ReadAllText($csproj)
 [IO.File]::WriteAllText($csproj, [regex]::Replace($text, '<Version>[^<]*</Version>', "<Version>$Version</Version>"), (New-Object Text.UTF8Encoding($false)))
 
 # 2. Compilation
-if (Test-Path -LiteralPath $release) { Remove-Item -LiteralPath $release -Recurse -Force }
-New-Item -ItemType Directory -Path $release | Out-Null
+New-Item -ItemType Directory -Path $release -Force | Out-Null
+Get-ChildItem -LiteralPath $release | Remove-Item -Recurse -Force
 $dist = Join-Path $release 'build'
 & (Join-Path $root 'Construire.ps1') -Sortie $dist
 if ($LASTEXITCODE -ne 0) { throw 'La compilation a échoué.' }
 
 # 3. .msi
 $msi = Join-Path $release "TrackChest-$Version.msi"
-& $wix build (Join-Path $root 'installer\TrackChest.wxs') -d "Version=$Version" -d "Source=$dist" -d "Assets=$(Join-Path $root 'assets')" -arch x64 -o $msi
+& $wix build (Join-Path $root 'installer\TrackChest.wxs') -d "Version=$Version" -d "Source=$dist" -d "Assets=$(Join-Path $root 'assets')" -arch x64 -ext WixToolset.UI.wixext -culture fr-FR -o $msi
 if ($LASTEXITCODE -ne 0) { throw 'La fabrication du .msi a échoué.' }
 
 # 4. .zip portable avec le fonctionnement (LISEZMOI.txt)

@@ -2,7 +2,7 @@
 <!-- Installateur de TrackChest (WiX). Installation pour l'utilisateur courant : aucun droit administrateur requis.
      Variables : Version (x.y.z), Assets (dossier assets) et Source (dossier qui contient TrackChest.exe), données par Publier-Version.ps1.
      Ne change jamais UpgradeCode : c'est lui qui permet à une nouvelle version de remplacer l'ancienne. -->
-<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
   <Package Name="TrackChest" Manufacturer="TrackChest" Version="$(Version)" Language="1036" Codepage="65001"
            Scope="perUser" UpgradeCode="6B3E2C5A-91D4-4F7A-8C0E-5D2A7B91F3E4" InstallerVersion="500">
     <SummaryInformation Description="Compteur de coffres Fortnite" />
@@ -11,6 +11,14 @@
 
     <Icon Id="TrackChest.ico" SourceFile="$(Assets)\TrackChest.ico" />
     <Property Id="ARPPRODUCTICON" Value="TrackChest.ico" />
+    <WixVariable Id="WixUILicenseRtf" Value="$(Assets)\..\installer\License.rtf" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Lancer TrackChest" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+    <CustomAction Id="LaunchApp" FileRef="TrackChestExe" ExeCommand="" Return="asyncNoWait" Impersonate="yes" />
+    <ui:WixUI Id="WixUI_Minimal" />
+    <UI>
+      <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchApp" Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed" />
+    </UI>
     <Property Id="ARPURLINFOABOUT" Value="https://github.com/RetryProd/TrackChest" />
 
     <StandardDirectory Id="LocalAppDataFolder">

@@ -10,6 +10,8 @@ if (-not (& $sdk --list-sdks | Where-Object { $_ -match '^10\.' })) {
 
 $project = Join-Path $PSScriptRoot 'src\ChestCounter\TrackChest.csproj'
 $output = $Sortie
+# Repart de zéro : si l'horloge du PC a reculé, MSBuild croit les anciens fichiers à jour et garde l'ancienne version.
+Remove-Item -LiteralPath (Join-Path $PSScriptRoot 'src\ChestCounter\obj') -Recurse -Force -ErrorAction SilentlyContinue
 & $sdk publish $project -c Release -r win-x64 --self-contained true `
     -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
     -p:EnableCompressionInSingleFile=true -p:DebugType=none -o $output
