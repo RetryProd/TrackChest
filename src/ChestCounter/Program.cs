@@ -34,6 +34,7 @@ internal static class Program
                     case "--watch-fortnite": watchFortnite = true; break;
                     case "--fortnite-auto": launchedByFortnite = true; break;
                     case "--help" or "-h": help = true; break;
+                    case "--update-check": return UpdateCheck(args);
                     case "--addon-keygen" or "--addon-sign" or "--addon-verify" or "--addon-check":
                         return AddonTools.Run(args);
                     default: throw new ArgumentException($"Option invalide ou incomplète. {args[i]}");
@@ -105,6 +106,24 @@ internal static class Program
             if (args.Length > 0 && !once && preview == null) NativeConsole.Ensure(attachToParent: true);
             if (args.Length > 0) Console.Error.WriteLine(ex.Message);
             else MessageBox.Show(ex.Message, "TrackChest", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return 1;
+        }
+    }
+
+    /// <summary>--update-check [version] : tells what the updater sees; the optional version pretends to be an older app.</summary>
+    private static int UpdateCheck(string[] args)
+    {
+        NativeConsole.Ensure(attachToParent: true);
+        Console.OutputEncoding = Encoding.UTF8;
+        try
+        {
+            var update = Updater.CheckAsync(args.Length > 1 ? Version.Parse(args[1]) : null).GetAwaiter().GetResult();
+            Console.WriteLine(update == null ? $"À jour (version {Updater.CurrentText})." : $"Mise à jour disponible : {update.Version} (taille {update.Size}).");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Échec : {ex.GetType().Name} : {ex.Message}");
             return 1;
         }
     }

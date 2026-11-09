@@ -36,7 +36,7 @@ internal static class Updater
     public static string CurrentText => $"{Current.Major}.{Current.Minor}.{Current.Build}";
 
     /// <summary>The newer release, or null when this version is the latest. Throws when the check cannot be trusted.</summary>
-    public static async Task<UpdateInfo?> CheckAsync(CancellationToken cancel = default)
+    public static async Task<UpdateInfo?> CheckAsync(Version? pretendCurrent = null, CancellationToken cancel = default)
     {
         if (!AddonTrust.IsConfigured) throw new InvalidOperationException("Mises à jour désactivées : la clé de signature n’est pas intégrée à cette version.");
         var json = await GetBytesAsync(LatestBase + "update.json", 16 * 1024, cancel);
@@ -51,7 +51,7 @@ internal static class Updater
         var size = root.GetProperty("size").GetInt64();
         if (sha.Length != 64 || !sha.All(Uri.IsHexDigit) || size <= 0 || size > MaxMsiBytes)
             throw new InvalidOperationException("Informations de mise à jour invalides.");
-        if (version <= Current) return null;
+        if (version <= (pretendCurrent ?? Current)) return null;
         var notes = root.TryGetProperty("notes", out var n) ? (n.GetString() ?? "") : "";
         return new UpdateInfo(version, notes.Length > 600 ? notes[..600] : notes, sha.ToUpperInvariant(), size);
     }
