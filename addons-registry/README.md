@@ -71,6 +71,16 @@ Rien de tout cela ne dépend d'un serveur : tout est des fichiers statiques.
 # 3. Publication : commit + push du dossier site/
 ```
 
+Les trois étapes (construction, signature, publication sur Cloudflare) sont regroupées dans une commande :
+
+```powershell
+.\scripts\addon.ps1 publier -Exe C:\chemin\vers\TrackChest.exe
+```
+
+Elle contrôle les add-ons, demande confirmation, construit le catalogue, le signe avec
+`%USERPROFILE%\TrackChest-cles\addon-private.key` (option `-Cle` pour un autre emplacement), vérifie la signature,
+puis publie le dossier `site` avec `wrangler`. Il faut être connecté à Cloudflare (`npx wrangler login`).
+
 Vérifie quand tu veux un add-on ou une signature :
 
 ```powershell
@@ -82,10 +92,20 @@ Pour changer un add-on déjà publié, **augmente sa `version`** (sinon les joue
 
 ## Proposer un add-on (auteurs)
 
-1. Crée `addons/mon-addon/manifest.json` (le nom du dossier est égal à `id` ; le dossier ne contient que ce fichier,
-   enregistré en UTF-8 **sans BOM**, éventuellement un `README.md`).
-2. Lance `.\scripts\Validate-Addon.ps1 -Id mon-addon`.
-3. Ouvre une pull request.
+Le point d'entrée est le site du catalogue (<https://trackchest-addons.pages.dev/>) : son **générateur** construit et
+vérifie le `manifest.json`, puis le bouton **Proposer sur GitHub** ouvre une page GitHub avec le fichier prérempli.
+GitHub propose de copier le dépôt (« fork ») et d'ouvrir la pull request.
+
+Pour travailler sur son PC, la commande `addon.ps1` fait le reste :
+
+```powershell
+.\scripts\addon.ps1 nouveau mon-addon      # crée addons\mon-addon\manifest.json à remplir
+.\scripts\addon.ps1 verifier mon-addon     # affiche toutes les erreurs
+.\scripts\addon.ps1 empaqueter mon-addon   # crée dist\mon-addon-1.0.0.zip, à essayer dans TrackChest
+```
+
+Le nom du dossier est égal à `id`, et le dossier ne contient que `manifest.json` (UTF-8 **sans BOM**), éventuellement
+un `README.md`. Ensuite, ouvrir une pull request.
 
 ## Checklist de relecture (mainteneur)
 
@@ -104,11 +124,13 @@ malveillant ne peut au pire qu'afficher des chiffres ou des couleurs trompeurs, 
 
 ## Guide pour les développeurs d'add-ons
 
-Le guide complet (champs, permissions, compteurs, thème, exemples) est la page `site-src/index.html`. `Build-Index.ps1`
-la publie à la racine du site, avec le schéma `addon.schema.json` pour l'autocomplétion dans VS Code. Le bouton
-**Créer un add-on** de la fenêtre Add-on de TrackChest ouvre cette page. Donne l'adresse de ton dépôt GitHub pour
-qu'elle apparaisse dans le guide :
+Le guide complet (champs, permissions, compteurs, thème, exemples) et le **générateur de manifeste** forment la page
+`site-src/index.html`. `Build-Index.ps1` la publie à la racine du site, avec le schéma `addon.schema.json` pour
+l'autocomplétion dans VS Code. Le bouton **Créer un add-on** de la fenêtre Add-on de TrackChest ouvre cette page.
 
-```powershell
-.\scripts\Build-Index.ps1 -BaseUrl https://trackchest-addons.pages.dev -RepoUrl https://github.com/TON-PSEUDO/trackchest-addons
-```
+Le bouton **Proposer sur GitHub** du générateur utilise l'adresse du dépôt donnée à `Build-Index.ps1` (`-RepoUrl`, par
+défaut `https://github.com/RetryProd/trackchest-addons`). Ce dépôt doit être **public** pour que d'autres puissent le
+copier (« fork ») et proposer des add-ons.
+
+Si une règle de validation change, mets à jour ensemble : `src/ChestCounter/Addons.cs`, `scripts/Validate-Addon.ps1`,
+le générateur de `site-src/index.html` (fonction `validate`) et `site-src/addon.schema.json`.

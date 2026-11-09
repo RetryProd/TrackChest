@@ -4,7 +4,7 @@
 #
 # Usage : ./scripts/Build-Index.ps1 -BaseUrl https://mon-catalogue.pages.dev
 #         -RepoUrl (facultatif) : l'adresse du dépôt GitHub, affichée dans le guide développeur.
-param([Parameter(Mandatory)][string]$BaseUrl, [string]$RepoUrl = '')
+param([Parameter(Mandatory)][string]$BaseUrl, [string]$RepoUrl = 'https://github.com/RetryProd/trackchest-addons')
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
@@ -27,7 +27,9 @@ Remove-Item -LiteralPath (Join-Path $site 'index.json'), (Join-Path $site 'index
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 $repoLink = ''
 if ($RepoUrl -match '^https://') { $repoLink = " (<a href=`"$RepoUrl`">$RepoUrl</a>)" }
-$page = [System.IO.File]::ReadAllText((Join-Path $root 'site-src\index.html'), $utf8).Replace('{{REPO_LINK}}', $repoLink)
+$repoValue = ''
+if ($RepoUrl -match '^https://') { $repoValue = $RepoUrl.TrimEnd('/') }
+$page = [System.IO.File]::ReadAllText((Join-Path $root 'site-src\index.html'), $utf8).Replace('{{REPO_LINK}}', $repoLink).Replace('{{REPO_URL}}', $repoValue)
 [System.IO.File]::WriteAllText((Join-Path $site 'index.html'), $page, $utf8)
 Copy-Item -LiteralPath (Join-Path $root 'site-src\addon.schema.json') -Destination (Join-Path $site 'addon.schema.json') -Force
 

@@ -1,8 +1,8 @@
 # Add-ons
 
 Cette page décrit le système d'add-ons du point de vue du code de TrackChest. Pour **écrire** un add-on, voir
-[Créer un add-on](creer-un-addon.md) (le même guide est publié avec le catalogue :
-<https://trackchest-addons.pages.dev/>). Pour **publier** le catalogue, voir
+[Créer un add-on](creer-un-addon.md) (le même guide, avec un générateur de manifeste, est publié avec le catalogue :
+<https://trackchest-addons.pages.dev/>, c'est là qu'on propose un add-on). Pour **publier** le catalogue, voir
 [addons-registry/README.md](../addons-registry/README.md).
 
 ## Principe : des données, jamais du code
@@ -47,8 +47,10 @@ La référence complète des champs est dans le guide développeur et dans le sc
 | Valeurs | `metric`, `scope`, permissions et couleurs prises dans des listes fixes |
 | Cohérence | chaque fonction demande sa permission, et chaque permission doit servir |
 
-Les mêmes règles sont appliquées par `addons-registry/scripts/Validate-Addon.ps1` (dépôt du catalogue) et par
-`TrackChest.exe --addon-check`. Si une règle change, modifie les trois.
+Les mêmes règles sont appliquées par `addons-registry/scripts/Validate-Addon.ps1` (dépôt du catalogue), par
+`TrackChest.exe --addon-check` et par le générateur de manifeste de la page du site
+(`addons-registry/site-src/index.html`, fonction `validate`). Si une règle change, modifie les quatre, ainsi que
+`addon.schema.json`.
 
 ### Permissions
 
@@ -124,11 +126,11 @@ Résumé (procédure complète dans [addons-registry/README.md](../addons-regist
 # une seule fois : clés, puis clé publique et adresse dans assets\, puis recompilation
 .\dist\TrackChest.exe --addon-keygen "$env:USERPROFILE\TrackChest-cles"
 
-# à chaque mise à jour, dans le dépôt du catalogue
-.\scripts\Build-Index.ps1 -BaseUrl https://trackchest-addons.pages.dev
-Start-Process -Wait -NoNewWindow <chemin>\TrackChest.exe -ArgumentList '--addon-sign', 'site\index.json', "$env:USERPROFILE\TrackChest-cles\addon-private.key"
-npx wrangler pages deploy site --project-name trackchest-addons --branch production
+# à chaque mise à jour, dans le dépôt du catalogue : contrôle, construction, signature, publication
+.\scripts\addon.ps1 publier -Exe <chemin>\TrackChest.exe
 ```
+
+`addon.ps1 publier` enchaîne `Build-Index.ps1`, `TrackChest.exe --addon-sign` et `wrangler pages deploy`.
 
 Si la clé privée est perdue, il faut créer une nouvelle paire, mettre la nouvelle clé publique dans `assets\`, publier
 une nouvelle version de TrackChest et signer le catalogue avec la nouvelle clé. Si elle fuit, il faut faire la même

@@ -6,6 +6,22 @@ code : il n'y a rien à programmer, seulement un fichier JSON à remplir.
 TrackChest valide lui-même chaque add-on. Un add-on ne peut ni lancer un programme, ni lire des fichiers, ni utiliser
 Internet : il ne peut faire que ce qu'il déclare dans ses `permissions`, que le joueur voit avant d'installer.
 
+## Le plus rapide
+
+Il y a deux façons de créer un add-on :
+
+- **Le générateur du site** : <https://trackchest-addons.pages.dev/>. Tu remplis un formulaire, le `manifest.json` se
+  construit et se vérifie en direct, puis le bouton **Proposer sur GitHub** envoie ton add-on au mainteneur (voir
+  [Proposer son add-on](#4-proposer-son-add-on)). Aucun outil à installer.
+- **La commande `addon.ps1`**, pour développer sur ton PC (voir [Développer avec la commande
+  addon.ps1](#3-développer-avec-la-commande-addonps1)) :
+
+  ```powershell
+  .\scripts\addon.ps1 nouveau mon-addon      # crée le fichier à remplir
+  .\scripts\addon.ps1 verifier mon-addon     # affiche les erreurs
+  .\scripts\addon.ps1 empaqueter mon-addon   # crée un .zip à essayer dans TrackChest
+  ```
+
 ## 1. Le fichier manifest.json
 
 Dans le dépôt du catalogue, crée un dossier `addons/mon-addon/` avec un seul fichier, `manifest.json`, enregistré en
@@ -114,16 +130,20 @@ Toutes les couleurs sont facultatives, au format `#RRGGBB`. Une couleur absente 
 
 Un seul thème est actif à la fois : en activer un désactive l'autre.
 
-## 3. Vérifier son add-on
+## 3. Développer avec la commande addon.ps1
 
-Dans le dépôt du catalogue :
+Copie le dépôt du catalogue sur ton PC, puis, dans son dossier :
 
-```powershell
-.\scripts\Validate-Addon.ps1 -Id mon-addon
-```
+| Commande | Effet |
+|---|---|
+| `.\scripts\addon.ps1 nouveau mon-addon` | crée `addons\mon-addon\manifest.json` à remplir (`-Type theme` pour un thème, `-Auteur` pour ton pseudo) |
+| `.\scripts\addon.ps1 verifier [mon-addon]` | affiche toutes les erreurs d'un add-on (ou de tous) : clé inconnue, couleur invalide, fichier en trop… |
+| `.\scripts\addon.ps1 empaqueter mon-addon` | crée `dist\mon-addon-1.0.0.zip` ; avec `-Exe chemin\TrackChest.exe`, applique aussi le contrôle de TrackChest |
+| `.\scripts\addon.ps1 aide` | liste des commandes |
 
-Le script affiche toutes les erreurs : clé inconnue, couleur invalide, fichier en trop (un add-on ne contient que
-`manifest.json`), etc. TrackChest refait les mêmes contrôles à l'installation.
+TrackChest refait les mêmes contrôles à l'installation.
+
+La commande `publier` est réservée au mainteneur : elle construit, signe et publie le catalogue.
 
 Pour vérifier un paquet déjà construit :
 
@@ -141,15 +161,19 @@ réglages :
 ]
 ```
 
-Pour essayer ton add-on avant de le proposer, construis le catalogue en local
-(`.\scripts\Build-Index.ps1 -BaseUrl https://exemple.invalid`), puis installe le `.zip` produit dans `site\` avec
-**Add-on → Ajouter un fichier…**. Il apparaît comme « Local, non vérifié ».
+Pour **essayer** ton add-on avant de le proposer, installe le `.zip` créé par `empaqueter` avec **Add-on → Ajouter un
+fichier…** dans TrackChest. Il apparaît comme « Local, non vérifié ».
 
 ## 4. Proposer son add-on
 
-1. Copie (« fork ») le dépôt GitHub du catalogue.
-2. Ajoute ton dossier `addons/mon-addon/manifest.json`.
-3. Ouvre une **pull request**. Les contrôles automatiques se lancent et indiquent ce qui ne va pas.
+Le point d'entrée est le site du catalogue : <https://trackchest-addons.pages.dev/>.
+
+1. Utilise le **générateur** du site, ou écris ton `manifest.json` toi-même. Quand le fichier est valide, clique sur
+   **Proposer sur GitHub**. Si tu as écrit le fichier toi-même, colle son contenu dans GitHub sous le nom
+   `addons/mon-addon/manifest.json`.
+2. GitHub te propose de copier le dépôt (« fork ») puis d'ouvrir une **pull request** : valide. Il faut un compte
+   GitHub.
+3. Les contrôles automatiques se lancent sur ta proposition et indiquent ce qui ne va pas.
 4. Le mainteneur relit ton manifeste, l'accepte et publie le catalogue. Les joueurs le voient ensuite dans
    **Add-on → Actualiser**.
 

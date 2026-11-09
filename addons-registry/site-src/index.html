@@ -26,6 +26,32 @@
   td:first-child { white-space: nowrap; }
   .note { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--gold); border-radius: 10px; padding: 12px 16px; margin: 1rem 0; color: var(--soft); }
   ol li, ul li { margin: .25rem 0; }
+
+  /* Générateur de manifeste */
+  .gen { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin: 1rem 0; }
+  .gen label { display: block; color: var(--muted); font-size: .8rem; font-weight: 600; margin: 0 0 4px; }
+  .gen input[type=text], .gen select { width: 100%; background: #0a0c11; color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 9px 11px; font: inherit; font-size: .93rem; }
+  .gen input:focus, .gen select:focus { outline: 2px solid rgba(255,200,96,.45); border-color: transparent; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid3 { display: grid; grid-template-columns: 2fr 1.4fr 1fr auto; gap: 10px; align-items: end; margin-bottom: 10px; }
+  .grid-theme { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+  .field { margin-bottom: 14px; }
+  .checks { display: flex; gap: 22px; flex-wrap: wrap; margin: 4px 0 16px; }
+  .checks label { display: flex; gap: 8px; align-items: center; color: var(--soft); font-size: .95rem; margin: 0; cursor: pointer; }
+  .color { display: flex; align-items: center; gap: 8px; background: #0a0c11; border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; }
+  .color span { flex: 1; font-size: .85rem; color: var(--soft); }
+  .color input[type=color] { width: 34px; height: 26px; border: 0; background: none; padding: 0; cursor: pointer; }
+  .btn { font: inherit; font-size: .93rem; font-weight: 600; border-radius: 10px; border: 1px solid var(--border); background: #161b26; color: var(--text); padding: 9px 16px; cursor: pointer; text-decoration: none; display: inline-block; }
+  .btn:hover { border-color: #3a4152; }
+  .btn.primary { background: var(--text); color: #07090e; border-color: var(--text); }
+  .btn[aria-disabled=true], .btn:disabled { opacity: .45; pointer-events: none; }
+  .btn.small { padding: 6px 12px; font-size: .85rem; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .errors { color: #ff8a8a; font-size: .9rem; margin: 10px 0 0; padding-left: 18px; }
+  .errors:empty { display: none; }
+  .ok { color: var(--soft); font-size: .9rem; margin-top: 10px; }
+  .hidden { display: none !important; }
+  @media (max-width: 640px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -34,6 +60,47 @@
   <p class="lead">Un add-on ajoute des <strong>compteurs</strong> et/ou un <strong>thème</strong> à l'overlay de TrackChest. C'est un fichier de données, jamais du code : il n'y a rien à programmer, juste un fichier JSON à remplir.</p>
 
   <div class="note">TrackChest valide lui-même chaque add-on. Un add-on ne peut ni lancer un programme, ni lire des fichiers, ni utiliser Internet : il ne peut faire que ce qu'il déclare dans ses <code>permissions</code>, que le joueur voit avant d'installer.</div>
+
+  <h2>Générer et proposer mon add-on</h2>
+  <p>Remplis le formulaire : le fichier <code>manifest.json</code> se construit et se vérifie en direct. Quand il est valide, <strong>Proposer sur GitHub</strong> ouvre une page GitHub avec le fichier déjà rempli. GitHub te propose de copier le dépôt (« fork ») et d'ouvrir une <em>pull request</em> en un clic : c'est ainsi que tu postes ton add-on. Il faut un compte GitHub.</p>
+
+  <div class="gen" id="gen">
+    <div class="checks">
+      <label><input type="checkbox" id="useCounters" checked> Ajouter des compteurs</label>
+      <label><input type="checkbox" id="useTheme"> Ajouter un thème</label>
+    </div>
+
+    <div class="grid2">
+      <div class="field"><label for="f-id">Identifiant (id)</label><input type="text" id="f-id" placeholder="mon-addon" maxlength="40" autocomplete="off" spellcheck="false"></div>
+      <div class="field"><label for="f-name">Nom affiché</label><input type="text" id="f-name" placeholder="Mon add-on" maxlength="40" autocomplete="off"></div>
+      <div class="field"><label for="f-version">Version</label><input type="text" id="f-version" value="1.0.0" maxlength="14" autocomplete="off"></div>
+      <div class="field"><label for="f-author">Auteur</label><input type="text" id="f-author" placeholder="TonPseudo" maxlength="40" autocomplete="off"></div>
+    </div>
+    <div class="field"><label for="f-desc">Description (200 caractères maximum)</label><input type="text" id="f-desc" placeholder="Affiche mes coffres de la session." maxlength="200" autocomplete="off"></div>
+
+    <div id="countersBox">
+      <h3>Compteurs</h3>
+      <div id="counterRows"></div>
+      <button type="button" class="btn small" id="addCounter">+ Ajouter un compteur</button>
+    </div>
+
+    <div id="themeBox" class="hidden">
+      <h3>Thème</h3>
+      <p class="lead" style="margin-top:0">Coche une couleur pour la changer. Les autres gardent l'aspect d'origine.</p>
+      <div class="grid-theme" id="themeFields"></div>
+    </div>
+
+    <h3>manifest.json</h3>
+    <pre><code id="out"></code></pre>
+    <ul class="errors" id="errors"></ul>
+    <p class="ok" id="okMsg"></p>
+
+    <div class="actions">
+      <a class="btn primary" id="btnGithub" href="#" target="_blank" rel="noopener" aria-disabled="true">Proposer sur GitHub</a>
+      <button type="button" class="btn" id="btnCopy" disabled>Copier le JSON</button>
+      <button type="button" class="btn" id="btnDownload" disabled>Télécharger manifest.json</button>
+    </div>
+  </div>
 
   <h2>1. Le fichier manifest.json</h2>
   <p>Crée un dossier <code>addons/mon-addon/</code> avec un seul fichier, <code>manifest.json</code> (enregistré en UTF-8 <strong>sans BOM</strong>). Le nom du dossier est identique à l'<code>id</code>.</p>
@@ -128,10 +195,13 @@
   </table>
   <p>Un seul thème est actif à la fois : en activer un désactive l'autre.</p>
 
-  <h2>3. Vérifier son add-on</h2>
-  <p>Dans le dépôt du catalogue :</p>
-<pre><code>.\scripts\Validate-Addon.ps1 -Id mon-addon</code></pre>
-  <p>Le script affiche toutes les erreurs : clé inconnue, couleur invalide, fichier en trop (un add-on ne contient que <code>manifest.json</code>), etc. TrackChest refait les mêmes contrôles à l'installation.</p>
+  <h2>3. Développer avec la commande addon.ps1</h2>
+  <p>Pour travailler sur ton ordinateur, copie le dépôt du catalogue{{REPO_LINK}} et utilise la commande <code>addon.ps1</code> dans le dossier du dépôt :</p>
+<pre><code>.\scripts\addon.ps1 nouveau mon-addon              # crée addons\mon-addon\manifest.json à remplir
+.\scripts\addon.ps1 nouveau mon-theme -Type theme  # idem, avec un modèle de thème
+.\scripts\addon.ps1 verifier mon-addon             # affiche toutes les erreurs
+.\scripts\addon.ps1 empaqueter mon-addon           # crée dist\mon-addon-1.0.0.zip</code></pre>
+  <p>Pour <strong>essayer</strong> ton add-on avant de le proposer : dans TrackChest, <strong>Add-on → Ajouter un fichier…</strong> et choisis le <code>.zip</code> créé par <code>empaqueter</code>. Il apparaît comme « Local, non vérifié ». Les contrôles affichent : clé inconnue, couleur invalide, fichier en trop (un add-on ne contient que <code>manifest.json</code>), etc. TrackChest refait les mêmes contrôles à l'installation.</p>
 
   <p>Dans VS Code, le schéma <a href="addon.schema.json">addon.schema.json</a> donne l'autocomplétion et les erreurs pendant que tu écris. Ajoute dans tes réglages :</p>
 <pre><code>"json.schemas": [
@@ -140,9 +210,9 @@
 
   <h2>4. Proposer son add-on</h2>
   <ol>
-    <li>Copie (« fork ») le dépôt GitHub du catalogue{{REPO_LINK}}.</li>
-    <li>Ajoute ton dossier <code>addons/mon-addon/manifest.json</code>.</li>
-    <li>Ouvre une <strong>pull request</strong>. Les contrôles automatiques se lancent et te disent ce qui ne va pas.</li>
+    <li>Utilise le <a href="#gen">générateur en haut de cette page</a> et clique sur <strong>Proposer sur GitHub</strong>. Si tu as écrit le fichier toi-même, colle son contenu dans GitHub sous le nom <code>addons/mon-addon/manifest.json</code>.</li>
+    <li>GitHub te propose de copier le dépôt (« fork ») puis d'ouvrir une <strong>pull request</strong> : valide.</li>
+    <li>Les contrôles automatiques se lancent sur ta proposition et te disent ce qui ne va pas.</li>
     <li>Le mainteneur relit ton manifeste (il est court), l'accepte et publie le catalogue. Les joueurs le voient ensuite dans <strong>Add-on → Actualiser</strong>.</li>
   </ol>
 
@@ -155,5 +225,158 @@
   </table>
   <p>Le catalogue est signé : tout fichier modifié après publication est refusé par TrackChest, et un add-on dangereux peut être révoqué à distance.</p>
 </main>
+
+<script>
+(function () {
+  var REPO = '{{REPO_URL}}';
+  if (REPO.indexOf('{{') === 0) REPO = '';
+  REPO = REPO.replace(/\/+$/, '');
+
+  var METRICS = [['chests', 'Total (coffres + canons)'], ['opened', 'Coffres ouverts'], ['destroyed', 'Coffres cassés'],
+                 ['sprites', 'Coffres d’esprit'], ['wanted', 'Cartes Wanted'], ['cannons', 'Canons à butin'],
+                 ['treasures', 'Trésors'], ['matches', 'Parties']];
+  var SCOPES = [['total', 'Toutes les parties'], ['session', 'Session'], ['last', 'Dernière partie']];
+  var THEME = [['background', 'Fond', '#090C12'], ['border', 'Bordure', '#242933'], ['line', 'Séparateurs', '#1A1E27'],
+               ['muted', 'Textes secondaires', '#94A3B8'], ['text', 'Texte principal', '#F8FAFC'],
+               ['accent', 'Total et badge', '#FFC860'], ['treasure', 'Ligne Trésors', '#C4A0FF']];
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, attrs, children) {
+    var e = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (k) { if (k === 'text') e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]); });
+    (children || []).forEach(function (c) { e.appendChild(c); });
+    return e;
+  }
+  function select(options, value) {
+    var s = el('select');
+    options.forEach(function (o) { var opt = el('option', { value: o[0], text: o[1] }); if (o[0] === value) opt.selected = true; s.appendChild(opt); });
+    return s;
+  }
+  function field(label, control) { return el('div', {}, [el('label', { text: label }), control]); }
+
+  var touched = false;
+  var counterRows = $('counterRows');
+
+  function addCounter(preset) {
+    preset = preset || { label: '', metric: 'chests', scope: 'session', showLast: false };
+    var label = el('input', { type: 'text', maxlength: '24', placeholder: 'Coffres session', autocomplete: 'off' });
+    label.value = preset.label;
+    var metric = select(METRICS, preset.metric);
+    var scope = select(SCOPES, preset.scope);
+    var remove = el('button', { type: 'button', class: 'btn small', text: 'Retirer', 'aria-label': 'Retirer ce compteur' });
+    var last = el('input', { type: 'checkbox' });
+    last.checked = preset.showLast;
+    var row = el('div', { class: 'counter' }, [
+      el('div', { class: 'grid3' }, [field('Texte de la ligne', label), field('Ce qu’on compte', metric), field('Sur', scope), remove]),
+      el('label', { style: 'display:flex;gap:8px;align-items:center;color:var(--soft);font-size:.88rem;margin:-2px 0 14px;cursor:pointer' },
+        [last, document.createTextNode('Ajouter « · n dernière partie » (avec « Toutes les parties »)')])
+    ]);
+    row._get = function () { return { label: label.value.trim(), metric: metric.value, scope: scope.value, showLast: last.checked }; };
+    remove.addEventListener('click', function () { row.remove(); touched = true; refresh(); });
+    row.addEventListener('input', function () { touched = true; refresh(); });
+    row.addEventListener('change', function () { touched = true; refresh(); });
+    counterRows.appendChild(row);
+  }
+
+  var themeInputs = {};
+  THEME.forEach(function (t) {
+    var use = el('input', { type: 'checkbox', 'aria-label': 'Changer ' + t[1] });
+    var color = el('input', { type: 'color' });
+    color.value = t[2].toLowerCase();
+    var box = el('div', { class: 'color' }, [use, el('span', { text: t[1] }), color]);
+    themeInputs[t[0]] = { use: use, color: color };
+    box.addEventListener('input', function (ev) { if (ev.target === color) use.checked = true; touched = true; refresh(); });
+    box.addEventListener('change', function () { touched = true; refresh(); });
+    $('themeFields').appendChild(box);
+  });
+
+  function build() {
+    var m = { schema: 1, id: $('f-id').value.trim(), name: $('f-name').value.trim(), version: $('f-version').value.trim(),
+              author: $('f-author').value.trim(), description: $('f-desc').value.trim(), permissions: [] };
+    var useCounters = $('useCounters').checked, useTheme = $('useTheme').checked;
+    if (useCounters) { m.permissions.push('stats.read', 'overlay.rows'); m.counters = []; }
+    if (useTheme) m.permissions.push('overlay.theme');
+    if (useCounters) Array.prototype.forEach.call(counterRows.children, function (r) { m.counters.push(r._get()); });
+    if (useTheme) {
+      m.theme = {};
+      THEME.forEach(function (t) { var i = themeInputs[t[0]]; if (i.use.checked) m.theme[t[0]] = i.color.value.toUpperCase(); });
+    }
+    return m;
+  }
+
+  function hasControl(s) { return /[\u0000-\u001f\u007f-\u009f]/.test(s); }
+  function text(s, min, max) { return s.length >= min && s.length <= max && !hasControl(s); }
+
+  // Mêmes règles que TrackChest et Validate-Addon.ps1.
+  function validate(m) {
+    var e = [];
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(m.id) || m.id.length < 3 || m.id.length > 40) e.push('Identifiant : 3 à 40 caractères, minuscules, chiffres et tirets (ex. mon-addon).');
+    if (!text(m.name, 1, 40)) e.push('Nom : 1 à 40 caractères.');
+    if (!/^\d{1,4}\.\d{1,4}\.\d{1,4}$/.test(m.version)) e.push('Version : format 1.0.0.');
+    if (!text(m.author, 1, 40)) e.push('Auteur : 1 à 40 caractères.');
+    if (!text(m.description, 0, 200)) e.push('Description : 200 caractères maximum.');
+    if (!m.counters && !m.theme) e.push('Choisis au moins des compteurs ou un thème.');
+    if (m.counters) {
+      if (m.counters.length === 0) e.push('Ajoute au moins un compteur (ou décoche « Ajouter des compteurs »).');
+      if (m.counters.length > 8) e.push('8 compteurs au maximum.');
+      m.counters.forEach(function (c, i) { if (!text(c.label, 1, 24)) e.push('Compteur ' + (i + 1) + ' : texte de la ligne de 1 à 24 caractères.'); });
+    }
+    if (m.theme && Object.keys(m.theme).length === 0) e.push('Thème : coche au moins une couleur.');
+    return e;
+  }
+
+  var current = null;
+  function refresh() {
+    $('countersBox').classList.toggle('hidden', !$('useCounters').checked);
+    $('themeBox').classList.toggle('hidden', !$('useTheme').checked);
+    var m = build();
+    var json = JSON.stringify(m, null, 2) + '\n';
+    var errors = validate(m);
+    $('out').textContent = json;
+    var list = $('errors');
+    list.textContent = '';
+    if (touched) errors.forEach(function (msg) { list.appendChild(el('li', { text: msg })); });
+    var valid = errors.length === 0;
+    current = valid ? { id: m.id, json: json } : null;
+    $('okMsg').textContent = valid ? 'Manifeste valide. Tu peux le proposer ou le télécharger.' : (touched ? '' : 'Remplis les champs ci-dessus : le fichier se vérifie en direct.');
+    var gh = $('btnGithub');
+    if (valid && REPO) {
+      gh.href = REPO + '/new/main?filename=' + encodeURIComponent('addons/' + m.id + '/manifest.json') + '&value=' + encodeURIComponent(json);
+      gh.setAttribute('aria-disabled', 'false');
+    } else {
+      gh.href = '#';
+      gh.setAttribute('aria-disabled', 'true');
+    }
+    if (!REPO) { gh.classList.add('hidden'); }
+    $('btnCopy').disabled = !valid;
+    $('btnDownload').disabled = !valid;
+  }
+
+  $('btnGithub').addEventListener('click', function (ev) { if (this.getAttribute('aria-disabled') === 'true') ev.preventDefault(); });
+  $('btnCopy').addEventListener('click', function () {
+    if (!current) return;
+    var done = function () { $('okMsg').textContent = 'JSON copié.'; };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(current.json).then(done);
+    else { var ta = el('textarea'); ta.value = current.json; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); }
+  });
+  $('btnDownload').addEventListener('click', function () {
+    if (!current) return;
+    var url = URL.createObjectURL(new Blob([current.json], { type: 'application/json' }));
+    var a = el('a', { href: url, download: 'manifest.json' });
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  });
+  $('addCounter').addEventListener('click', function () {
+    if (counterRows.children.length < 8) addCounter();
+    touched = true; refresh();
+  });
+  ['f-id', 'f-name', 'f-version', 'f-author', 'f-desc', 'useCounters', 'useTheme'].forEach(function (id) {
+    $(id).addEventListener('input', function () { touched = true; refresh(); });
+    $(id).addEventListener('change', function () { touched = true; refresh(); });
+  });
+
+  addCounter();
+  refresh();
+})();
+</script>
 </body>
 </html>
