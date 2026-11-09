@@ -16,6 +16,7 @@
 ## Développer
 
 * [Architecture](docs/architecture.md)
+* [Modifier TrackChest](docs/modifier-trackchest.md)
 * [Compilation](docs/compilation.md)
 * [Contribuer](docs/contribuer.md)
 * [Modifications des bibliothèques](lib/PATCHES.md)
