@@ -14,9 +14,9 @@ scripts tournent dans un bac à sable.
 
 Il y a deux façons de créer un add-on :
 
-- **Le générateur du site** : <https://trackchest-addons.pages.dev/>. Tu remplis un formulaire, le `manifest.json` se
-  construit et se vérifie en direct, puis le bouton **Proposer sur GitHub** envoie ton add-on au mainteneur (voir
-  [Proposer son add-on](#4-proposer-son-add-on)). Aucun outil à installer.
+- **Le site** : <https://trackchest-addons.pages.dev/creer.html>. Tu remplis un formulaire, l'add-on se vérifie en
+  direct, puis tu le télécharges en `.zip` ou tu le postes directement (voir
+  [Proposer son add-on](#4-proposer-son-add-on)). Aucun outil à installer, aucun compte.
 - **La commande `addon.ps1`**, pour développer sur ton PC (voir [Développer avec la commande
   addon.ps1](#3-développer-avec-la-commande-addonps1)) :
 
@@ -169,16 +169,21 @@ fichier…** dans TrackChest. Il apparaît comme « Local, non vérifié ».
 
 ## 4. Proposer son add-on
 
-Le point d'entrée est le site du catalogue : <https://trackchest-addons.pages.dev/>.
+Tout se fait sur le site du catalogue, **sans compte** : <https://trackchest-addons.pages.dev/>.
 
-1. Utilise le **générateur** du site, ou écris ton `manifest.json` toi-même. Quand le fichier est valide, clique sur
-   **Proposer sur GitHub**. Si tu as écrit le fichier toi-même, colle son contenu dans GitHub sous le nom
-   `addons/mon-addon/manifest.json`.
-2. GitHub te propose de copier le dépôt (« fork ») puis d'ouvrir une **pull request** : valide. Il faut un compte
-   GitHub.
-3. Les contrôles automatiques se lancent sur ta proposition et indiquent ce qui ne va pas.
-4. Le mainteneur relit ton manifeste, l'accepte et publie le catalogue. Les joueurs le voient ensuite dans
+| Page | Rôle |
+|---|---|
+| **Catalogue** (`/`) | tous les add-ons publiés, avec recherche et téléchargement du `.zip` |
+| **Créer un add-on** (`/creer.html`) | le formulaire : compteurs, thème, script ; puis **Télécharger le .zip** ou **Poster cet add-on** |
+| **Poster un add-on** (`/poster.html`) | glisse un `.zip` (fait avec le formulaire ou `addon.ps1 empaqueter`) puis **Poster l'add-on** |
+
+1. Poste ton add-on : le site vérifie le `.zip` (mêmes règles que TrackChest) avant de l'envoyer.
+2. Le site crée lui-même une **proposition** (pull request) sur le dépôt GitHub du catalogue. Tu reçois son lien.
+3. Les contrôles automatiques se lancent sur la proposition.
+4. Le mainteneur la relit, l'accepte et publie le catalogue. Les joueurs voient ensuite l'add-on dans
    **Add-on → Actualiser**.
+
+Pour mettre à jour un add-on, poste-le de nouveau avec une `version` plus grande et le même `id`.
 
 ## 5. Niveaux de confiance
 
@@ -276,7 +281,7 @@ TrackChest ou à sa réactivation. L'erreur s'affiche dans la fenêtre **Add-on*
    qu'il définit `overlay()`.
 2. Dans TrackChest : **Add-on → Ajouter un fichier…**, choisis le `.zip`, puis regarde l'overlay. Pour un aperçu sans
    lancer Fortnite : `TrackChest.exe --overlay-preview apercu.png` (voir [Compilation](compilation.md)).
-3. Pour le proposer : sur le site, coche **Ajouter un script**, colle ton code, télécharge les deux fichiers, puis
-   **Proposer sur GitHub** ouvre la page d'envoi du dépôt : glisses-y `manifest.json` et `script.js`.
+3. Pour le proposer : envoie le `.zip` sur la page **Poster un add-on** du site, ou, sur **Créer un add-on**, coche
+   **Ajouter un script**, colle ton code et clique sur **Poster cet add-on**.
 
 Un script est relu avec plus d'attention qu'un compteur : écris un code clair et commente ce qu'il fait.

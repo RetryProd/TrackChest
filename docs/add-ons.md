@@ -50,9 +50,8 @@ La référence complète des champs est dans le guide développeur et dans le sc
 | Cohérence | chaque fonction demande sa permission, et chaque permission doit servir |
 
 Les mêmes règles sont appliquées par `addons-registry/scripts/Validate-Addon.ps1` (dépôt du catalogue), par
-`TrackChest.exe --addon-check` et par le générateur de manifeste de la page du site
-(`addons-registry/site-src/index.html`, fonction `validate`). Si une règle change, modifie les quatre, ainsi que
-`addon.schema.json`.
+`TrackChest.exe --addon-check`, et par le site et sa fonction d'envoi (`addons-registry/site-src/addon-rules.js`,
+fonction `validateManifest`). Si une règle change, modifie les quatre, ainsi que `addon.schema.json`.
 
 ### Permissions
 
