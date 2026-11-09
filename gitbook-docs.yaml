@@ -1,0 +1,15 @@
+# Structure du site GitBook (Git Sync de site). Schéma : https://api.gitbook.com/gitbook-docs.yaml
+# Un seul espace de documentation : le contenu est lu depuis la racine du dépôt, avec le sommaire
+# SUMMARY.md et la configuration .gitbook.yaml.
+$schema: https://api.gitbook.com/gitbook-docs.yaml
+version: 1
+site:
+  title: TrackChest
+  structure:
+    - type: space
+      key: space-docs
+      title: Documentation
+      path: docs
+      default: true
+      content:
+        directory: ./
