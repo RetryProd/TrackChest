@@ -50,25 +50,35 @@ internal sealed partial class CounterWindow
     private void ApplyTexts()
     {
         Text = L.T("TrackChest · Compteur de coffres Fortnite", "TrackChest · Fortnite chest counter", "TrackChest · Contador de cofres de Fortnite",
-            "TrackChest · Fortnite-Truhenzähler", "TrackChest · Счётчик сундуков Fortnite", "TrackChest · Fortnite 宝箱カウンター");
-        _folder.AccessibleName = L.T("Dossier des fichiers replay", "Replay files folder", "Carpeta de archivos replay", "Ordner der Replay-Dateien", "Папка файлов повторов", "リプレイファイルのフォルダー");
-        _profiles.AccessibleName = L.T("Compte Fortnite", "Fortnite account", "Cuenta de Fortnite", "Fortnite-Konto", "Учётная запись Fortnite", "Fortnite アカウント");
-        _browse.Text = L.T("Parcourir…", "Browse…", "Examinar…", "Durchsuchen…", "Обзор…", "参照…");
-        _scan.Text = L.T("Actualiser", "Refresh", "Actualizar", "Aktualisieren", "Обновить", "更新");
-        _report.Text = L.T("Historique", "History", "Historial", "Verlauf", "История", "履歴");
-        _overlay.Text = L.T("Afficher / masquer l’overlay", "Show / hide overlay", "Mostrar / ocultar overlay", "Overlay ein-/ausblenden", "Показать / скрыть оверлей", "オーバーレイ表示 / 非表示");
-        _position.Text = L.T("Verrouiller / déplacer", "Lock / move", "Bloquear / mover", "Sperren / verschieben", "Закрепить / переместить", "ロック / 移動");
-        _export.Text = L.T("Exporter", "Export", "Exportar", "Exportieren", "Экспорт", "エクスポート");
-        _import.Text = L.T("Importer", "Import", "Importar", "Importieren", "Импорт", "インポート");
-        _addons.Text = L.T("Add-on", "Add-ons", "Add-ons", "Add-ons", "Дополнения", "アドオン");
-        _settings.Text = L.T("Paramètres", "Settings", "Ajustes", "Einstellungen", "Настройки", "設定");
+            "TrackChest · Fortnite-Truhenzähler", "TrackChest · Счётчик сундуков Fortnite", "TrackChest · Fortnite 宝箱カウンター", "TrackChest · Contatore di forzieri Fortnite", "TrackChest · Contador de baús do Fortnite", "TrackChest · Licznik skrzyń w Fortnite", "TrackChest · Fortnite-kistenteller", "TrackChest · Fortnite sandık sayacı", "TrackChest · Fortnite 상자 카운터", "TrackChest · Fortnite 宝箱计数器", "TrackChest · Лічильник скринь Fortnite", "TrackChest · Kisträknare för Fortnite", "TrackChest · Počítadlo truhel ve Fortnite");
+        _folder.AccessibleName = L.T("Dossier des fichiers replay", "Replay files folder", "Carpeta de archivos replay", "Ordner der Replay-Dateien", "Папка файлов повторов", "リプレイファイルのフォルダー", "Cartella dei file replay", "Pasta dos arquivos de replay", "Folder plików powtórek", "Map met replaybestanden", "Tekrar dosyaları klasörü", "리플레이 파일 폴더", "回放文件文件夹", "Папка файлів повторів", "Mapp för reprisfiler", "Složka se záznamy");
+        _profiles.AccessibleName = L.T("Compte Fortnite", "Fortnite account", "Cuenta de Fortnite", "Fortnite-Konto", "Учётная запись Fortnite", "Fortnite アカウント", "Account Fortnite", "Conta do Fortnite", "Konto Fortnite", "Fortnite-account", "Fortnite hesabı", "Fortnite 계정", "Fortnite 账户", "Обліковий запис Fortnite", "Fortnite-konto", "Účet Fortnite");
+        _browse.Text = L.T("Parcourir…", "Browse…", "Examinar…", "Durchsuchen…", "Обзор…", "参照…", "Sfoglia…", "Procurar…", "Przeglądaj…", "Bladeren…", "Gözat…", "찾아보기…", "浏览…", "Огляд…", "Bläddra…", "Procházet…");
+        _scan.Text = L.T("Actualiser", "Refresh", "Actualizar", "Aktualisieren", "Обновить", "更新", "Aggiorna", "Atualizar", "Odśwież", "Vernieuwen", "Yenile", "새로 고침", "刷新", "Оновити", "Uppdatera", "Obnovit");
+        _report.Text = L.T("Historique", "History", "Historial", "Verlauf", "История", "履歴", "Cronologia", "Histórico", "Historia", "Geschiedenis", "Geçmiş", "기록", "历史记录", "Історія", "Historik", "Historie");
+        _overlay.Text = L.T("Afficher / masquer l’overlay", "Show / hide overlay", "Mostrar / ocultar overlay", "Overlay ein-/ausblenden", "Показать / скрыть оверлей", "オーバーレイ表示 / 非表示", "Mostra / nascondi overlay", "Mostrar / ocultar sobreposição", "Pokaż / ukryj nakładkę", "Overlay tonen / verbergen", "Kaplamayı göster / gizle", "오버레이 표시 / 숨기기", "显示 / 隐藏叠加层", "Показати / сховати оверлей", "Visa / dölj överlägg", "Zobrazit / skrýt překryv");
+        _position.Text = L.T("Verrouiller / déplacer", "Lock / move", "Bloquear / mover", "Sperren / verschieben", "Закрепить / переместить", "ロック / 移動", "Blocca / sposta", "Travar / mover", "Zablokuj / przesuń", "Vergrendelen / verplaatsen", "Kilitle / taşı", "잠금 / 이동", "锁定 / 移动", "Заблокувати / перемістити", "Lås / flytta", "Zamknout / přesunout");
+        _export.Text = L.T("Exporter", "Export", "Exportar", "Exportieren", "Экспорт", "エクスポート", "Esporta", "Exportar", "Eksportuj", "Exporteren", "Dışa aktar", "내보내기", "导出", "Експорт", "Exportera", "Exportovat");
+        _import.Text = L.T("Importer", "Import", "Importar", "Importieren", "Импорт", "インポート", "Importa", "Importar", "Importuj", "Importeren", "İçe aktar", "가져오기", "导入", "Імпорт", "Importera", "Importovat");
+        _addons.Text = L.T("Add-on", "Add-ons", "Add-ons", "Add-ons", "Дополнения", "アドオン", "Componenti", "Complementos", "Dodatki", "Add-ons", "Eklentiler", "애드온", "插件", "Доповнення", "Tillägg", "Doplňky");
+        _settings.Text = L.T("Paramètres", "Settings", "Ajustes", "Einstellungen", "Настройки", "設定", "Impostazioni", "Configurações", "Ustawienia", "Instellingen", "Ayarlar", "설정", "设置", "Налаштування", "Inställningar", "Nastavení");
         _tips.SetToolTip(_export, L.T("Sauvegarde l’historique dans un fichier .zip, avant de réinitialiser le PC",
             "Saves the history to a .zip file, before resetting the PC", "Guarda el historial en un archivo .zip, antes de restablecer el PC",
             "Speichert den Verlauf in einer .zip-Datei, bevor du den PC zurücksetzt", "Сохраняет историю в файл .zip перед сбросом ПК",
-            "PC をリセットする前に、履歴を .zip ファイルに保存します"));
+            "PC をリセットする前に、履歴を .zip ファイルに保存します",
+            "Salva la cronologia in un file .zip, prima di reinstallare il PC",
+            "Salva o histórico em um arquivo .zip, antes de formatar o PC",
+            "Zapisuje historię do pliku .zip, przed reinstalacją komputera",
+            "Slaat de geschiedenis op in een .zip-bestand, voordat je de pc opnieuw installeert",
+            "Bilgisayarı sıfırlamadan önce geçmişi bir .zip dosyasına kaydeder",
+            "PC를 초기화하기 전에 기록을 .zip 파일로 저장합니다",
+            "在重置电脑前将历史记录保存为 .zip 文件",
+            "Зберігає історію у файл .zip перед перевстановленням ПК",
+            "Sparar historiken i en .zip-fil, innan datorn återställs",
+            "Uloží historii do souboru .zip před přeinstalací počítače"));
         _tips.SetToolTip(_import, L.T("Restaure ou ajoute l’historique d’une sauvegarde .zip", "Restores or adds the history from a .zip backup",
             "Restaura o añade el historial de una copia .zip", "Stellt den Verlauf aus einer .zip-Sicherung wieder her oder fügt ihn hinzu",
-            "Восстанавливает или добавляет историю из резервной копии .zip", ".zip バックアップから履歴を復元または追加します"));
+            "Восстанавливает или добавляет историю из резервной копии .zip", ".zip バックアップから履歴を復元または追加します", "Ripristina o aggiunge la cronologia da un backup .zip", "Restaura ou adiciona o histórico a partir de um backup .zip", "Przywraca lub dodaje historię z kopii zapasowej .zip", "Herstelt of voegt de geschiedenis toe uit een .zip-back-up", "Geçmişi bir .zip yedeğinden geri yükler veya ekler", ".zip 백업에서 기록을 복원하거나 추가합니다", "从 .zip 备份恢复或添加历史记录", "Відновлює або додає історію з резервної копії .zip", "Återställer eller lägger till historiken från en .zip-säkerhetskopia", "Obnoví nebo přidá historii ze zálohy .zip"));
     }
 
     /// <summary>Rebuilds the window in the language just chosen: same controls and data, new texts.</summary>
@@ -92,9 +102,9 @@ internal sealed partial class CounterWindow
     private void SetupWindow()
     {
         _windowReady = true;
-        _statusTag.Text = L.T("À CONFIGURER", "SET UP", "CONFIGURAR", "EINRICHTEN", "НАСТРОЙКА", "未設定");
+        _statusTag.Text = L.T("À CONFIGURER", "SET UP", "CONFIGURAR", "EINRICHTEN", "НАСТРОЙКА", "未設定", "CONFIGURA", "CONFIGURAR", "KONFIGURUJ", "INSTELLEN", "AYARLA", "설정하기", "设置", "НАЛАШТУЙТЕ", "STÄLL IN", "NASTAV");
         _status.Text = L.T("Choisis le dossier de tes rediffusions Fortnite.", "Choose your Fortnite replays folder.", "Elige la carpeta de tus repeticiones de Fortnite.",
-            "Wähle den Ordner deiner Fortnite-Wiederholungen.", "Выберите папку с повторами Fortnite.", "Fortnite のリプレイフォルダーを選択してください。");
+            "Wähle den Ordner deiner Fortnite-Wiederholungen.", "Выберите папку с повторами Fortnite.", "Fortnite のリプレイフォルダーを選択してください。", "Scegli la cartella dei replay di Fortnite.", "Escolha sua pasta de replays do Fortnite.", "Wybierz folder z powtórkami Fortnite.", "Kies je map met Fortnite-replays.", "Fortnite tekrar klasörünü seç.", "Fortnite 리플레이 폴더를 선택하세요.", "选择你的 Fortnite 回放文件夹。", "Виберіть папку з повторами Fortnite.", "Välj mappen med dina Fortnite-repriser.", "Vyber složku se záznamy Fortnite.");
         _profiles.DrawItem += DrawProfile;
         Icon = AppIcon(SystemInformation.IconSize.Width) ?? Icon;
         AutoScaleDimensions = new SizeF(96, 96);
@@ -123,29 +133,29 @@ internal sealed partial class CounterWindow
         var heroGrid = Grid([100], 18, 38, 20);
         heroGrid.BackColor = Color.Transparent;
         heroGrid.Padding = new Padding(74, 0, 0, 0);
-        heroGrid.Controls.Add(TextLabel(L.T("FORTNITE  ·  REDIFFUSIONS", "FORTNITE  ·  REPLAYS", "FORTNITE  ·  REPETICIONES", "FORTNITE  ·  WIEDERHOLUNGEN", "FORTNITE  ·  ПОВТОРЫ", "FORTNITE  ·  リプレイ"), 8.5f, Gold, FontStyle.Bold), 0, 0);
+        heroGrid.Controls.Add(TextLabel(L.T("FORTNITE  ·  REDIFFUSIONS", "FORTNITE  ·  REPLAYS", "FORTNITE  ·  REPETICIONES", "FORTNITE  ·  WIEDERHOLUNGEN", "FORTNITE  ·  ПОВТОРЫ", "FORTNITE  ·  リプレイ", "FORTNITE  ·  REPLAY", "FORTNITE  ·  REPLAYS", "FORTNITE  ·  POWTÓRKI", "FORTNITE  ·  REPLAYS", "FORTNITE  ·  TEKRARLAR", "FORTNITE  ·  리플레이", "FORTNITE  ·  回放", "FORTNITE  ·  ПОВТОРИ", "FORTNITE  ·  REPRISER", "FORTNITE  ·  ZÁZNAMY"), 8.5f, Gold, FontStyle.Bold), 0, 0);
         heroGrid.Controls.Add(TextLabel("TrackChest", 22, Ink, FontStyle.Bold), 0, 1);
-        heroGrid.Controls.Add(TextLabel(L.T("Compteur de coffres et suivi du jeton pirate", "Chest counter and pirate token tracker", "Contador de cofres y seguimiento de la ficha pirata", "Truhenzähler und Piraten-Token-Tracker", "Счётчик сундуков и отслеживание пиратского жетона", "宝箱カウンターと海賊トークンの追跡"), 9.5f, Muted), 0, 2);
+        heroGrid.Controls.Add(TextLabel(L.T("Compteur de coffres et suivi du jeton pirate", "Chest counter and pirate token tracker", "Contador de cofres y seguimiento de la ficha pirata", "Truhenzähler und Piraten-Token-Tracker", "Счётчик сундуков и отслеживание пиратского жетона", "宝箱カウンターと海賊トークンの追跡", "Contatore di forzieri e monitoraggio del gettone pirata", "Contador de baús e rastreador da ficha pirata", "Licznik skrzyń i śledzenie pirackiego żetonu", "Kistenteller en piratenmuntvolger", "Sandık sayacı ve korsan jetonu takibi", "상자 카운터 및 해적 토큰 추적기", "宝箱计数器和海盗代币追踪器", "Лічильник скринь і відстеження піратського жетона", "Kisträknare och spårning av piratpolletten", "Počítadlo truhel a sledování pirátského žetonu"), 9.5f, Muted), 0, 2);
         hero.Controls.Add(heroGrid);
         layout.Controls.Add(hero, 0, 0);
 
         var stats = Grid([34, 33, 33], 106);
         stats.Margin = new Padding(0, 0, 0, 18);
-        stats.Controls.Add(Metric(L.T("TOTAL COFFRES", "TOTAL CHESTS", "TOTAL DE COFRES", "TRUHEN GESAMT", "ВСЕГО СУНДУКОВ", "宝箱の合計"), _totalValue,
-            L.T("Coffres et canons à butin", "Chests and loot cannons", "Cofres y cañones de botín", "Truhen und Beutekanonen", "Сундуки и пушки с добычей", "宝箱と戦利品キャノン"), new Padding(0, 0, 7, 0)), 0, 0);
-        stats.Controls.Add(Metric(L.T("DERNIÈRE PARTIE", "LAST MATCH", "ÚLTIMA PARTIDA", "LETZTES MATCH", "ПОСЛЕДНИЙ МАТЧ", "前回の試合"), _lastValue,
-            L.T("Coffres comptés", "Chests counted", "Cofres contados", "Gezählte Truhen", "Подсчитано сундуков", "数えた宝箱"), new Padding(4, 0, 4, 0)), 1, 0);
-        stats.Controls.Add(Metric(L.T("JETON PIRATE", "PIRATE TOKEN", "FICHA PIRATA", "PIRATEN-TOKEN", "ПИРАТСКИЙ ЖЕТОН", "海賊トークン"), _pirateValue,
-            L.T("Probabilité cumulée estimée", "Estimated cumulative chance", "Probabilidad acumulada estimada", "Geschätzte Gesamtchance", "Оценочный суммарный шанс", "推定累積確率"), new Padding(7, 0, 0, 0)), 2, 0);
+        stats.Controls.Add(Metric(L.T("TOTAL COFFRES", "TOTAL CHESTS", "TOTAL DE COFRES", "TRUHEN GESAMT", "ВСЕГО СУНДУКОВ", "宝箱の合計", "FORZIERI TOTALI", "TOTAL DE BAÚS", "SKRZYNIE ŁĄCZNIE", "TOTAAL KISTEN", "TOPLAM SANDIK", "총 상자", "宝箱总数", "УСЬОГО СКРИНЬ", "KISTOR TOTALT", "TRUHLY CELKEM"), _totalValue,
+            L.T("Coffres et canons à butin", "Chests and loot cannons", "Cofres y cañones de botín", "Truhen und Beutekanonen", "Сундуки и пушки с добычей", "宝箱と戦利品キャノン", "Forzieri e cannoni del bottino", "Baús e canhões de saque", "Skrzynie i działa z łupem", "Kisten en buitkanonnen", "Sandıklar ve ganimet topları", "상자 및 전리품 대포", "宝箱和战利品大炮", "Скрині та гармати зі здобиччю", "Kistor och bytekanoner", "Truhly a kořistní děla"), new Padding(0, 0, 7, 0)), 0, 0);
+        stats.Controls.Add(Metric(L.T("DERNIÈRE PARTIE", "LAST MATCH", "ÚLTIMA PARTIDA", "LETZTES MATCH", "ПОСЛЕДНИЙ МАТЧ", "前回の試合", "ULTIMA PARTITA", "ÚLTIMA PARTIDA", "OSTATNI MECZ", "LAATSTE POTJE", "SON MAÇ", "마지막 경기", "上一场比赛", "ОСТАННІЙ МАТЧ", "SENASTE MATCHEN", "POSLEDNÍ ZÁPAS"), _lastValue,
+            L.T("Coffres comptés", "Chests counted", "Cofres contados", "Gezählte Truhen", "Подсчитано сундуков", "数えた宝箱", "Forzieri contati", "Baús contados", "Policzone skrzynie", "Getelde kisten", "Sayılan sandıklar", "집계된 상자", "已统计宝箱", "Пораховані скрині", "Räknade kistor", "Započítané truhly"), new Padding(4, 0, 4, 0)), 1, 0);
+        stats.Controls.Add(Metric(L.T("JETON PIRATE", "PIRATE TOKEN", "FICHA PIRATA", "PIRATEN-TOKEN", "ПИРАТСКИЙ ЖЕТОН", "海賊トークン", "GETTONE PIRATA", "FICHA PIRATA", "PIRACKI ŻETON", "PIRATENMUNT", "KORSAN JETONU", "해적 토큰", "海盗代币", "ПІРАТСЬКИЙ ЖЕТОН", "PIRATPOLLETT", "PIRÁTSKÝ ŽETON"), _pirateValue,
+            L.T("Probabilité cumulée estimée", "Estimated cumulative chance", "Probabilidad acumulada estimada", "Geschätzte Gesamtchance", "Оценочный суммарный шанс", "推定累積確率", "Probabilità cumulativa stimata", "Chance acumulada estimada", "Szacowana łączna szansa", "Geschatte cumulatieve kans", "Tahmini kümülatif şans", "추정 누적 확률", "估计累计概率", "Оцінена сукупна ймовірність", "Uppskattad sammanlagd chans", "Odhadovaná kumulativní šance"), new Padding(7, 0, 0, 0)), 2, 0);
         layout.Controls.Add(stats, 0, 1);
 
         var replays = Card(new Padding(18, 12, 18, 10), new Padding(0, 0, 0, 18));
         var replayGrid = Grid([100], 30, 24, 38, 42, 30);
         var replayHeader = Grid([65, 35], 30);
-        replayHeader.Controls.Add(TextLabel(L.T("Rediffusions", "Replays", "Repeticiones", "Wiederholungen", "Повторы", "リプレイ"), 13, Ink, FontStyle.Bold), 0, 0);
+        replayHeader.Controls.Add(TextLabel(L.T("Rediffusions", "Replays", "Repeticiones", "Wiederholungen", "Повторы", "リプレイ", "Replay", "Replays", "Powtórki", "Replays", "Tekrarlar", "리플레이", "回放", "Повтори", "Repriser", "Záznamy"), 13, Ink, FontStyle.Bold), 0, 0);
         replayHeader.Controls.Add(_statusTag, 1, 0);
         replayGrid.Controls.Add(replayHeader, 0, 0);
-        replayGrid.Controls.Add(TextLabel(L.T("Dossier des fichiers .replay", ".replay files folder", "Carpeta de archivos .replay", "Ordner der .replay-Dateien", "Папка файлов .replay", ".replay ファイルのフォルダー"), 9, Muted), 0, 1);
+        replayGrid.Controls.Add(TextLabel(L.T("Dossier des fichiers .replay", ".replay files folder", "Carpeta de archivos .replay", "Ordner der .replay-Dateien", "Папка файлов .replay", ".replay ファイルのフォルダー", "Cartella dei file .replay", "Pasta dos arquivos .replay", "Folder plików .replay", "Map met .replaybestanden", ".replay dosyaları klasörü", ".replay 파일 폴더", ".replay 文件文件夹", "Папка файлів .replay", "Mapp för .replay-filer", "Složka souborů .replay"), 9, Muted), 0, 1);
 
         var folderRow = Grid([78, 22], 38);
         var folderFrame = FieldFrame(new Padding(12, 10, 12, 0), new Padding(0, 0, 8, 0));
@@ -156,7 +166,7 @@ internal sealed partial class CounterWindow
 
         var accountRow = Grid([19, 81], 38);
         accountRow.Margin = new Padding(0, 4, 0, 0);
-        accountRow.Controls.Add(TextLabel(L.T("Compte Fortnite", "Fortnite account", "Cuenta de Fortnite", "Fortnite-Konto", "Аккаунт Fortnite", "アカウント"), 9, Muted), 0, 0);
+        accountRow.Controls.Add(TextLabel(L.T("Compte Fortnite", "Fortnite account", "Cuenta de Fortnite", "Fortnite-Konto", "Аккаунт Fortnite", "アカウント", "Account Fortnite", "Conta do Fortnite", "Konto Fortnite", "Fortnite-account", "Fortnite hesabı", "Fortnite 계정", "Fortnite 账户", "Обліковий запис Fortnite", "Fortnite-konto", "Účet Fortnite"), 9, Muted), 0, 0);
         var profileFrame = FieldFrame(new Padding(6, 6, 6, 0), Padding.Empty);
         // The flat combo box draws a light border and a white arrow button: both are clipped out of a
         // field-coloured box, and a drawn chevron replaces the arrow.
@@ -191,7 +201,7 @@ internal sealed partial class CounterWindow
 
         var actions = Card(new Padding(18, 10, 18, 8), Padding.Empty);
         var actionGrid = Grid([100], 28, 38, 8, 38, 26);
-        actionGrid.Controls.Add(TextLabel(L.T("Commandes", "Actions", "Acciones", "Aktionen", "Действия", "操作"), 13, Ink, FontStyle.Bold), 0, 0);
+        actionGrid.Controls.Add(TextLabel(L.T("Commandes", "Actions", "Acciones", "Aktionen", "Действия", "操作", "Azioni", "Ações", "Akcje", "Acties", "İşlemler", "작업", "操作", "Дії", "Åtgärder", "Akce"), 13, Ink, FontStyle.Bold), 0, 0);
         var buttons = Grid([19, 20, 31, 30], 38);
         _report.Margin = _scan.Margin = _overlay.Margin = new Padding(0, 0, 8, 0);
         buttons.Controls.Add(_report, 0, 0);
@@ -211,7 +221,17 @@ internal sealed partial class CounterWindow
             "Pantalla completa en ventana  ·  Ctrl+Mayús+O para mostrar  ·  Ctrl+Mayús+L para mover",
             "Vollbild (Fenster)  ·  Strg+Umschalt+O zum Anzeigen  ·  Strg+Umschalt+L zum Verschieben",
             "Оконный полноэкранный режим  ·  Ctrl+Shift+O — показать  ·  Ctrl+Shift+L — переместить",
-            "ウィンドウ フルスクリーン  ·  Ctrl+Shift+O で表示  ·  Ctrl+Shift+L で移動"), 9, Muted), 0, 4);
+            "ウィンドウ フルスクリーン  ·  Ctrl+Shift+O で表示  ·  Ctrl+Shift+L で移動",
+            "Schermo intero in finestra  ·  Ctrl+Shift+O per mostrare  ·  Ctrl+Shift+L per spostare",
+            "Tela cheia em janela  ·  Ctrl+Shift+O para mostrar  ·  Ctrl+Shift+L para mover",
+            "Pełny ekran w oknie  ·  Ctrl+Shift+O, aby pokazać  ·  Ctrl+Shift+L, aby przesunąć",
+            "Venster op volledig scherm  ·  Ctrl+Shift+O om te tonen  ·  Ctrl+Shift+L om te verplaatsen",
+            "Pencereli tam ekran  ·  Göstermek için Ctrl+Shift+O  ·  Taşımak için Ctrl+Shift+L",
+            "창 전체 화면  ·  Ctrl+Shift+O로 표시  ·  Ctrl+Shift+L로 이동",
+            "窗口化全屏  ·  Ctrl+Shift+O 显示  ·  Ctrl+Shift+L 移动",
+            "Повноекранний у вікні  ·  Ctrl+Shift+O — показати  ·  Ctrl+Shift+L — перемістити",
+            "Helskärm i fönster  ·  Ctrl+Shift+O för att visa  ·  Ctrl+Shift+L för att flytta",
+            "Celá obrazovka v okně  ·  Ctrl+Shift+O pro zobrazení  ·  Ctrl+Shift+L pro přesun"), 9, Muted), 0, 4);
         actions.Controls.Add(actionGrid);
         layout.Controls.Add(actions, 0, 3);
 

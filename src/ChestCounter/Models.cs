@@ -31,7 +31,7 @@ public sealed class TreasureFind
     public bool TimeExact { get; set; }
     /// <summary>True when the source chest was destroyed rather than opened.</summary>
     public bool SourceDestroyed { get; set; }
-    public string SourceLabel => SourceDestroyed ? $"{L.Name(SourceKind)} ({L.T("détruit", "destroyed", "destruido", "zerstört", "разрушен", "破壊")})" : L.Name(SourceKind);
+    public string SourceLabel => SourceDestroyed ? $"{L.Name(SourceKind)} ({L.T("détruit", "destroyed", "destruido", "zerstört", "разрушен", "破壊", "distrutto", "destruído", "zniszczona", "vernietigd", "yok edildi", "파괴됨", "已摧毁", "знищено", "förstörd", "zničená")})" : L.Name(SourceKind);
     /// <summary>When it was obtained (replay seconds). Exact for golden chests, estimated otherwise.</summary>
     public float? ObtainedAtSeconds { get; set; }
     /// <summary>Kind of container / interaction it came from (Coffre, Canon à butin...).</summary>
@@ -111,7 +111,7 @@ public sealed class Config
     /// <summary>Look for a newer version on GitHub when the app starts (the installation itself always asks first).</summary>
     public bool CheckUpdates { get; set; } = true;
 
-    /// <summary>Interface language ("fr", "en", "es", "de", "ru", "ja"). Empty = language of Windows.</summary>
+    /// <summary>Interface language (one of L.Codes: "fr", "en", "es", "de", "ru", "ja", "it", "pt", "pl", "nl", "tr", "ko", "zh", "uk", "sv", "cs"). Empty = language of Windows.</summary>
     public string? Language { get; set; }
 
 }
@@ -164,10 +164,10 @@ public sealed partial class Store
     /// <summary>Known treasure hunt prize ids (week 1), in the chosen language. Unknown ids are added automatically with an empty name.</summary>
     public static Dictionary<string, string> DefaultPrizeNames => new()
     {
-        ["DelilahPrize:dpid_item1"] = L.T("Gantelets d'A$AP Rocky en or massif (pioche) ?", "A$AP Rocky solid gold gauntlets (pickaxe) ?", "Guanteletes de oro macizo de A$AP Rocky (pico) ?", "Massivgold-Handschuhe von A$AP Rocky (Spitzhacke) ?", "Перчатки A$AP Rocky из чистого золота (кирка) ?", "A$AP Rocky の純金ガントレット（収集ツール）？"),
-        ["DelilahPrize:dpid_item2"] = L.T("Plunder in Paradise (écran de chargement)", "Plunder in Paradise (loading screen)", "Plunder in Paradise (pantalla de carga)", "Plunder in Paradise (Ladebildschirm)", "Plunder in Paradise (экран загрузки)", "Plunder in Paradise（ロード画面）"),
-        ["DelilahPrize:dpid_item3"] = L.T("Mercedes-AMG G 63 (véhicule) ?", "Mercedes-AMG G 63 (vehicle) ?", "Mercedes-AMG G 63 (vehículo) ?", "Mercedes-AMG G 63 (Fahrzeug) ?", "Mercedes-AMG G 63 (транспорт) ?", "Mercedes-AMG G 63（乗り物）？"),
-        ["DelilahPrize:dpid_item4"] = L.T("No Trespassing (piste musicale)", "No Trespassing (music track)", "No Trespassing (pista musical)", "No Trespassing (Musiktitel)", "No Trespassing (музыкальный трек)", "No Trespassing（ミュージック）"),
+        ["DelilahPrize:dpid_item1"] = L.T("Gantelets d'A$AP Rocky en or massif (pioche) ?", "A$AP Rocky solid gold gauntlets (pickaxe) ?", "Guanteletes de oro macizo de A$AP Rocky (pico) ?", "Massivgold-Handschuhe von A$AP Rocky (Spitzhacke) ?", "Перчатки A$AP Rocky из чистого золота (кирка) ?", "A$AP Rocky の純金ガントレット（収集ツール）？", "Guanti d'oro massiccio di A$AP Rocky (piccone) ?", "Manoplas de ouro maciço do A$AP Rocky (picareta) ?", "Rękawice z litego złota A$AP Rocky'ego (kilof) ?", "Massief gouden handschoenen van A$AP Rocky (houweel) ?", "A$AP Rocky'nin som altın eldivenleri (kazma) ?", "A$AP Rocky 순금 건틀릿 (곡괭이) ?", "A$AP Rocky 纯金护手（采集工具）？", "Рукавиці з чистого золота A$AP Rocky (кирка) ?", "A$AP Rockys handskar i massivt guld (hacka) ?", "Rukavice z ryzího zlata A$AP Rockyho (krumpáč) ?"),
+        ["DelilahPrize:dpid_item2"] = L.T("Plunder in Paradise (écran de chargement)", "Plunder in Paradise (loading screen)", "Plunder in Paradise (pantalla de carga)", "Plunder in Paradise (Ladebildschirm)", "Plunder in Paradise (экран загрузки)", "Plunder in Paradise（ロード画面）", "Plunder in Paradise (schermata di caricamento)", "Plunder in Paradise (tela de carregamento)", "Plunder in Paradise (ekran wczytywania)", "Plunder in Paradise (laadscherm)", "Plunder in Paradise (yükleme ekranı)", "Plunder in Paradise (로딩 화면)", "Plunder in Paradise（载入画面）", "Plunder in Paradise (екран завантаження)", "Plunder in Paradise (laddningsskärm)", "Plunder in Paradise (načítací obrazovka)"),
+        ["DelilahPrize:dpid_item3"] = L.T("Mercedes-AMG G 63 (véhicule) ?", "Mercedes-AMG G 63 (vehicle) ?", "Mercedes-AMG G 63 (vehículo) ?", "Mercedes-AMG G 63 (Fahrzeug) ?", "Mercedes-AMG G 63 (транспорт) ?", "Mercedes-AMG G 63（乗り物）？", "Mercedes-AMG G 63 (veicolo) ?", "Mercedes-AMG G 63 (veículo) ?", "Mercedes-AMG G 63 (pojazd) ?", "Mercedes-AMG G 63 (voertuig) ?", "Mercedes-AMG G 63 (araç) ?", "Mercedes-AMG G 63 (차량) ?", "Mercedes-AMG G 63（载具）？", "Mercedes-AMG G 63 (транспорт) ?", "Mercedes-AMG G 63 (fordon) ?", "Mercedes-AMG G 63 (vozidlo) ?"),
+        ["DelilahPrize:dpid_item4"] = L.T("No Trespassing (piste musicale)", "No Trespassing (music track)", "No Trespassing (pista musical)", "No Trespassing (Musiktitel)", "No Trespassing (музыкальный трек)", "No Trespassing（ミュージック）", "No Trespassing (brano musicale)", "No Trespassing (faixa musical)", "No Trespassing (utwór muzyczny)", "No Trespassing (muzieknummer)", "No Trespassing (müzik parçası)", "No Trespassing (음악 트랙)", "No Trespassing（音乐曲目）", "No Trespassing (музичний трек)", "No Trespassing (musikspår)", "No Trespassing (hudební skladba)"),
     };
 
     public void LoadPrizeNames()
@@ -233,7 +233,7 @@ public sealed partial class Store
             // Keep a copy of the unreadable file rather than silently losing the history.
             var backup = path + $".corrupt-{DateTime.Now:yyyyMMdd-HHmmss}";
             File.Copy(path, backup, overwrite: true);
-            Console.WriteLine(L.T($"Fichier illisible ({ex.Message}), copie de sauvegarde : {backup}", $"Unreadable file ({ex.Message}), backup copy: {backup}", $"Archivo ilegible ({ex.Message}), copia de seguridad: {backup}", $"Datei nicht lesbar ({ex.Message}), Sicherungskopie: {backup}", $"Не удаётся прочитать файл ({ex.Message}), резервная копия: {backup}", $"ファイルを読み取れません（{ex.Message}）。バックアップ: {backup}"));
+            Console.WriteLine(L.T($"Fichier illisible ({ex.Message}), copie de sauvegarde : {backup}", $"Unreadable file ({ex.Message}), backup copy: {backup}", $"Archivo ilegible ({ex.Message}), copia de seguridad: {backup}", $"Datei nicht lesbar ({ex.Message}), Sicherungskopie: {backup}", $"Не удаётся прочитать файл ({ex.Message}), резервная копия: {backup}", $"ファイルを読み取れません（{ex.Message}）。バックアップ: {backup}", $"File illeggibile ({ex.Message}), copia di backup: {backup}", $"Arquivo ilegível ({ex.Message}), cópia de segurança: {backup}", $"Nieczytelny plik ({ex.Message}), kopia zapasowa: {backup}", $"Onleesbaar bestand ({ex.Message}), reservekopie: {backup}", $"Okunamayan dosya ({ex.Message}), yedek kopya: {backup}", $"읽을 수 없는 파일 ({ex.Message}), 백업 사본: {backup}", $"无法读取的文件（{ex.Message}），备份副本：{backup}", $"Файл неможливо прочитати ({ex.Message}), резервна копія: {backup}", $"Oläslig fil ({ex.Message}), säkerhetskopia: {backup}", $"Nečitelný soubor ({ex.Message}), záložní kopie: {backup}"));
 
             return null;
         }

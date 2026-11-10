@@ -109,18 +109,21 @@ L'icône sert à l'exe, aux fenêtres et à l'en-tête (`HeroPanel.LoadLogo`).
 
 ### Les textes
 
-Les textes sont écrits directement dans le code et passent par `L.T` (`Lang.cs`), en six langues, toujours dans cet
-ordre : français, anglais, espagnol, allemand, russe, japonais.
+Les textes sont écrits directement dans le code et passent par `L.T` (`Lang.cs`), en seize langues, toujours dans cet
+ordre : français, anglais, espagnol, allemand, russe, japonais, italien, portugais (Brésil), polonais, néerlandais,
+turc, coréen, chinois simplifié, ukrainien, suédois, tchèque.
 
 ```csharp
-L.T("Coffres cassés", "Broken chests", "Cofres rotos", "Zerstörte Truhen", "Разбитые сундуки", "壊した宝箱")
+L.T("Coffres cassés", "Broken chests", "Cofres rotos", "Zerstörte Truhen", "Разбитые сундуки", "壊した宝箱",
+    "Forzieri rotti", "Baús quebrados", "Rozbite skrzynie", "Kapotte kisten", "Kırılan sandıklar", "부순 상자", "打破的宝箱",
+    "Розбиті скрині", "Krossade kistor", "Rozbité truhly")
 L.N(1549)        // nombre formaté selon la langue : « 1 549 »
 L.Chests(3)      // « 3 coffres », « 3 Truhen », « 3 сундука »… (pluriels, y compris russes)
 L.Matches(3)     // « 3 parties »
 ```
 
 La langue se choisit dans **Paramètres → Langue** et s'enregistre dans `config.json` (`Language`). Sans choix
-(« Automatique »), TrackChest prend la langue de Windows, ou l'anglais si ce n'est pas une des six. Changer de langue
+(« Automatique »), TrackChest prend la langue de Windows, ou l'anglais si ce n'est pas une des seize. Changer de langue
 reconstruit la fenêtre principale, l'overlay et l'historique HTML.
 
 Les types de coffres sont **enregistrés en français** dans `data.json` (« Coffre rare »…) ; `L.Name` les traduit à

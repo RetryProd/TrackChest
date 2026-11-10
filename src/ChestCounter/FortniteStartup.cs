@@ -21,7 +21,7 @@ internal static class FortniteStartup
             return;
         }
 
-        var executable = Environment.ProcessPath ?? throw new InvalidOperationException(L.T("Exécutable TrackChest introuvable.", "TrackChest executable not found.", "No se encontró el ejecutable de TrackChest.", "TrackChest-Programmdatei nicht gefunden.", "Исполняемый файл TrackChest не найден.", "TrackChest の実行ファイルが見つかりません。"));
+        var executable = Environment.ProcessPath ?? throw new InvalidOperationException(L.T("Exécutable TrackChest introuvable.", "TrackChest executable not found.", "No se encontró el ejecutable de TrackChest.", "TrackChest-Programmdatei nicht gefunden.", "Исполняемый файл TrackChest не найден.", "TrackChest の実行ファイルが見つかりません。", "Eseguibile di TrackChest non trovato.", "Executável do TrackChest não encontrado.", "Nie znaleziono pliku wykonywalnego TrackChest.", "Uitvoerbaar bestand van TrackChest niet gevonden.", "TrackChest yürütülebilir dosyası bulunamadı.", "TrackChest 실행 파일을 찾을 수 없습니다.", "未找到 TrackChest 可执行文件。", "Виконуваний файл TrackChest не знайдено.", "TrackChest-programfilen hittades inte.", "Spustitelný soubor TrackChest nebyl nalezen."));
         var type = Type.GetTypeFromProgID("WScript.Shell") ?? throw new InvalidOperationException("Windows Script Host indisponible.");
         dynamic shell = Activator.CreateInstance(type)!;
         dynamic link = shell.CreateShortcut(Shortcut);
@@ -48,7 +48,7 @@ internal static class FortniteStartup
         using var watcher = new Mutex(false, @"Local\TrackChest.FortniteWatch." + Program.DataFolderKey(dataFolder), out var first);
         if (!first) return 0;
 
-        var executable = Environment.ProcessPath ?? throw new InvalidOperationException(L.T("Exécutable TrackChest introuvable.", "TrackChest executable not found.", "No se encontró el ejecutable de TrackChest.", "TrackChest-Programmdatei nicht gefunden.", "Исполняемый файл TrackChest не найден.", "TrackChest の実行ファイルが見つかりません。"));
+        var executable = Environment.ProcessPath ?? throw new InvalidOperationException(L.T("Exécutable TrackChest introuvable.", "TrackChest executable not found.", "No se encontró el ejecutable de TrackChest.", "TrackChest-Programmdatei nicht gefunden.", "Исполняемый файл TrackChest не найден.", "TrackChest の実行ファイルが見つかりません。", "Eseguibile di TrackChest non trovato.", "Executável do TrackChest não encontrado.", "Nie znaleziono pliku wykonywalnego TrackChest.", "Uitvoerbaar bestand van TrackChest niet gevonden.", "TrackChest yürütülebilir dosyası bulunamadı.", "TrackChest 실행 파일을 찾을 수 없습니다.", "未找到 TrackChest 可执行文件。", "Виконуваний файл TrackChest не знайдено.", "TrackChest-programfilen hittades inte.", "Spustitelný soubor TrackChest nebyl nalezen."));
         using var current = Process.GetCurrentProcess();
         var session = current.SessionId;
         int? previous = null;

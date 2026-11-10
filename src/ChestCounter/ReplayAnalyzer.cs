@@ -828,9 +828,9 @@ public static class TreasureNames
                 }
                 // Not a golden chest prize (those carry their id): one of the treasure hunt gizmos (golden
                 // firework, portable extractor, locators, extraction accelerator), exact one not in the replay.
-                return L.T(UnknownGizmoFr, UnknownGizmoEn, UnknownGizmoEs, "Schatz-Gizmo", "Устройство сокровища", "宝のギズモ");
+                return L.T(UnknownGizmoFr, UnknownGizmoEn, UnknownGizmoEs, "Schatz-Gizmo", "Устройство сокровища", "宝のギズモ", "Congegno del tesoro", "Dispositivo de tesouro", "Gadżet skarbu", "Schatgadget", "Hazine düzeneği", "보물 장치", "宝藏装置", "Пристрій скарбу", "Skattpryl", "Pokladové zařízení");
             }
-            return L.T($"Trésor inconnu ({item[(item.IndexOf(':') + 1)..]})", $"Unknown treasure ({item[(item.IndexOf(':') + 1)..]})", $"Tesoro desconocido ({item[(item.IndexOf(':') + 1)..]})", $"Unbekannter Schatz ({item[(item.IndexOf(':') + 1)..]})", $"Неизвестное сокровище ({item[(item.IndexOf(':') + 1)..]})", $"不明な宝（{item[(item.IndexOf(':') + 1)..]}）");
+            return L.T($"Trésor inconnu ({item[(item.IndexOf(':') + 1)..]})", $"Unknown treasure ({item[(item.IndexOf(':') + 1)..]})", $"Tesoro desconocido ({item[(item.IndexOf(':') + 1)..]})", $"Unbekannter Schatz ({item[(item.IndexOf(':') + 1)..]})", $"Неизвестное сокровище ({item[(item.IndexOf(':') + 1)..]})", $"不明な宝（{item[(item.IndexOf(':') + 1)..]}）", $"Tesoro sconosciuto ({item[(item.IndexOf(':') + 1)..]})", $"Tesouro desconhecido ({item[(item.IndexOf(':') + 1)..]})", $"Nieznany skarb ({item[(item.IndexOf(':') + 1)..]})", $"Onbekende schat ({item[(item.IndexOf(':') + 1)..]})", $"Bilinmeyen hazine ({item[(item.IndexOf(':') + 1)..]})", $"알 수 없는 보물 ({item[(item.IndexOf(':') + 1)..]})", $"未知宝藏（{item[(item.IndexOf(':') + 1)..]}）", $"Невідомий скарб ({item[(item.IndexOf(':') + 1)..]})", $"Okänd skatt ({item[(item.IndexOf(':') + 1)..]})", $"Neznámý poklad ({item[(item.IndexOf(':') + 1)..]})");
         }
 
 

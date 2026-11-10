@@ -59,15 +59,15 @@ public sealed partial class Store
         }
         catch (Exception ex) when (ex is InvalidDataException or JsonException or IOException)
         {
-            throw new InvalidDataException(L.T("Sauvegarde illisible ou endommagée.", "Unreadable or damaged backup.", "Copia de seguridad ilegible o dañada.", "Sicherung nicht lesbar oder beschädigt.", "Резервная копия не читается или повреждена.", "バックアップを読み取れないか、破損しています。"), ex);
+            throw new InvalidDataException(L.T("Sauvegarde illisible ou endommagée.", "Unreadable or damaged backup.", "Copia de seguridad ilegible o dañada.", "Sicherung nicht lesbar oder beschädigt.", "Резервная копия не читается или повреждена.", "バックアップを読み取れないか、破損しています。", "Backup illeggibile o danneggiato.", "Backup ilegível ou danificado.", "Kopia zapasowa nieczytelna lub uszkodzona.", "Back-up onleesbaar of beschadigd.", "Yedek okunamıyor veya hasarlı.", "백업을 읽을 수 없거나 손상되었습니다.", "备份无法读取或已损坏。", "Резервну копію неможливо прочитати або її пошкоджено.", "Säkerhetskopian är oläslig eller skadad.", "Záloha je nečitelná nebo poškozená."), ex);
         }
         if (!hasData)
         {
-            throw new InvalidDataException(L.T("Ce fichier n’est pas une sauvegarde TrackChest.", "This file is not a TrackChest backup.", "Este archivo no es una copia de seguridad de TrackChest.", "Diese Datei ist keine TrackChest-Sicherung.", "Этот файл не является резервной копией TrackChest.", "このファイルは TrackChest のバックアップではありません。"));
+            throw new InvalidDataException(L.T("Ce fichier n’est pas une sauvegarde TrackChest.", "This file is not a TrackChest backup.", "Este archivo no es una copia de seguridad de TrackChest.", "Diese Datei ist keine TrackChest-Sicherung.", "Этот файл не является резервной копией TrackChest.", "このファイルは TrackChest のバックアップではありません。", "Questo file non è un backup di TrackChest.", "Este arquivo não é um backup do TrackChest.", "Ten plik nie jest kopią zapasową TrackChest.", "Dit bestand is geen TrackChest-back-up.", "Bu dosya bir TrackChest yedeği değil.", "이 파일은 TrackChest 백업이 아닙니다.", "此文件不是 TrackChest 备份。", "Цей файл не є резервною копією TrackChest.", "Den här filen är ingen TrackChest-säkerhetskopia.", "Tento soubor není záloha TrackChest."));
         }
         if (backup == null)
         {
-            throw new InvalidDataException(L.T("Sauvegarde vide.", "Empty backup.", "Copia de seguridad vacía.", "Leere Sicherung.", "Пустая резервная копия.", "バックアップが空です。"));
+            throw new InvalidDataException(L.T("Sauvegarde vide.", "Empty backup.", "Copia de seguridad vacía.", "Leere Sicherung.", "Пустая резервная копия.", "バックアップが空です。", "Backup vuoto.", "Backup vazio.", "Pusta kopia zapasowa.", "Lege back-up.", "Boş yedek.", "빈 백업입니다.", "空备份。", "Порожня резервна копія.", "Tom säkerhetskopia.", "Prázdná záloha."));
         }
 
         int added = 0, updated = 0, already = 0;

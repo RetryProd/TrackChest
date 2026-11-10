@@ -38,12 +38,12 @@ public static class AddonScript
             var engine = NewEngine();
             engine.Execute(source);
             if (engine.GetValue("overlay") is not Function)
-                throw new InvalidDataException(L.T("script.js doit définir une fonction overlay(view, data).", "script.js must define a function overlay(view, data).", "script.js debe definir una función overlay(view, data).", "script.js muss eine Funktion overlay(view, data) definieren.", "script.js должен определять функцию overlay(view, data).", "script.js には overlay(view, data) 関数が必要です。"));
+                throw new InvalidDataException(L.T("script.js doit définir une fonction overlay(view, data).", "script.js must define a function overlay(view, data).", "script.js debe definir una función overlay(view, data).", "script.js muss eine Funktion overlay(view, data) definieren.", "script.js должен определять функцию overlay(view, data).", "script.js には overlay(view, data) 関数が必要です。", "script.js deve definire una funzione overlay(view, data).", "script.js deve definir uma função overlay(view, data).", "script.js musi definiować funkcję overlay(view, data).", "script.js moet een functie overlay(view, data) definiëren.", "script.js bir overlay(view, data) işlevi tanımlamalıdır.", "script.js는 overlay(view, data) 함수를 정의해야 합니다.", "script.js 必须定义函数 overlay(view, data)。", "script.js має визначати функцію overlay(view, data).", "script.js måste definiera en funktion overlay(view, data).", "script.js musí definovat funkci overlay(view, data)."));
         }
         catch (InvalidDataException) { throw; }
         catch (Exception ex)
         {
-            throw new InvalidDataException(L.T($"script.js invalide : {ex.Message}", $"Invalid script.js: {ex.Message}", $"script.js no válido: {ex.Message}", $"Ungültige script.js: {ex.Message}", $"Недопустимый script.js: {ex.Message}", $"script.js が無効です: {ex.Message}"), ex);
+            throw new InvalidDataException(L.T($"script.js invalide : {ex.Message}", $"Invalid script.js: {ex.Message}", $"script.js no válido: {ex.Message}", $"Ungültige script.js: {ex.Message}", $"Недопустимый script.js: {ex.Message}", $"script.js が無効です: {ex.Message}", $"script.js non valido: {ex.Message}", $"script.js inválido: {ex.Message}", $"Nieprawidłowy script.js: {ex.Message}", $"Ongeldig script.js: {ex.Message}", $"Geçersiz script.js: {ex.Message}", $"잘못된 script.js: {ex.Message}", $"script.js 无效：{ex.Message}", $"Недійсний script.js: {ex.Message}", $"Ogiltig script.js: {ex.Message}", $"Neplatný script.js: {ex.Message}"), ex);
         }
     }
 
@@ -96,7 +96,7 @@ public static class AddonScript
 
     private static string ViewToJson(OverlayView v) => JsonSerializer.Serialize(new
     {
-        header = v.HeaderText ?? L.T("COFFRES", "CHESTS", "COFRES", "TRUHEN", "СУНДУКИ", "宝箱"),
+        header = v.HeaderText ?? L.T("COFFRES", "CHESTS", "COFRES", "TRUHEN", "СУНДУКИ", "宝箱", "FORZIERI", "BAÚS", "SKRZYNIE", "KISTEN", "SANDIKLAR", "상자", "宝箱", "СКРИНІ", "KISTOR", "TRUHLY"),
         total = v.Total,
         totalCaption = v.TotalCaption ?? "total",
         current = v.Current,

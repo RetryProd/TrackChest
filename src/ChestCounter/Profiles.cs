@@ -19,7 +19,7 @@ public static class Profiles
         {
             var latest = g.OrderByDescending(When).First();
             var name = g.OrderByDescending(When).Select(m => m.PlayerName).FirstOrDefault(n => !string.IsNullOrWhiteSpace(n));
-            return new Profile(g.Key, name ?? L.T("Compte inconnu", "Unknown account", "Cuenta desconocida", "Unbekanntes Konto", "Неизвестная учётная запись", "不明なアカウント"), g.Count(), g.Sum(m => m.ChestsTotal), When(latest));
+            return new Profile(g.Key, name ?? L.T("Compte inconnu", "Unknown account", "Cuenta desconocida", "Unbekanntes Konto", "Неизвестная учётная запись", "不明なアカウント", "Account sconosciuto", "Conta desconhecida", "Nieznane konto", "Onbekend account", "Bilinmeyen hesap", "알 수 없는 계정", "未知账户", "Невідомий обліковий запис", "Okänt konto", "Neznámý účet"), g.Count(), g.Sum(m => m.ChestsTotal), When(latest));
         })
         .OrderByDescending(p => p.LastPlayed)
         .ToList();

@@ -130,15 +130,25 @@ public static class AddonRules
     /// <summary>What a permission lets the add-on do, in the player's language.</summary>
     public static string Describe(string permission) => permission switch
     {
-        StatsRead => L.T("Lire tes statistiques (coffres, parties, trésors)", "Read your statistics (chests, matches, treasures)", "Leer tus estadísticas (cofres, partidas, tesoros)", "Deine Statistiken lesen (Truhen, Matches, Schätze)", "Читать вашу статистику (сундуки, матчи, сокровища)", "統計を読み取る（宝箱、試合、宝）"),
-        OverlayRows => L.T("Ajouter des lignes à l’overlay", "Add lines to the overlay", "Añadir líneas al overlay", "Zeilen zum Overlay hinzufügen", "Добавлять строки в оверлей", "オーバーレイに行を追加する"),
-        OverlayTheme => L.T("Changer les couleurs de l’overlay", "Change the overlay colours", "Cambiar los colores del overlay", "Die Farben des Overlays ändern", "Менять цвета оверлея", "オーバーレイの色を変更する"),
+        StatsRead => L.T("Lire tes statistiques (coffres, parties, trésors)", "Read your statistics (chests, matches, treasures)", "Leer tus estadísticas (cofres, partidas, tesoros)", "Deine Statistiken lesen (Truhen, Matches, Schätze)", "Читать вашу статистику (сундуки, матчи, сокровища)", "統計を読み取る（宝箱、試合、宝）", "Leggere le tue statistiche (forzieri, partite, tesori)", "Ler suas estatísticas (baús, partidas, tesouros)", "Odczyt twoich statystyk (skrzynie, mecze, skarby)", "Je statistieken lezen (kisten, potjes, schatten)", "İstatistiklerini okuma (sandıklar, maçlar, hazineler)", "통계 읽기 (상자, 경기, 보물)", "读取你的统计数据（宝箱、比赛、宝藏）", "Читати вашу статистику (скрині, матчі, скарби)", "Läsa din statistik (kistor, matcher, skatter)", "Číst tvé statistiky (truhly, zápasy, poklady)"),
+        OverlayRows => L.T("Ajouter des lignes à l’overlay", "Add lines to the overlay", "Añadir líneas al overlay", "Zeilen zum Overlay hinzufügen", "Добавлять строки в оверлей", "オーバーレイに行を追加する", "Aggiungere righe all'overlay", "Adicionar linhas à sobreposição", "Dodawanie wierszy do nakładki", "Regels aan de overlay toevoegen", "Kaplamaya satır ekleme", "오버레이에 줄 추가", "向叠加层添加行", "Додавати рядки до оверлею", "Lägga till rader i överlägget", "Přidávat řádky do překryvu"),
+        OverlayTheme => L.T("Changer les couleurs de l’overlay", "Change the overlay colours", "Cambiar los colores del overlay", "Die Farben des Overlays ändern", "Менять цвета оверлея", "オーバーレイの色を変更する", "Cambiare i colori dell'overlay", "Mudar as cores da sobreposição", "Zmiana kolorów nakładki", "De kleuren van de overlay wijzigen", "Kaplamanın renklerini değiştirme", "오버레이 색상 변경", "更改叠加层颜色", "Змінювати кольори оверлею", "Ändra överläggets färger", "Měnit barvy překryvu"),
         OverlayScript => L.T("Exécuter un script qui peut modifier, ajouter ou supprimer tout ce qu’affiche l’overlay (bac à sable : pas d’accès aux fichiers ni à Internet)",
             "Run a script that can change, add or remove anything shown in the overlay (sandbox: no file or Internet access)",
             "Ejecutar un script que puede cambiar, añadir o quitar todo lo que muestra el overlay (sin acceso a archivos ni a Internet)",
             "Ein Skript ausführen, das alles im Overlay ändern, hinzufügen oder entfernen kann (Sandbox: kein Datei- oder Internetzugriff)",
             "Запускать скрипт, который может изменять, добавлять или удалять всё, что показывает оверлей (песочница: без доступа к файлам и Интернету)",
-            "オーバーレイの表示内容をすべて変更・追加・削除できるスクリプトを実行する（サンドボックス: ファイルやインターネットにはアクセス不可）"),
+            "オーバーレイの表示内容をすべて変更・追加・削除できるスクリプトを実行する（サンドボックス: ファイルやインターネットにはアクセス不可）",
+            "Eseguire uno script che può modificare, aggiungere o rimuovere tutto ciò che mostra l'overlay (sandbox: nessun accesso a file o Internet)",
+            "Executar um script que pode alterar, adicionar ou remover tudo o que a sobreposição mostra (sandbox: sem acesso a arquivos nem à Internet)",
+            "Uruchamianie skryptu, który może zmienić, dodać lub usunąć wszystko, co pokazuje nakładka (piaskownica: bez dostępu do plików i Internetu)",
+            "Een script uitvoeren dat alles in de overlay kan wijzigen, toevoegen of verwijderen (sandbox: geen toegang tot bestanden of internet)",
+            "Kaplamada gösterilen her şeyi değiştirebilen, ekleyebilen veya kaldırabilen bir betik çalıştırma (korumalı alan: dosya ve İnternet erişimi yok)",
+            "오버레이에 표시되는 모든 것을 변경, 추가 또는 제거할 수 있는 스크립트 실행 (샌드박스: 파일 및 인터넷 접근 불가)",
+            "运行可以更改、添加或删除叠加层显示内容的脚本（沙盒：无法访问文件或互联网）",
+            "Запускати скрипт, який може змінити, додати або прибрати все, що показує оверлей (пісочниця: без доступу до файлів та Інтернету)",
+            "Köra ett skript som kan ändra, lägga till eller ta bort allt som överlägget visar (sandlåda: ingen åtkomst till filer eller internet)",
+            "Spouštět skript, který může změnit, přidat nebo odebrat cokoli, co překryv zobrazuje (sandbox: bez přístupu k souborům a internetu)"),
         _ => permission,
     };
 }
@@ -163,7 +173,7 @@ public static class AddonPackage
     public static AddonManifest Read(byte[] zip)
     {
         if (zip.Length is 0 or > AddonRules.MaxZipBytes)
-            throw new InvalidDataException(L.T("Fichier d’add-on vide ou trop gros.", "Add-on file is empty or too large.", "Archivo de add-on vacío o demasiado grande.", "Add-on-Datei ist leer oder zu groß.", "Файл дополнения пуст или слишком велик.", "アドオンファイルが空か、大きすぎます。"));
+            throw new InvalidDataException(L.T("Fichier d’add-on vide ou trop gros.", "Add-on file is empty or too large.", "Archivo de add-on vacío o demasiado grande.", "Add-on-Datei ist leer oder zu groß.", "Файл дополнения пуст или слишком велик.", "アドオンファイルが空か、大きすぎます。", "File del componente aggiuntivo vuoto o troppo grande.", "Arquivo do complemento vazio ou grande demais.", "Plik dodatku jest pusty lub za duży.", "Add-onbestand is leeg of te groot.", "Eklenti dosyası boş veya çok büyük.", "애드온 파일이 비어 있거나 너무 큽니다.", "插件文件为空或过大。", "Файл доповнення порожній або завеликий.", "Tilläggsfilen är tom eller för stor.", "Soubor doplňku je prázdný nebo příliš velký."));
 
         byte[] manifestBytes;
         byte[]? scriptBytes = null;
@@ -173,7 +183,7 @@ public static class AddonPackage
             var names = archive.Entries.Select(e => e.FullName).ToList();
             var allowed = names.Count is 1 or 2 && names.Contains("manifest.json") && names.All(n => n is "manifest.json" or AddonScript.FileName);
             if (!allowed)
-                throw new InvalidDataException(L.T("Un add-on contient manifest.json, et script.js s’il a un script : aucun autre fichier.", "An add-on holds manifest.json, plus script.js for a script add-on: no other file.", "Un add-on contiene manifest.json y, si tiene script, script.js: ningún otro archivo.", "Ein Add-on enthält manifest.json und bei Skript-Add-ons script.js: keine anderen Dateien.", "Дополнение содержит manifest.json и, если есть скрипт, script.js: никаких других файлов.", "アドオンに含めるのは manifest.json と（スクリプトがある場合）script.js のみです。"));
+                throw new InvalidDataException(L.T("Un add-on contient manifest.json, et script.js s’il a un script : aucun autre fichier.", "An add-on holds manifest.json, plus script.js for a script add-on: no other file.", "Un add-on contiene manifest.json y, si tiene script, script.js: ningún otro archivo.", "Ein Add-on enthält manifest.json und bei Skript-Add-ons script.js: keine anderen Dateien.", "Дополнение содержит manifest.json и, если есть скрипт, script.js: никаких других файлов.", "アドオンに含めるのは manifest.json と（スクリプトがある場合）script.js のみです。", "Un componente aggiuntivo contiene manifest.json, più script.js per un componente con script: nessun altro file.", "Um complemento contém manifest.json, mais script.js para um complemento com script: nenhum outro arquivo.", "Dodatek zawiera manifest.json oraz script.js w przypadku dodatku ze skryptem: żadnych innych plików.", "Een add-on bevat manifest.json, plus script.js voor een script-add-on: geen andere bestanden.", "Bir eklenti manifest.json, betikli eklentide ayrıca script.js içerir: başka dosya yok.", "애드온에는 manifest.json과, 스크립트 애드온의 경우 script.js만 들어 있습니다: 다른 파일은 없습니다.", "插件包含 manifest.json，脚本插件另含 script.js：不能有其他文件。", "Доповнення містить manifest.json, а для доповнення зі скриптом ще й script.js: жодних інших файлів.", "Ett tillägg innehåller manifest.json, plus script.js för ett skripttillägg: inga andra filer.", "Doplněk obsahuje manifest.json a u skriptového doplňku také script.js: žádné jiné soubory."));
             manifestBytes = ReadEntry(archive.GetEntry("manifest.json")!, AddonRules.MaxManifestBytes, "manifest.json");
             if (archive.GetEntry(AddonScript.FileName) is { } scriptEntry)
                 scriptBytes = ReadEntry(scriptEntry, AddonScript.MaxScriptBytes, AddonScript.FileName);
@@ -181,14 +191,14 @@ public static class AddonPackage
         catch (InvalidDataException) { throw; }
         catch (Exception ex) when (ex is IOException or NotSupportedException)
         {
-            throw new InvalidDataException(L.T("Fichier d’add-on illisible.", "Unreadable add-on file.", "Archivo de add-on ilegible.", "Add-on-Datei nicht lesbar.", "Не удаётся прочитать файл дополнения.", "アドオンファイルを読み取れません。"), ex);
+            throw new InvalidDataException(L.T("Fichier d’add-on illisible.", "Unreadable add-on file.", "Archivo de add-on ilegible.", "Add-on-Datei nicht lesbar.", "Не удаётся прочитать файл дополнения.", "アドオンファイルを読み取れません。", "File del componente aggiuntivo illeggibile.", "Arquivo do complemento ilegível.", "Nieczytelny plik dodatku.", "Onleesbaar add-onbestand.", "Okunamayan eklenti dosyası.", "읽을 수 없는 애드온 파일입니다.", "无法读取插件文件。", "Файл доповнення неможливо прочитати.", "Oläslig tilläggsfil.", "Nečitelný soubor doplňku."), ex);
         }
 
         var manifest = ParseManifest(manifestBytes);
         if (manifest.HasScript != (scriptBytes != null))
             throw new InvalidDataException(manifest.HasScript
-                ? L.T("La permission overlay.script demande un fichier script.js.", "The overlay.script permission needs a script.js file.", "El permiso overlay.script necesita un archivo script.js.", "Die Berechtigung overlay.script benötigt eine Datei script.js.", "Разрешению overlay.script нужен файл script.js.", "overlay.script 権限には script.js ファイルが必要です。")
-                : L.T("script.js demande la permission overlay.script.", "script.js needs the overlay.script permission.", "script.js necesita el permiso overlay.script.", "script.js benötigt die Berechtigung overlay.script.", "script.js требует разрешения overlay.script.", "script.js には overlay.script 権限が必要です。"));
+                ? L.T("La permission overlay.script demande un fichier script.js.", "The overlay.script permission needs a script.js file.", "El permiso overlay.script necesita un archivo script.js.", "Die Berechtigung overlay.script benötigt eine Datei script.js.", "Разрешению overlay.script нужен файл script.js.", "overlay.script 権限には script.js ファイルが必要です。", "Il permesso overlay.script richiede un file script.js.", "A permissão overlay.script exige um arquivo script.js.", "Uprawnienie overlay.script wymaga pliku script.js.", "De machtiging overlay.script vereist een bestand script.js.", "overlay.script izni bir script.js dosyası gerektirir.", "overlay.script 권한에는 script.js 파일이 필요합니다.", "overlay.script 权限需要 script.js 文件。", "Дозвіл overlay.script потребує файлу script.js.", "Behörigheten overlay.script kräver en script.js-fil.", "Oprávnění overlay.script vyžaduje soubor script.js.")
+                : L.T("script.js demande la permission overlay.script.", "script.js needs the overlay.script permission.", "script.js necesita el permiso overlay.script.", "script.js benötigt die Berechtigung overlay.script.", "script.js требует разрешения overlay.script.", "script.js には overlay.script 権限が必要です。", "script.js richiede il permesso overlay.script.", "script.js exige a permissão overlay.script.", "script.js wymaga uprawnienia overlay.script.", "script.js vereist de machtiging overlay.script.", "script.js, overlay.script iznini gerektirir.", "script.js에는 overlay.script 권한이 필요합니다.", "script.js 需要 overlay.script 权限。", "script.js потребує дозволу overlay.script.", "script.js kräver behörigheten overlay.script.", "script.js vyžaduje oprávnění overlay.script."));
         if (scriptBytes != null)
         {
             if (scriptBytes.Length >= 3 && scriptBytes[0] == 0xEF && scriptBytes[1] == 0xBB && scriptBytes[2] == 0xBF)
@@ -205,7 +215,7 @@ public static class AddonPackage
     /// <summary>Reads a zip entry, stopping as soon as it goes over the limit (zip bombs).</summary>
     private static byte[] ReadEntry(ZipArchiveEntry entry, int limit, string name)
     {
-        var tooBig = L.T($"{name} est trop gros.", $"{name} is too large.", $"{name} es demasiado grande.", $"{name} ist zu groß.", $"{name} слишком велик.", $"{name} が大きすぎます。");
+        var tooBig = L.T($"{name} est trop gros.", $"{name} is too large.", $"{name} es demasiado grande.", $"{name} ist zu groß.", $"{name} слишком велик.", $"{name} が大きすぎます。", $"{name} è troppo grande.", $"{name} é grande demais.", $"{name} jest za duży.", $"{name} is te groot.", $"{name} çok büyük.", $"{name}이(가) 너무 큽니다.", $"{name} 过大。", $"{name} завеликий.", $"{name} är för stor.", $"{name} je příliš velký.");
         if (entry.Length > limit) throw new InvalidDataException(tooBig);
         using var input = entry.Open();
         using var buffer = new MemoryStream();
@@ -228,7 +238,7 @@ public static class AddonPackage
         }
         catch (JsonException ex)
         {
-            throw new InvalidDataException(L.T($"manifest.json invalide : {ex.Message}", $"Invalid manifest.json: {ex.Message}", $"manifest.json no válido: {ex.Message}", $"Ungültige manifest.json: {ex.Message}", $"Недопустимый manifest.json: {ex.Message}", $"manifest.json が無効です: {ex.Message}"), ex);
+            throw new InvalidDataException(L.T($"manifest.json invalide : {ex.Message}", $"Invalid manifest.json: {ex.Message}", $"manifest.json no válido: {ex.Message}", $"Ungültige manifest.json: {ex.Message}", $"Недопустимый manifest.json: {ex.Message}", $"manifest.json が無効です: {ex.Message}", $"manifest.json non valido: {ex.Message}", $"manifest.json inválido: {ex.Message}", $"Nieprawidłowy manifest.json: {ex.Message}", $"Ongeldig manifest.json: {ex.Message}", $"Geçersiz manifest.json: {ex.Message}", $"잘못된 manifest.json: {ex.Message}", $"manifest.json 无效：{ex.Message}", $"Недійсний manifest.json: {ex.Message}", $"Ogiltig manifest.json: {ex.Message}", $"Neplatný manifest.json: {ex.Message}"), ex);
         }
         if (manifest == null) throw new InvalidDataException("manifest.json vide.");
         var errors = AddonRules.Validate(manifest);

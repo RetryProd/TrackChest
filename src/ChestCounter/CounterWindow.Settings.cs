@@ -37,7 +37,7 @@ internal sealed partial class CounterWindow
         private readonly PathLabel _folder = new()
         {
             UseMnemonic = false, BackColor = Color.Transparent, ForeColor = Soft,
-            Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, AccessibleName = L.T("Dossier des fichiers replay", "Replay files folder", "Carpeta de archivos replay", "Ordner der Replay-Dateien", "Папка файлов повторов", "リプレイファイルのフォルダー"),
+            Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, AccessibleName = L.T("Dossier des fichiers replay", "Replay files folder", "Carpeta de archivos replay", "Ordner der Replay-Dateien", "Папка файлов повторов", "リプレイファイルのフォルダー", "Cartella dei file replay", "Pasta dos arquivos de replay", "Folder plików powtórek", "Map met replaybestanden", "Tekrar dosyaları klasörü", "리플레이 파일 폴더", "回放文件文件夹", "Папка файлів повторів", "Mapp för reprisfiler", "Složka se záznamy"),
         };
         private readonly PillButton _startup = new("");
         private readonly PillButton _autoCheck = new("");
@@ -57,7 +57,7 @@ internal sealed partial class CounterWindow
         {
             _config = config;
             _save = save;
-            Text = L.T("TrackChest · Paramètres", "TrackChest · Settings", "TrackChest · Ajustes", "TrackChest · Einstellungen", "TrackChest · Настройки", "TrackChest · 設定");
+            Text = L.T("TrackChest · Paramètres", "TrackChest · Settings", "TrackChest · Ajustes", "TrackChest · Einstellungen", "TrackChest · Настройки", "TrackChest · 設定", "TrackChest · Impostazioni", "TrackChest · Configurações", "TrackChest · Ustawienia", "TrackChest · Instellingen", "TrackChest · Ayarlar", "TrackChest · 설정", "TrackChest · 设置", "TrackChest · Налаштування", "TrackChest · Inställningar", "TrackChest · Nastavení");
             Icon = AppIcon(SystemInformation.IconSize.Width) ?? Icon;
             AutoScaleDimensions = new SizeF(96, 96);
             AutoScaleMode = AutoScaleMode.Dpi;
@@ -80,8 +80,8 @@ internal sealed partial class CounterWindow
             Controls.Add(root);
 
             var titleRow = SideRow(44);
-            titleRow.Controls.Add(TextLabel(L.T("Paramètres", "Settings", "Ajustes", "Einstellungen", "Настройки", "設定"), 16, Ink, FontStyle.Bold), 0, 0);
-            var close = new PillButton(L.T("Fermer", "Close", "Cerrar", "Schließen", "Закрыть", "閉じる"), Tone.Primary) { Margin = new Padding(0, 3, 0, 3) };
+            titleRow.Controls.Add(TextLabel(L.T("Paramètres", "Settings", "Ajustes", "Einstellungen", "Настройки", "設定", "Impostazioni", "Configurações", "Ustawienia", "Instellingen", "Ayarlar", "설정", "设置", "Налаштування", "Inställningar", "Nastavení"), 16, Ink, FontStyle.Bold), 0, 0);
+            var close = new PillButton(L.T("Fermer", "Close", "Cerrar", "Schließen", "Закрыть", "閉じる", "Chiudi", "Fechar", "Zamknij", "Sluiten", "Kapat", "닫기", "关闭", "Закрити", "Stäng", "Zavřít"), Tone.Primary) { Margin = new Padding(0, 3, 0, 3) };
             close.Click += (_, _) => Close();
             titleRow.Controls.Add(close, 1, 0);
             layout.Controls.Add(titleRow, 0, 0);
@@ -89,10 +89,10 @@ internal sealed partial class CounterWindow
             // Language
             var language = Card(new Padding(18, 12, 18, 14), new Padding(0, 0, 0, 10));
             var languageGrid = Grid([100], 28, 38);
-            languageGrid.Controls.Add(TextLabel(L.T("Langue", "Language", "Idioma", "Sprache", "Язык", "言語"), 13, Ink, FontStyle.Bold), 0, 0);
+            languageGrid.Controls.Add(TextLabel(L.T("Langue", "Language", "Idioma", "Sprache", "Язык", "言語", "Lingua", "Idioma", "Język", "Taal", "Dil", "언어", "语言", "Мова", "Språk", "Jazyk"), 13, Ink, FontStyle.Bold), 0, 0);
             var languageRow = SideRow();
             languageRow.Controls.Add(TextLabel(L.T("Langue de l’interface et de l’historique", "Language of the interface and history",
-                "Idioma de la interfaz y del historial", "Sprache der Oberfläche und des Verlaufs", "Язык интерфейса и истории", "画面と履歴の言語"), 9.5f, Muted), 0, 0);
+                "Idioma de la interfaz y del historial", "Sprache der Oberfläche und des Verlaufs", "Язык интерфейса и истории", "画面と履歴の言語", "Lingua dell'interfaccia e della cronologia", "Idioma da interface e do histórico", "Język interfejsu i historii", "Taal van de interface en de geschiedenis", "Arayüz ve geçmiş dili", "인터페이스 및 기록 언어", "界面和历史记录的语言", "Мова інтерфейсу та історії", "Språk för gränssnittet och historiken", "Jazyk rozhraní a historie"), 9.5f, Muted), 0, 0);
             _language.Text = L.Auto ? $"Auto · {L.NativeName(L.Code)}" : L.NativeName(L.Code);
             _language.Click += (_, _) => ShowLanguageMenu();
             languageRow.Controls.Add(_language, 1, 0);
@@ -103,20 +103,20 @@ internal sealed partial class CounterWindow
             // Overlay
             var overlay = Card(new Padding(18, 12, 18, 14), new Padding(0, 0, 0, 10));
             var overlayGrid = Grid([100], 28, 40, 40);
-            overlayGrid.Controls.Add(TextLabel(L.T("Overlay", "Overlay", "Overlay", "Overlay", "Оверлей", "オーバーレイ"), 13, Ink, FontStyle.Bold), 0, 0);
-            overlayGrid.Controls.Add(Stepper(L.T("Taille", "Size", "Tamaño", "Größe", "Размер", "サイズ"), _sizeValue, dir => ChangeSize(dir)), 0, 1);
-            overlayGrid.Controls.Add(Stepper(L.T("Opacité", "Opacity", "Opacidad", "Deckkraft", "Непрозрачность", "不透明度"), _opacityValue, dir => ChangeOpacity(dir)), 0, 2);
+            overlayGrid.Controls.Add(TextLabel(L.T("Overlay", "Overlay", "Overlay", "Overlay", "Оверлей", "オーバーレイ", "Overlay", "Sobreposição", "Nakładka", "Overlay", "Kaplama", "오버레이", "叠加层", "Оверлей", "Överlägg", "Překryv"), 13, Ink, FontStyle.Bold), 0, 0);
+            overlayGrid.Controls.Add(Stepper(L.T("Taille", "Size", "Tamaño", "Größe", "Размер", "サイズ", "Dimensione", "Tamanho", "Rozmiar", "Grootte", "Boyut", "크기", "大小", "Розмір", "Storlek", "Velikost"), _sizeValue, dir => ChangeSize(dir)), 0, 1);
+            overlayGrid.Controls.Add(Stepper(L.T("Opacité", "Opacity", "Opacidad", "Deckkraft", "Непрозрачность", "不透明度", "Opacità", "Opacidade", "Przezroczystość", "Dekking", "Opaklık", "불투명도", "不透明度", "Непрозорість", "Opacitet", "Neprůhlednost"), _opacityValue, dir => ChangeOpacity(dir)), 0, 2);
             overlay.Controls.Add(overlayGrid);
             layout.Controls.Add(overlay, 0, 2);
 
             // Replays folder
             var replays = Card(new Padding(18, 12, 18, 14), new Padding(0, 0, 0, 10));
             var replayGrid = Grid([100], 28, 38);
-            replayGrid.Controls.Add(TextLabel(L.T("Dossier des replays", "Replays folder", "Carpeta de replays", "Replay-Ordner", "Папка повторов", "リプレイフォルダー"), 13, Ink, FontStyle.Bold), 0, 0);
+            replayGrid.Controls.Add(TextLabel(L.T("Dossier des replays", "Replays folder", "Carpeta de replays", "Replay-Ordner", "Папка повторов", "リプレイフォルダー", "Cartella dei replay", "Pasta de replays", "Folder powtórek", "Replaymap", "Tekrar klasörü", "리플레이 폴더", "回放文件夹", "Папка повторів", "Reprismapp", "Složka se záznamy"), 13, Ink, FontStyle.Bold), 0, 0);
             var folderRow = SideRow();
             var folderFrame = FieldFrame(new Padding(12, 0, 12, 0), new Padding(0, 0, 8, 0));
             folderFrame.Controls.Add(_folder);
-            var change = new PillButton(L.T("Modifier", "Change", "Cambiar", "Ändern", "Изменить", "変更"));
+            var change = new PillButton(L.T("Modifier", "Change", "Cambiar", "Ändern", "Изменить", "変更", "Cambia", "Alterar", "Zmień", "Wijzigen", "Değiştir", "변경", "更改", "Змінити", "Ändra", "Změnit"));
             change.Click += (_, _) =>
             {
                 browse();
@@ -131,9 +131,9 @@ internal sealed partial class CounterWindow
             // Start with Fortnite
             var start = Card(new Padding(18, 12, 18, 14), new Padding(0, 0, 0, 10));
             var startGrid = Grid([100], 28, 38);
-            startGrid.Controls.Add(TextLabel(L.T("Démarrage automatique", "Automatic start", "Inicio automático", "Automatischer Start", "Автозапуск", "自動起動"), 13, Ink, FontStyle.Bold), 0, 0);
+            startGrid.Controls.Add(TextLabel(L.T("Démarrage automatique", "Automatic start", "Inicio automático", "Automatischer Start", "Автозапуск", "自動起動", "Avvio automatico", "Início automático", "Automatyczne uruchamianie", "Automatisch starten", "Otomatik başlatma", "자동 시작", "自动启动", "Автозапуск", "Automatisk start", "Automatické spuštění"), 13, Ink, FontStyle.Bold), 0, 0);
             var startRow = SideRow();
-            startRow.Controls.Add(TextLabel(L.T("Ouvre TrackChest avec Fortnite", "Opens TrackChest with Fortnite", "Abre TrackChest con Fortnite", "Öffnet TrackChest mit Fortnite", "Открывать TrackChest вместе с Fortnite", "Fortnite と一緒に TrackChest を起動"), 9.5f, Muted), 0, 0);
+            startRow.Controls.Add(TextLabel(L.T("Ouvre TrackChest avec Fortnite", "Opens TrackChest with Fortnite", "Abre TrackChest con Fortnite", "Öffnet TrackChest mit Fortnite", "Открывать TrackChest вместе с Fortnite", "Fortnite と一緒に TrackChest を起動", "Apre TrackChest con Fortnite", "Abre o TrackChest com o Fortnite", "Otwiera TrackChest razem z Fortnite", "Opent TrackChest samen met Fortnite", "TrackChest'i Fortnite ile birlikte açar", "Fortnite와 함께 TrackChest 열기", "随 Fortnite 一起打开 TrackChest", "Відкриває TrackChest разом із Fortnite", "Öppnar TrackChest med Fortnite", "Otevře TrackChest spolu s Fortnite"), 9.5f, Muted), 0, 0);
             _startup.Click += (_, _) => ToggleStartup();
             startRow.Controls.Add(_startup, 1, 0);
             startGrid.Controls.Add(startRow, 0, 1);
@@ -143,15 +143,15 @@ internal sealed partial class CounterWindow
             // Updates
             var updates = Card(new Padding(18, 12, 18, 14), new Padding(0, 0, 0, 10));
             var updateGrid = Grid([100], 28, 38, 38);
-            updateGrid.Controls.Add(TextLabel(L.T("Mises à jour", "Updates", "Actualizaciones", "Updates", "Обновления", "アップデート"), 13, Ink, FontStyle.Bold), 0, 0);
+            updateGrid.Controls.Add(TextLabel(L.T("Mises à jour", "Updates", "Actualizaciones", "Updates", "Обновления", "アップデート", "Aggiornamenti", "Atualizações", "Aktualizacje", "Updates", "Güncellemeler", "업데이트", "更新", "Оновлення", "Uppdateringar", "Aktualizace"), 13, Ink, FontStyle.Bold), 0, 0);
             var versionRow = SideRow();
-            versionRow.Controls.Add(TextLabel($"{L.T("Version", "Version", "Versión", "Version", "Версия", "バージョン")} {Updater.CurrentText}", 9.5f, Muted), 0, 0);
-            var check = new PillButton(L.T("Rechercher", "Check now", "Buscar", "Suchen", "Проверить", "確認"));
+            versionRow.Controls.Add(TextLabel($"{L.T("Version", "Version", "Versión", "Version", "Версия", "バージョン", "Versione", "Versão", "Wersja", "Versie", "Sürüm", "버전", "版本", "Версія", "Version", "Verze")} {Updater.CurrentText}", 9.5f, Muted), 0, 0);
+            var check = new PillButton(L.T("Rechercher", "Check now", "Buscar", "Suchen", "Проверить", "確認", "Controlla ora", "Verificar agora", "Sprawdź teraz", "Nu controleren", "Şimdi denetle", "지금 확인", "立即检查", "Перевірити зараз", "Sök nu", "Zkontrolovat nyní"));
             check.Click += (_, _) => checkUpdate();
             versionRow.Controls.Add(check, 1, 0);
             updateGrid.Controls.Add(versionRow, 0, 1);
             var autoRow = SideRow();
-            autoRow.Controls.Add(TextLabel(L.T("Vérifier au démarrage", "Check at startup", "Comprobar al iniciar", "Beim Start prüfen", "Проверять при запуске", "起動時に確認"), 9.5f, Muted), 0, 0);
+            autoRow.Controls.Add(TextLabel(L.T("Vérifier au démarrage", "Check at startup", "Comprobar al iniciar", "Beim Start prüfen", "Проверять при запуске", "起動時に確認", "Controlla all'avvio", "Verificar ao iniciar", "Sprawdzaj przy uruchomieniu", "Controleren bij opstarten", "Başlangıçta denetle", "시작 시 확인", "启动时检查", "Перевіряти під час запуску", "Sök vid start", "Kontrolovat při spuštění"), 9.5f, Muted), 0, 0);
             _autoCheck.Click += (_, _) => { _config.CheckUpdates = !_config.CheckUpdates; _save(); RefreshAutoCheck(); };
             autoRow.Controls.Add(_autoCheck, 1, 0);
             updateGrid.Controls.Add(autoRow, 0, 2);
@@ -166,8 +166,8 @@ internal sealed partial class CounterWindow
         }
 
         private static string OnOff(bool on) => on
-            ? L.T("Activé", "On", "Activado", "An", "Вкл.", "オン")
-            : L.T("Désactivé", "Off", "Desactivado", "Aus", "Выкл.", "オフ");
+            ? L.T("Activé", "On", "Activado", "An", "Вкл.", "オン", "Attivo", "Ligado", "Wł.", "Aan", "Açık", "켜짐", "开", "Увімк.", "På", "Zap.")
+            : L.T("Désactivé", "Off", "Desactivado", "Aus", "Выкл.", "オフ", "Disattivo", "Desligado", "Wył.", "Uit", "Kapalı", "꺼짐", "关", "Вимк.", "Av", "Vyp.");
 
         /// <summary>Menu under the language button: automatic (language of Windows) or one of the six languages.</summary>
         private void ShowLanguageMenu()
@@ -185,7 +185,7 @@ internal sealed partial class CounterWindow
                 item.Click += (_, _) => ChooseLanguage(code);
                 menu.Items.Add(item);
             }
-            Add(L.T("Automatique", "Automatic", "Automático", "Automatisch", "Автоматически", "自動") + $" ({L.NativeName(L.SystemDefault)})", null);
+            Add(L.T("Automatique", "Automatic", "Automático", "Automatisch", "Автоматически", "自動", "Automatico", "Automático", "Automatycznie", "Automatisch", "Otomatik", "자동", "自动", "Автоматично", "Automatiskt", "Automaticky") + $" ({L.NativeName(L.SystemDefault)})", null);
             menu.Items.Add(new ToolStripSeparator());
             foreach (var code in L.Codes) Add(L.NativeName(code), code);
             menu.Show(_language, new Point(0, _language.Height));
@@ -270,7 +270,7 @@ internal sealed partial class CounterWindow
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or COMException)
             {
-                MessageBox.Show(this, L.T($"Impossible de modifier le démarrage automatique.\n{ex.Message}", $"Could not change the automatic start.\n{ex.Message}", $"No se pudo cambiar el inicio automático.\n{ex.Message}", $"Der automatische Start konnte nicht geändert werden.\n{ex.Message}", $"Не удалось изменить автозапуск.\n{ex.Message}", $"自動起動を変更できませんでした。\n{ex.Message}"), "TrackChest", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(this, L.T($"Impossible de modifier le démarrage automatique.\n{ex.Message}", $"Could not change the automatic start.\n{ex.Message}", $"No se pudo cambiar el inicio automático.\n{ex.Message}", $"Der automatische Start konnte nicht geändert werden.\n{ex.Message}", $"Не удалось изменить автозапуск.\n{ex.Message}", $"自動起動を変更できませんでした。\n{ex.Message}", $"Impossibile modificare l'avvio automatico.\n{ex.Message}", $"Não foi possível alterar o início automático.\n{ex.Message}", $"Nie udało się zmienić automatycznego uruchamiania.\n{ex.Message}", $"Kon automatisch starten niet wijzigen.\n{ex.Message}", $"Otomatik başlatma değiştirilemedi.\n{ex.Message}", $"자동 시작을 변경할 수 없습니다.\n{ex.Message}", $"无法更改自动启动。\n{ex.Message}", $"Не вдалося змінити автозапуск.\n{ex.Message}", $"Det gick inte att ändra automatisk start.\n{ex.Message}", $"Automatické spuštění se nepodařilo změnit.\n{ex.Message}"), "TrackChest", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             RefreshStartup();
         }
