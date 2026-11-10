@@ -38,19 +38,19 @@ internal static class Updater
     /// <summary>The newer release, or null when this version is the latest. Throws when the check cannot be trusted.</summary>
     public static async Task<UpdateInfo?> CheckAsync(Version? pretendCurrent = null, CancellationToken cancel = default)
     {
-        if (!AddonTrust.IsConfigured) throw new InvalidOperationException("Mises à jour désactivées : la clé de signature n’est pas intégrée à cette version.");
+        if (!AddonTrust.IsConfigured) throw new InvalidOperationException(L.T("Mises à jour désactivées : la clé de signature n’est pas intégrée à cette version.", "Updates disabled: the signing key is not built into this version.", "Actualizaciones desactivadas: la clave de firma no está incluida en esta versión.", "Updates deaktiviert: Der Signaturschlüssel ist in dieser Version nicht enthalten.", "Обновления отключены: ключ подписи не встроен в эту версию.", "アップデートは無効です: このバージョンには署名鍵が含まれていません。"));
         var json = await GetBytesAsync(LatestBase + "update.json", 16 * 1024, cancel);
         var signature = System.Text.Encoding.ASCII.GetString(await GetBytesAsync(LatestBase + "update.json.sig", 1024, cancel));
-        if (!AddonTrust.Verify(json, signature)) throw new InvalidOperationException("La signature de la mise à jour est invalide : elle est ignorée.");
+        if (!AddonTrust.Verify(json, signature)) throw new InvalidOperationException(L.T("La signature de la mise à jour est invalide : elle est ignorée.", "The update signature is invalid: it is ignored.", "La firma de la actualización no es válida: se ignora.", "Die Signatur des Updates ist ungültig: Es wird ignoriert.", "Подпись обновления недействительна: оно пропущено.", "アップデートの署名が無効なため、無視されます。"));
 
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
         if (!Version.TryParse(root.GetProperty("version").GetString(), out var version) || version.Build < 0 || version.Revision >= 0)
-            throw new InvalidOperationException("Version de mise à jour illisible.");
+            throw new InvalidOperationException(L.T("Version de mise à jour illisible.", "Unreadable update version.", "Versión de actualización ilegible.", "Update-Version nicht lesbar.", "Не удаётся прочитать версию обновления.", "アップデートのバージョンを読み取れません。"));
         var sha = root.GetProperty("sha256").GetString() ?? "";
         var size = root.GetProperty("size").GetInt64();
         if (sha.Length != 64 || !sha.All(Uri.IsHexDigit) || size <= 0 || size > MaxMsiBytes)
-            throw new InvalidOperationException("Informations de mise à jour invalides.");
+            throw new InvalidOperationException(L.T("Informations de mise à jour invalides.", "Invalid update information.", "Información de actualización no válida.", "Ungültige Update-Informationen.", "Недопустимые сведения об обновлении.", "アップデート情報が無効です。"));
         if (version <= (pretendCurrent ?? Current)) return null;
         var notes = root.TryGetProperty("notes", out var n) ? (n.GetString() ?? "") : "";
         return new UpdateInfo(version, notes.Length > 600 ? notes[..600] : notes, sha.ToUpperInvariant(), size);
@@ -63,7 +63,7 @@ internal static class Updater
         var url = $"https://github.com/{Repository}/releases/download/v{v}/TrackChest-{v}.msi";
         var bytes = await GetBytesAsync(url, update.Size, cancel);
         if (bytes.Length != update.Size || !CryptographicOperations.FixedTimeEquals(SHA256.HashData(bytes), Convert.FromHexString(update.Sha256)))
-            throw new InvalidOperationException("Le fichier téléchargé ne correspond pas à la version annoncée : il est supprimé.");
+            throw new InvalidOperationException(L.T("Le fichier téléchargé ne correspond pas à la version annoncée : il est supprimé.", "The downloaded file does not match the announced version: it is deleted.", "El archivo descargado no coincide con la versión anunciada: se elimina.", "Die heruntergeladene Datei passt nicht zur angekündigten Version: Sie wird gelöscht.", "Загруженный файл не соответствует заявленной версии: он удалён.", "ダウンロードしたファイルが告知されたバージョンと一致しないため、削除されました。"));
         var folder = Path.Combine(Path.GetTempPath(), "TrackChest-update");
         Directory.CreateDirectory(folder);
         var path = Path.Combine(folder, $"TrackChest-{v}.msi");
@@ -85,7 +85,7 @@ internal static class Updater
     {
         using var response = await Http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancel);
         response.EnsureSuccessStatusCode();
-        if (response.RequestMessage?.RequestUri?.Scheme != Uri.UriSchemeHttps) throw new InvalidOperationException("Redirection non sécurisée refusée.");
+        if (response.RequestMessage?.RequestUri?.Scheme != Uri.UriSchemeHttps) throw new InvalidOperationException(L.T("Redirection non sécurisée refusée.", "Insecure redirect refused.", "Redirección no segura rechazada.", "Unsichere Weiterleitung abgelehnt.", "Небезопасное перенаправление отклонено.", "安全でないリダイレクトを拒否しました。"));
         if (response.Content.Headers.ContentLength is { } length && length > max) throw new InvalidOperationException("Fichier trop gros.");
         await using var stream = await response.Content.ReadAsStreamAsync(cancel);
         using var buffer = new MemoryStream();

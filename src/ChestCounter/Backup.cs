@@ -59,15 +59,15 @@ public sealed partial class Store
         }
         catch (Exception ex) when (ex is InvalidDataException or JsonException or IOException)
         {
-            throw new InvalidDataException(L.T("Sauvegarde illisible ou endommagée.", "Unreadable or damaged backup.", "Copia de seguridad ilegible o dañada."), ex);
+            throw new InvalidDataException(L.T("Sauvegarde illisible ou endommagée.", "Unreadable or damaged backup.", "Copia de seguridad ilegible o dañada.", "Sicherung nicht lesbar oder beschädigt.", "Резервная копия не читается или повреждена.", "バックアップを読み取れないか、破損しています。"), ex);
         }
         if (!hasData)
         {
-            throw new InvalidDataException(L.T("Ce fichier n’est pas une sauvegarde TrackChest.", "This file is not a TrackChest backup.", "Este archivo no es una copia de seguridad de TrackChest."));
+            throw new InvalidDataException(L.T("Ce fichier n’est pas une sauvegarde TrackChest.", "This file is not a TrackChest backup.", "Este archivo no es una copia de seguridad de TrackChest.", "Diese Datei ist keine TrackChest-Sicherung.", "Этот файл не является резервной копией TrackChest.", "このファイルは TrackChest のバックアップではありません。"));
         }
         if (backup == null)
         {
-            throw new InvalidDataException(L.T("Sauvegarde vide.", "Empty backup.", "Copia de seguridad vacía."));
+            throw new InvalidDataException(L.T("Sauvegarde vide.", "Empty backup.", "Copia de seguridad vacía.", "Leere Sicherung.", "Пустая резервная копия.", "バックアップが空です。"));
         }
 
         int added = 0, updated = 0, already = 0;

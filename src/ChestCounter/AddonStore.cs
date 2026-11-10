@@ -113,14 +113,14 @@ public static class AddonCatalog
     public static async Task<CatalogIndex> FetchIndexAsync(string url, CancellationToken cancellation)
     {
         if (!AddonTrust.IsConfigured)
-            throw new InvalidOperationException(L.T("Clé publique du catalogue absente de cette version : catalogue indisponible.", "Catalog public key missing from this build: catalog unavailable.", "Falta la clave pública del catálogo en esta versión: catálogo no disponible."));
+            throw new InvalidOperationException(L.T("Clé publique du catalogue absente de cette version : catalogue indisponible.", "Catalog public key missing from this build: catalog unavailable.", "Falta la clave pública del catálogo en esta versión: catálogo no disponible.", "Öffentlicher Katalogschlüssel fehlt in dieser Version: Katalog nicht verfügbar.", "В этой версии нет открытого ключа каталога: каталог недоступен.", "このバージョンにはカタログの公開鍵がありません: カタログは利用できません。"));
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
-            throw new InvalidOperationException(L.T("L’adresse du catalogue doit être en https.", "The catalog address must be https.", "La dirección del catálogo debe ser https."));
+            throw new InvalidOperationException(L.T("L’adresse du catalogue doit être en https.", "The catalog address must be https.", "La dirección del catálogo debe ser https.", "Die Katalogadresse muss https verwenden.", "Адрес каталога должен использовать https.", "カタログのアドレスは https である必要があります。"));
 
         var index = await GetAsync(uri, MaxIndexBytes, cancellation);
         var signature = await GetAsync(new Uri(url + ".sig"), 4096, cancellation);
         if (!AddonTrust.Verify(index, System.Text.Encoding.ASCII.GetString(signature)))
-            throw new InvalidDataException(L.T("Signature du catalogue invalide : il a peut-être été modifié. Rien n’est utilisé.", "Invalid catalog signature: it may have been tampered with. Nothing is used.", "Firma del catálogo no válida: puede haber sido modificado. No se usa nada."));
+            throw new InvalidDataException(L.T("Signature du catalogue invalide : il a peut-être été modifié. Rien n’est utilisé.", "Invalid catalog signature: it may have been tampered with. Nothing is used.", "Firma del catálogo no válida: puede haber sido modificado. No se usa nada.", "Ungültige Katalogsignatur: Er wurde möglicherweise verändert. Es wird nichts verwendet.", "Недействительная подпись каталога: возможно, он был изменён. Ничего не используется.", "カタログの署名が無効です。改ざんされた可能性があります。何も使用されません。"));
 
         CatalogIndex? parsed;
         try { parsed = JsonSerializer.Deserialize<CatalogIndex>(index, AddonJson.Strict); }
@@ -133,18 +133,18 @@ public static class AddonCatalog
     /// <summary>Downloads a package and checks size, SHA-256 and that the manifest says what the catalog said.</summary>
     public static async Task<(byte[] Zip, AddonManifest Manifest)> DownloadAsync(CatalogEntry entry, CatalogIndex index, CancellationToken cancellation)
     {
-        if (!entry.IsValid()) throw new InvalidDataException("Entrée de catalogue invalide.");
+        if (!entry.IsValid()) throw new InvalidDataException(L.T("Entrée de catalogue invalide.", "Invalid catalog entry.", "Entrada de catálogo no válida.", "Ungültiger Katalogeintrag.", "Недопустимая запись каталога.", "カタログの項目が無効です。"));
         if (index.IsRevoked(entry.Id, entry.Version))
-            throw new InvalidDataException(L.T("Cet add-on a été révoqué.", "This add-on has been revoked.", "Este add-on ha sido revocado."));
+            throw new InvalidDataException(L.T("Cet add-on a été révoqué.", "This add-on has been revoked.", "Este add-on ha sido revocado.", "Dieses Add-on wurde widerrufen.", "Это дополнение отозвано.", "このアドオンは取り消されました。"));
 
         var zip = await GetAsync(new Uri(entry.Url), AddonRules.MaxZipBytes, cancellation);
         if (zip.Length != entry.Size || !Convert.ToHexString(SHA256.HashData(zip)).Equals(entry.Sha256, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidDataException(L.T("Le fichier téléchargé ne correspond pas au catalogue (empreinte ou taille).", "The downloaded file does not match the catalog (hash or size).", "El archivo descargado no coincide con el catálogo (huella o tamaño)."));
+            throw new InvalidDataException(L.T("Le fichier téléchargé ne correspond pas au catalogue (empreinte ou taille).", "The downloaded file does not match the catalog (hash or size).", "El archivo descargado no coincide con el catálogo (huella o tamaño).", "Die heruntergeladene Datei stimmt nicht mit dem Katalog überein (Prüfsumme oder Größe).", "Загруженный файл не совпадает с каталогом (хеш или размер).", "ダウンロードしたファイルがカタログと一致しません（ハッシュまたはサイズ）。"));
 
         var manifest = AddonPackage.Read(zip);
         if (manifest.Id != entry.Id || manifest.Version != entry.Version
             || !manifest.Permissions.OrderBy(p => p).SequenceEqual(entry.Permissions.OrderBy(p => p)))
-            throw new InvalidDataException(L.T("Le contenu de l’add-on ne correspond pas à sa fiche du catalogue.", "The add-on content does not match its catalog entry.", "El contenido del add-on no coincide con su ficha del catálogo."));
+            throw new InvalidDataException(L.T("Le contenu de l’add-on ne correspond pas à sa fiche du catalogue.", "The add-on content does not match its catalog entry.", "El contenido del add-on no coincide con su ficha del catálogo.", "Der Inhalt des Add-ons stimmt nicht mit seinem Katalogeintrag überein.", "Содержимое дополнения не совпадает с его записью в каталоге.", "アドオンの内容がカタログの登録内容と一致しません。"));
         return (zip, manifest);
     }
 
@@ -153,7 +153,7 @@ public static class AddonCatalog
         using var response = await Http.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancellation);
         response.EnsureSuccessStatusCode();
         if (response.RequestMessage?.RequestUri?.Scheme != Uri.UriSchemeHttps)
-            throw new InvalidDataException("Redirection non sécurisée refusée.");
+            throw new InvalidDataException(L.T("Redirection non sécurisée refusée.", "Insecure redirect refused.", "Redirección no segura rechazada.", "Unsichere Weiterleitung abgelehnt.", "Небезопасное перенаправление отклонено.", "安全でないリダイレクトを拒否しました。"));
         if (response.Content.Headers.ContentLength > limit) throw new InvalidDataException("Fichier trop gros.");
 
         await using var input = await response.Content.ReadAsStreamAsync(cancellation);
@@ -384,7 +384,7 @@ public static class AddonRuntime
             string? detail = null;
             if (counter.ShowLast && counter.Scope == "total" && last != null && Compute(counter.Metric, new[] { last }) is int latest)
             {
-                detail = $"· {L.N(latest)} {L.T("dernière partie", "last match", "última partida")}";
+                detail = $"· {L.N(latest)} {L.T("dernière partie", "last match", "última partida", "letztes Match", "последний матч", "前回の試合")}";
             }
             rows.Add(new OverlayRow(counter.Label, value is int n ? L.N(n) : "—", Detail: detail));
         }

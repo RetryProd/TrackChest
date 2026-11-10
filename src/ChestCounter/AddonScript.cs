@@ -38,12 +38,12 @@ public static class AddonScript
             var engine = NewEngine();
             engine.Execute(source);
             if (engine.GetValue("overlay") is not Function)
-                throw new InvalidDataException(L.T("script.js doit définir une fonction overlay(view, data).", "script.js must define a function overlay(view, data).", "script.js debe definir una función overlay(view, data)."));
+                throw new InvalidDataException(L.T("script.js doit définir une fonction overlay(view, data).", "script.js must define a function overlay(view, data).", "script.js debe definir una función overlay(view, data).", "script.js muss eine Funktion overlay(view, data) definieren.", "script.js должен определять функцию overlay(view, data).", "script.js には overlay(view, data) 関数が必要です。"));
         }
         catch (InvalidDataException) { throw; }
         catch (Exception ex)
         {
-            throw new InvalidDataException(L.T($"script.js invalide : {ex.Message}", $"Invalid script.js: {ex.Message}", $"script.js no válido: {ex.Message}"), ex);
+            throw new InvalidDataException(L.T($"script.js invalide : {ex.Message}", $"Invalid script.js: {ex.Message}", $"script.js no válido: {ex.Message}", $"Ungültige script.js: {ex.Message}", $"Недопустимый script.js: {ex.Message}", $"script.js が無効です: {ex.Message}"), ex);
         }
     }
 
@@ -96,7 +96,7 @@ public static class AddonScript
 
     private static string ViewToJson(OverlayView v) => JsonSerializer.Serialize(new
     {
-        header = v.HeaderText ?? L.T("COFFRES", "CHESTS", "COFRES"),
+        header = v.HeaderText ?? L.T("COFFRES", "CHESTS", "COFRES", "TRUHEN", "СУНДУКИ", "宝箱"),
         total = v.Total,
         totalCaption = v.TotalCaption ?? "total",
         current = v.Current,

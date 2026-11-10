@@ -828,9 +828,9 @@ public static class TreasureNames
                 }
                 // Not a golden chest prize (those carry their id): one of the treasure hunt gizmos (golden
                 // firework, portable extractor, locators, extraction accelerator), exact one not in the replay.
-                return L.T(UnknownGizmoFr, UnknownGizmoEn, UnknownGizmoEs);
+                return L.T(UnknownGizmoFr, UnknownGizmoEn, UnknownGizmoEs, "Schatz-Gizmo", "Устройство сокровища", "宝のギズモ");
             }
-            return L.T($"Trésor inconnu ({item[(item.IndexOf(':') + 1)..]})", $"Unknown treasure ({item[(item.IndexOf(':') + 1)..]})", $"Tesoro desconocido ({item[(item.IndexOf(':') + 1)..]})");
+            return L.T($"Trésor inconnu ({item[(item.IndexOf(':') + 1)..]})", $"Unknown treasure ({item[(item.IndexOf(':') + 1)..]})", $"Tesoro desconocido ({item[(item.IndexOf(':') + 1)..]})", $"Unbekannter Schatz ({item[(item.IndexOf(':') + 1)..]})", $"Неизвестное сокровище ({item[(item.IndexOf(':') + 1)..]})", $"不明な宝（{item[(item.IndexOf(':') + 1)..]}）");
         }
 
 

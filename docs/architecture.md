@@ -104,7 +104,7 @@ Tous les fichiers sont dans `src/ChestCounter/`.
 | `NativeOverlay.cs` | Fenêtre de l'overlay en Win32 pur : toujours au premier plan, transparente aux clics quand elle est verrouillée, raccourcis globaux, dessin GDI, thème de couleurs, capture PNG pour `--overlay-preview`. |
 | `ReportWriter.cs` | Génération de `report.html` et règle de la session (voir plus bas). |
 | `Png.cs` | Écriture minimale d'un PNG, pour les captures de l'overlay. |
-| `Lang.cs` | Textes de l'interface. Ils s'écrivent `L.T("français", "English", "español")` ; l'interface est en français, aucun choix de langue n'est proposé pour l'instant. |
+| `Lang.cs` | Textes de l'interface. Ils s'écrivent `L.T("français", "English", "español", "Deutsch", "русский", "日本語")` ; la langue se choisit dans les paramètres, ou suit celle de Windows. |
 | `PirateTokenOdds.cs` | Chance cumulée d'obtenir le jeton pirate. |
 
 ### Add-ons

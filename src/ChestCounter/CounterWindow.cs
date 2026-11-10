@@ -92,9 +92,9 @@ internal sealed partial class CounterWindow : Form
     {
         using var dialog = new SaveFileDialog
         {
-            Title = "Exporter l’historique TrackChest",
-            Filter = "Sauvegarde TrackChest (*.zip)|*.zip",
-            FileName = $"TrackChest-sauvegarde-{DateTime.Now:yyyy-MM-dd}.zip",
+            Title = L.T("Exporter l’historique TrackChest", "Export the TrackChest history", "Exportar el historial de TrackChest", "TrackChest-Verlauf exportieren", "Экспорт истории TrackChest", "TrackChest の履歴をエクスポート"),
+            Filter = L.T("Sauvegarde TrackChest (*.zip)|*.zip", "TrackChest backup (*.zip)|*.zip", "Copia de seguridad de TrackChest (*.zip)|*.zip", "TrackChest-Sicherung (*.zip)|*.zip", "Резервная копия TrackChest (*.zip)|*.zip", "TrackChest バックアップ (*.zip)|*.zip"),
+            FileName = L.T($"TrackChest-sauvegarde-{DateTime.Now:yyyy-MM-dd}.zip", $"TrackChest-backup-{DateTime.Now:yyyy-MM-dd}.zip", $"TrackChest-copia-{DateTime.Now:yyyy-MM-dd}.zip", $"TrackChest-Sicherung-{DateTime.Now:yyyy-MM-dd}.zip", $"TrackChest-backup-{DateTime.Now:yyyy-MM-dd}.zip", $"TrackChest-backup-{DateTime.Now:yyyy-MM-dd}.zip"),
             DefaultExt = "zip",
             AddExtension = true,
             OverwritePrompt = true,
@@ -106,12 +106,12 @@ internal sealed partial class CounterWindow : Form
             _store.SaveData(_data);
             _store.ExportBackup(dialog.FileName, _data);
             MessageBox.Show(this,
-                $"Historique exporté : {L.Count(_data.Matches.Count, "partie", "parties", "match", "matches", "partida", "partidas")}.\n\n{dialog.FileName}\n\nGarde ce fichier hors du PC (clé USB, cloud) pour pouvoir le restaurer avec Importer.",
+                L.T($"Historique exporté : {L.Matches(_data.Matches.Count)}.\n\n{dialog.FileName}\n\nGarde ce fichier hors du PC (clé USB, cloud) pour pouvoir le restaurer avec Importer.", $"History exported: {L.Matches(_data.Matches.Count)}.\n\n{dialog.FileName}\n\nKeep this file off the PC (USB stick, cloud) so you can restore it with Import.", $"Historial exportado: {L.Matches(_data.Matches.Count)}.\n\n{dialog.FileName}\n\nGuarda este archivo fuera del PC (memoria USB, nube) para poder restaurarlo con Importar.", $"Verlauf exportiert: {L.Matches(_data.Matches.Count)}.\n\n{dialog.FileName}\n\nBewahre diese Datei außerhalb des PCs auf (USB-Stick, Cloud), um sie mit Importieren wiederherzustellen.", $"История экспортирована: {L.Matches(_data.Matches.Count)}.\n\n{dialog.FileName}\n\nХраните этот файл вне ПК (флешка, облако), чтобы восстановить его через «Импорт».", $"履歴をエクスポートしました: {L.Matches(_data.Matches.Count)}。\n\n{dialog.FileName}\n\n「インポート」で復元できるよう、このファイルは PC の外（USB メモリ、クラウド）に保管してください。"),
                 "TrackChest", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            MessageBox.Show(this, $"Impossible d’écrire la sauvegarde.\n{ex.Message}", "TrackChest", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show(this, L.T($"Impossible d’écrire la sauvegarde.\n{ex.Message}", $"Could not write the backup.\n{ex.Message}", $"No se pudo escribir la copia de seguridad.\n{ex.Message}", $"Die Sicherung konnte nicht geschrieben werden.\n{ex.Message}", $"Не удалось записать резервную копию.\n{ex.Message}", $"バックアップを書き込めませんでした。\n{ex.Message}"), "TrackChest", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
     });
 
@@ -119,8 +119,8 @@ internal sealed partial class CounterWindow : Form
     {
         using var dialog = new OpenFileDialog
         {
-            Title = "Importer une sauvegarde TrackChest",
-            Filter = "Sauvegarde TrackChest (*.zip)|*.zip",
+            Title = L.T("Importer une sauvegarde TrackChest", "Import a TrackChest backup", "Importar una copia de seguridad de TrackChest", "TrackChest-Sicherung importieren", "Импорт резервной копии TrackChest", "TrackChest のバックアップをインポート"),
+            Filter = L.T("Sauvegarde TrackChest (*.zip)|*.zip", "TrackChest backup (*.zip)|*.zip", "Copia de seguridad de TrackChest (*.zip)|*.zip", "TrackChest-Sicherung (*.zip)|*.zip", "Резервная копия TrackChest (*.zip)|*.zip", "TrackChest バックアップ (*.zip)|*.zip"),
             CheckFileExists = true,
             InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
         };
@@ -135,7 +135,7 @@ internal sealed partial class CounterWindow : Form
             _reportDirty = false;
             _report.Enabled = File.Exists(_store.ReportPath);
             MessageBox.Show(this,
-                $"Sauvegarde importée.\n\n{result.Added} parties ajoutées · {result.Updated} mises à jour · {result.Already} déjà présentes.",
+                L.T($"Sauvegarde importée.\n\n{result.Added} parties ajoutées · {result.Updated} mises à jour · {result.Already} déjà présentes.", $"Backup imported.\n\n{result.Added} matches added · {result.Updated} updated · {result.Already} already there.", $"Copia importada.\n\n{result.Added} partidas añadidas · {result.Updated} actualizadas · {result.Already} ya presentes.", $"Sicherung importiert.\n\n{result.Added} Matches hinzugefügt · {result.Updated} aktualisiert · {result.Already} bereits vorhanden.", $"Резервная копия импортирована.\n\nДобавлено матчей: {result.Added} · обновлено: {result.Updated} · уже было: {result.Already}.", $"バックアップをインポートしました。\n\n追加 {result.Added} 試合 · 更新 {result.Updated} · 既存 {result.Already}"),
                 "TrackChest", MessageBoxButtons.OK, MessageBoxIcon.Information);
             _ = Scan();
         }
@@ -149,7 +149,7 @@ internal sealed partial class CounterWindow : Form
     {
         using var picker = new FolderBrowserDialog
         {
-            Description = "Choisis le dossier qui contient tes fichiers Fortnite .replay.",
+            Description = L.T("Choisis le dossier qui contient tes fichiers Fortnite .replay.", "Choose the folder that holds your Fortnite .replay files.", "Elige la carpeta que contiene tus archivos .replay de Fortnite.", "Wähle den Ordner mit deinen Fortnite-.replay-Dateien.", "Выберите папку с вашими файлами Fortnite .replay.", "Fortnite の .replay ファイルがあるフォルダーを選択してください。"),
             UseDescriptionForTitle = true,
             ShowNewFolderButton = false,
             SelectedPath = _folder.Text,
@@ -184,7 +184,7 @@ internal sealed partial class CounterWindow : Form
         _timer.Stop();
         _browse.Enabled = _scan.Enabled = _profiles.Enabled = _export.Enabled = _import.Enabled = false;
         IProgress<(int Done, int Total)> progress = new Progress<(int Done, int Total)>(p =>
-            SetStatus("IMPORT EN COURS", $"Analyse des replays  ·  {p.Done + 1} / {p.Total}", Gold));
+            SetStatus(L.T("IMPORT EN COURS", "IMPORTING", "IMPORTANDO", "IMPORT LÄUFT", "ИМПОРТ", "インポート中"), L.T($"Analyse des replays  ·  {p.Done + 1} / {p.Total}", $"Analyzing replays  ·  {p.Done + 1} / {p.Total}", $"Analizando replays  ·  {p.Done + 1} / {p.Total}", $"Replays werden analysiert  ·  {p.Done + 1} / {p.Total}", $"Анализ повторов  ·  {p.Done + 1} / {p.Total}", $"リプレイを分析中  ·  {p.Done + 1} / {p.Total}"), Gold));
         try
         {
             var result = await Task.Run(() => _scanner.Scan(_closing.Token, (done, total) => progress.Report((done, total))));
@@ -197,23 +197,23 @@ internal sealed partial class CounterWindow : Form
                 _reportDirty = false;
             }
             _report.Enabled = File.Exists(_store.ReportPath);
-            var message = result.FolderMissing ? "Dossier introuvable. Choisis l’emplacement des rediffusions."
-                : result.Files == 0 ? "Aucun replay trouvé. Active l’enregistrement dans Fortnite."
-                : $"{result.Files} replays dans le dossier  ·  {result.Incomplete} incomplets  ·  {result.Errors} illisibles";
-            if (!_overlayStarted) message += "  ·  Overlay indisponible";
+            var message = result.FolderMissing ? L.T("Dossier introuvable. Choisis l’emplacement des rediffusions.", "Folder not found. Choose where your replays are.", "Carpeta no encontrada. Elige dónde están tus repeticiones.", "Ordner nicht gefunden. Wähle den Speicherort deiner Wiederholungen.", "Папка не найдена. Укажите расположение повторов.", "フォルダーが見つかりません。リプレイの場所を選択してください。")
+                : result.Files == 0 ? L.T("Aucun replay trouvé. Active l’enregistrement dans Fortnite.", "No replay found. Turn on recording in Fortnite.", "No se encontró ningún replay. Activa la grabación en Fortnite.", "Kein Replay gefunden. Aktiviere die Aufnahme in Fortnite.", "Повторы не найдены. Включите запись в Fortnite.", "リプレイが見つかりません。Fortnite で録画を有効にしてください。")
+                : L.T($"{result.Files} replays dans le dossier  ·  {result.Incomplete} incomplets  ·  {result.Errors} illisibles", $"{result.Files} replays in the folder  ·  {result.Incomplete} incomplete  ·  {result.Errors} unreadable", $"{result.Files} replays en la carpeta  ·  {result.Incomplete} incompletos  ·  {result.Errors} ilegibles", $"{result.Files} Replays im Ordner  ·  {result.Incomplete} unvollständig  ·  {result.Errors} nicht lesbar", $"Повторов в папке: {result.Files}  ·  неполных: {result.Incomplete}  ·  нечитаемых: {result.Errors}", $"フォルダー内のリプレイ {result.Files} 件  ·  不完全 {result.Incomplete}  ·  読み取り不可 {result.Errors}");
+            if (!_overlayStarted) message += L.T("  ·  Overlay indisponible", "  ·  Overlay unavailable", "  ·  Overlay no disponible", "  ·  Overlay nicht verfügbar", "  ·  Оверлей недоступен", "  ·  オーバーレイ利用不可");
             if (result.FolderMissing || result.Errors > 0 || !_overlayStarted)
             {
-                if (result.InProgress) message += "  ·  Partie en cours";
-                SetStatus("À VÉRIFIER", message, Gold);
+                if (result.InProgress) message += L.T("  ·  Partie en cours", "  ·  Match in progress", "  ·  Partida en curso", "  ·  Match läuft", "  ·  Идёт матч", "  ·  試合中");
+                SetStatus(L.T("À VÉRIFIER", "CHECK", "REVISAR", "PRÜFEN", "ПРОВЕРИТЬ", "要確認"), message, Gold);
             }
-            else if (result.InProgress) SetStatus("PARTIE EN COURS", message, Gold);
-            else if (result.Files == 0) SetStatus("EN ATTENTE", message, Muted);
-            else SetStatus("SUIVI ACTIF", message, Soft);
+            else if (result.InProgress) SetStatus(L.T("PARTIE EN COURS", "MATCH IN PROGRESS", "PARTIDA EN CURSO", "MATCH LÄUFT", "ИДЁТ МАТЧ", "試合中"), message, Gold);
+            else if (result.Files == 0) SetStatus(L.T("EN ATTENTE", "WAITING", "EN ESPERA", "WARTEN", "ОЖИДАНИЕ", "待機中"), message, Muted);
+            else SetStatus(L.T("SUIVI ACTIF", "TRACKING ON", "SEGUIMIENTO ACTIVO", "AKTIV", "ОТСЛЕЖИВАНИЕ", "追跡中"), message, Green);
         }
         catch (OperationCanceledException) when (_closing.IsCancellationRequested) { }
         catch (Exception ex)
         {
-            SetStatus("À VÉRIFIER", $"Impossible d’analyser les replays. {ex.Message}", Gold);
+            SetStatus(L.T("À VÉRIFIER", "CHECK", "REVISAR", "PRÜFEN", "ПРОВЕРИТЬ", "要確認"), L.T($"Impossible d’analyser les replays. {ex.Message}", $"Could not analyze the replays. {ex.Message}", $"No se pudieron analizar los replays. {ex.Message}", $"Die Replays konnten nicht analysiert werden. {ex.Message}", $"Не удалось проанализировать повторы. {ex.Message}", $"リプレイを分析できませんでした。{ex.Message}"), Gold);
         }
         finally
         {

@@ -21,6 +21,7 @@ internal static class Program
         var help = false;
         var watchFortnite = false;
         var launchedByFortnite = false;
+        L.Set(null); // language of Windows until config.json is read
         try
         {
             for (var i = 0; i < args.Length; i++)
@@ -63,7 +64,7 @@ internal static class Program
                 if (!instance.WaitOne(0))
                 {
                     if (launchedByFortnite) return 0;
-                    throw new InvalidOperationException("TrackChest utilise déjà cet historique. Ferme cette instance pour continuer.");
+                    throw new InvalidOperationException(L.T("TrackChest utilise déjà cet historique. Ferme cette instance pour continuer.", "TrackChest is already using this history. Close that instance to continue.", "TrackChest ya está usando este historial. Cierra esa instancia para continuar.", "TrackChest verwendet diesen Verlauf bereits. Schließe diese Instanz, um fortzufahren.", "TrackChest уже использует эту историю. Закройте тот экземпляр, чтобы продолжить.", "TrackChest はすでにこの履歴を使用しています。続行するにはそのインスタンスを閉じてください。"));
                 }
             }
             catch (AbandonedMutexException) { } // Windows transferred ownership to this instance.
@@ -71,6 +72,7 @@ internal static class Program
             try
             {
                 var config = store.LoadConfig() ?? new Config();
+                L.Set(config.Language);
                 if (replays != null) config.DemosFolder = replays;
                 store.LoadPrizeNames();
                 AddonRuntime.Load(new AddonStore(store.Folder));
@@ -138,13 +140,13 @@ internal static class Program
         }
 
         ReportWriter.WriteAll(store, config, data);
-        Console.WriteLine($"{L.Count(scan.Files, "fichier", "file", "archivo")} · {scan.Errors} illisible(s) · {scan.Incomplete} incomplet(s)");
+        Console.WriteLine($"{L.Files(scan.Files)} · {scan.Errors} illisible(s) · {scan.Incomplete} incomplet(s)");
         foreach (var profile in Profiles.List(data))
         {
             var matches = data.Matches.Where(m => Profiles.Key(m) == profile.Key)
                 .OrderByDescending(m => m.MatchStartUtc ?? m.AnalyzedAtUtc).ToList();
             var wanted = matches.Any(m => m.WantedMaps != null) ? L.N(matches.Sum(m => m.WantedMaps?.Count ?? 0)) : "—";
-            Console.WriteLine($"{L.Count(profile.Matches, "partie", "match", "partida")} · {L.N(profile.Chests)} coffres · dernière partie {matches[0].ChestsTotal} coffres");
+            Console.WriteLine($"{L.Matches(profile.Matches)} · {L.N(profile.Chests)} coffres · dernière partie {matches[0].ChestsTotal} coffres");
             Console.WriteLine($"Cassés {L.N(matches.Sum(m => m.ChestsDestroyed))} · Esprits {L.N(matches.Sum(m => m.SpriteChests))} · Cartes Wanted {wanted}");
         }
         Console.WriteLine($"Rapport local  {store.ReportPath}");

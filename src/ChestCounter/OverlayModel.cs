@@ -19,7 +19,7 @@ public static class OverlayAppearance
 public static class OverlayModel
 {
     /// <summary>Caption of the right counter between two matches (also used to keep the overlay width stable).</summary>
-    public static string LastMatchCaption => L.T("dernière partie", "last match", "última partida");
+    public static string LastMatchCaption => L.T("dernière partie", "last match", "última partida", "letztes Match", "последний матч", "前回の試合");
 
     public static OverlayView Build(TrackerData d, bool inProgress)
     {
@@ -34,29 +34,29 @@ public static class OverlayModel
         {
             var avg = (double)sessionTotal / session.Count;
             var avgText = Math.Round(avg, MidpointRounding.AwayFromZero).ToString("0", L.Culture);
-            sessionDetail = $"{L.Count(session.Count, "partie", "parties", "match", "matches", "partida", "partidas")} · {L.T("moy.", "avg.", "media")} {avgText}";
+            sessionDetail = $"{L.Matches(session.Count)} · {L.T("moy.", "avg.", "media", "Ø", "сред.", "平均")} {avgText}";
         }
-        rows.Add(new OverlayRow(L.T("Session", "Session", "Sesión"), L.Count(sessionTotal, "coffre", "chest", "cofre"), Detail: sessionDetail));
+        rows.Add(new OverlayRow(L.T("Session", "Session", "Sesión", "Sitzung", "Сессия", "セッション"), L.Chests(sessionTotal), Detail: sessionDetail));
 
         var last = d.Matches.OrderByDescending(m => m.MatchStartUtc ?? m.AnalyzedAtUtc).FirstOrDefault();
         if (last != null)
         {
-            rows.Add(new OverlayRow(L.T("Dernière", "Last", "Última"), L.Count(last.ChestsTotal, "coffre", "chest", "cofre")));
+            rows.Add(new OverlayRow(L.T("Dernière", "Last", "Última", "Letztes", "Последний", "前回"), L.Chests(last.ChestsTotal)));
         }
 
         // Counters from enabled add-ons (permissions: stats.read + overlay.rows).
         rows.AddRange(AddonRuntime.CounterRows(d, session, last));
 
         var treasures = d.Matches.Sum(m => m.TreasureFinds.Count);
-        rows.Add(new OverlayRow(L.T("Trésors", "Treasures", "Tesoros"), $"★ {L.N(treasures)}", Treasure: true));
+        rows.Add(new OverlayRow(L.T("Trésors", "Treasures", "Tesoros", "Schätze", "Сокровища", "宝"), $"★ {L.N(treasures)}", Treasure: true));
         var opened = d.Matches.Sum(m => m.ChestsOpened);
-        rows.Add(new OverlayRow(L.T("Jeton pirate", "Pirate token", "Ficha pirata"), PirateTokenOdds.Format(opened),
-            Detail: L.T("· cumul estimé", "· estimated cumulative chance", "· probabilidad acumulada estimada")));
+        rows.Add(new OverlayRow(L.T("Jeton pirate", "Pirate token", "Ficha pirata", "Piraten-Token", "Пиратский жетон", "海賊トークン"), PirateTokenOdds.Format(opened),
+            Detail: L.T("· cumul estimé", "· estimated cumulative chance", "· probabilidad acumulada estimada", "· geschätzte Gesamtchance", "· оценочный суммарный шанс", "· 推定累積確率")));
 
         // Fortnite finalizes the replay at the end of the match.
         var view = inProgress
-            ? new OverlayView(L.N(total), "…", L.T("en cours", "in progress", "en curso"), true,
-                L.T("● PARTIE EN COURS", "● MATCH IN PROGRESS", "● PARTIDA EN CURSO"), rows)
+            ? new OverlayView(L.N(total), "…", L.T("en cours", "in progress", "en curso", "läuft", "идёт", "進行中"), true,
+                L.T("● PARTIE EN COURS", "● MATCH IN PROGRESS", "● PARTIDA EN CURSO", "● MATCH LÄUFT", "● ИДЁТ МАТЧ", "● 試合中"), rows)
             : new OverlayView(L.N(total), last != null ? L.N(last.ChestsTotal) : null, LastMatchCaption, false, null, rows);
 
         // Script add-ons (permission overlay.script) may change, add or remove anything in the view.

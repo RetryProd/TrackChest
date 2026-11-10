@@ -109,17 +109,19 @@ L'icône sert à l'exe, aux fenêtres et à l'en-tête (`HeroPanel.LoadLogo`).
 
 ### Les textes
 
-Les textes sont écrits directement dans le code. Les nouveaux textes passent par `L.T` (`Lang.cs`), qui prévoit le
-français, l'anglais et l'espagnol :
+Les textes sont écrits directement dans le code et passent par `L.T` (`Lang.cs`), en six langues, toujours dans cet
+ordre : français, anglais, espagnol, allemand, russe, japonais.
 
 ```csharp
-L.T("Coffres cassés", "Broken chests", "Cofres rotos")   // texte selon la langue
-L.N(1549)                                                // nombre formaté : « 1 549 »
-L.Count(3, "coffre", "chest", "cofre")                   // « 3 coffres » (pluriel automatique)
+L.T("Coffres cassés", "Broken chests", "Cofres rotos", "Zerstörte Truhen", "Разбитые сундуки", "壊した宝箱")
+L.N(1549)        // nombre formaté selon la langue : « 1 549 »
+L.Chests(3)      // « 3 coffres », « 3 Truhen », « 3 сундука »… (pluriels, y compris russes)
+L.Matches(3)     // « 3 parties »
 ```
 
-L'interface est en français : aucun choix de langue n'est proposé pour l'instant. Pour en ajouter un, appelle
-`L.Set("en")` au démarrage dans `Program.cs` et ajoute un réglage dans la fenêtre Paramètres (§ 5).
+La langue se choisit dans **Paramètres → Langue** et s'enregistre dans `config.json` (`Language`). Sans choix
+(« Automatique »), TrackChest prend la langue de Windows, ou l'anglais si ce n'est pas une des six. Changer de langue
+reconstruit la fenêtre principale, l'overlay et l'historique HTML.
 
 Les types de coffres sont **enregistrés en français** dans `data.json` (« Coffre rare »…) ; `L.Name` les traduit à
 l'affichage. Ne change pas ces textes enregistrés (voir § 8).
@@ -241,7 +243,7 @@ L'overlay est une fenêtre Win32 dessinée par `NativeOverlay.cs`. Son **contenu
 Tout se passe dans `OverlayModel.Build` : chaque `rows.Add(…)` est une ligne, dans l'ordre d'affichage.
 
 ```csharp
-rows.Add(new OverlayRow(L.T("Session", "Session", "Sesión"), L.Count(sessionTotal, "coffre", "chest", "cofre"), Detail: sessionDetail));
+rows.Add(new OverlayRow(L.T("Session", "Session", "Sesión", "Sitzung", "Сессия", "セッション"), L.Chests(sessionTotal), Detail: sessionDetail));
 ```
 
 `OverlayRow(libellé, valeur, Treasure: couleur trésor, Detail: texte gris, Color: "#RRGGBB")`.
@@ -253,7 +255,7 @@ rows.Add(new OverlayRow(L.T("Session", "Session", "Sesión"), L.Count(sessionTot
 
   ```csharp
   var eliminations = d.Matches.Sum(m => m.Eliminations ?? 0);
-  rows.Add(new OverlayRow(L.T("Éliminations", "Eliminations", "Eliminaciones"), L.N(eliminations), Color: "#FF5A5F"));
+  rows.Add(new OverlayRow(L.T("Éliminations", "Eliminations", "Eliminaciones", "Eliminierungen", "Устранения", "撃破数"), L.N(eliminations), Color: "#FF5A5F"));
   ```
 
 Les lignes des add-ons à compteurs sont insérées par `rows.AddRange(AddonRuntime.CounterRows(…))` ; les add-ons à
@@ -468,7 +470,7 @@ Les modifications de la bibliothèque `lib/` doivent être notées dans `lib/PAT
 Exemple : une case « Coffres rares » parmi les cases du haut :
 
 ```csharp
-<div class="tile"><div class="v">{L.N(matches.Sum(m => m.RareChests))}</div><div class="l">{L.T("coffres rares", "rare chests", "cofres raros")}</div></div>
+<div class="tile"><div class="v">{L.N(matches.Sum(m => m.RareChests))}</div><div class="l">{L.T("coffres rares", "rare chests", "cofres raros", "seltene Truhen", "редкие сундуки", "レア宝箱")}</div></div>
 ```
 
 Le rapport est régénéré après chaque import et au changement de compte (`ReportWriter.WriteAll`).

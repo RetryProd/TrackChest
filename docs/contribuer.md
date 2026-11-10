@@ -2,8 +2,8 @@
 
 ## Conventions du code
 
-- **Textes visibles par le joueur** : en français. Les nouveaux textes passent par `L.T("français", "English",
-  "español")` (`Lang.cs`) quand c'est possible, pour qu'une traduction reste simple à ajouter.
+- **Textes visibles par le joueur** : chaque texte passe par `L.T("français", "English", "español", "Deutsch",
+  "русский", "日本語")` (`Lang.cs`), avec les six traductions.
 - **Commentaires et noms** : en anglais, comme le reste du code.
 - **Données enregistrées** : ne renomme pas un champ de `MatchRecord`, `Config` ou `TrackerData` sans prévoir la lecture
   des anciens fichiers. Les historiques des joueurs doivent rester lisibles d'une version à l'autre.

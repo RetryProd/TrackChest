@@ -31,8 +31,8 @@ public static class NativeOverlay
     private static int _headerH, _bigH, _captionH, _rowH, _col1W, _col2W, _labelW;
     private static IntPtr _fontHeader, _fontCaption, _fontLabel;
     private static IntPtr _brushBorder, _brushLine;
-    private static string Header => L.T("COFFRES", "CHESTS", "COFRES");
-    private const string CaptionTotal = "total";
+    private static string Header => L.T("COFFRES", "CHESTS", "COFRES", "TRUHEN", "СУНДУКИ", "宝箱");
+    private static string CaptionTotal => L.T("total", "total", "total", "gesamt", "всего", "合計");
     private static Action<int, int>? _onMoved;
     private static Action<bool>? _onLockChanged;
     private static volatile bool _locked;
@@ -104,7 +104,7 @@ public static class NativeOverlay
             }
             catch (Exception ex)
             {
-                Console.WriteLine(L.T($"Overlay indisponible : {ex.Message}", $"Overlay unavailable: {ex.Message}", $"Overlay no disponible: {ex.Message}"));
+                Console.WriteLine(L.T($"Overlay indisponible : {ex.Message}", $"Overlay unavailable: {ex.Message}", $"Overlay no disponible: {ex.Message}", $"Overlay nicht verfügbar: {ex.Message}", $"Оверлей недоступен: {ex.Message}", $"オーバーレイを利用できません: {ex.Message}"));
                 ready.Set();
             }
         })
@@ -206,7 +206,7 @@ public static class NativeOverlay
         _hwnd = CreateWindowExW(
             // Opaque (no WS_EX_LAYERED alpha): nothing for the compositor to blend every frame.
             WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE,
-            wc.lpszClassName, L.T("Coffres", "Chests", "Cofres"), WS_POPUP,
+            wc.lpszClassName, L.T("Coffres", "Chests", "Cofres", "Truhen", "Сундуки", "宝箱"), WS_POPUP,
 
             posX, posY, w, h, IntPtr.Zero, IntPtr.Zero, hInstance, IntPtr.Zero);
         if (_hwnd == IntPtr.Zero)
@@ -360,10 +360,16 @@ public static class NativeOverlay
             Console.WriteLine(locked
                 ? L.T($"Overlay verrouillé : la souris passe au travers. {(LockHotkeyRegistered ? "Ctrl+Maj+L" : "Touche L dans cette fenêtre")} pour le déverrouiller.",
                       $"Overlay locked: the mouse goes through it. {(LockHotkeyRegistered ? "Ctrl+Shift+L" : "L key in this window")} to unlock it.",
-                      $"Overlay bloqueado: el ratón lo atraviesa. {(LockHotkeyRegistered ? "Ctrl+Mayús+L" : "Tecla L en esta ventana")} para desbloquearlo.")
+                      $"Overlay bloqueado: el ratón lo atraviesa. {(LockHotkeyRegistered ? "Ctrl+Mayús+L" : "Tecla L en esta ventana")} para desbloquearlo.",
+                      $"Overlay gesperrt: Die Maus geht hindurch. {(LockHotkeyRegistered ? "Strg+Umschalt+L" : "Taste L in diesem Fenster")} zum Entsperren.",
+                      $"Оверлей заблокирован: мышь проходит сквозь него. {(LockHotkeyRegistered ? "Ctrl+Shift+L" : "Клавиша L в этом окне")} — чтобы разблокировать.",
+                      $"オーバーレイをロックしました（マウスは透過します）。{(LockHotkeyRegistered ? "Ctrl+Shift+L" : "このウィンドウで L キー")} で解除します。")
                 : L.T("Overlay déverrouillé : clic gauche maintenu pour le déplacer, cadenas pour le reverrouiller.",
                       "Overlay unlocked: hold the left mouse button to move it, click the padlock to lock it again.",
-                      "Overlay desbloqueado: arrástralo con el clic izquierdo; el candado lo vuelve a bloquear."));
+                      "Overlay desbloqueado: arrástralo con el clic izquierdo; el candado lo vuelve a bloquear.",
+                      "Overlay entsperrt: Linke Maustaste gedrückt halten zum Verschieben, Schloss anklicken zum Sperren.",
+                      "Оверлей разблокирован: перетащите его левой кнопкой мыши, нажмите на замок, чтобы снова заблокировать.",
+                      "オーバーレイのロックを解除しました。左ボタンを押したままで移動、鍵アイコンで再ロックします。"));
         }
     }
 
@@ -378,8 +384,8 @@ public static class NativeOverlay
         {
             ShowWindow(hwnd, SW_HIDE);
             Console.WriteLine(HotkeyRegistered
-                ? L.T("Overlay masqué : Ctrl+Maj+O (n'importe où) pour le réafficher.", "Overlay hidden: Ctrl+Shift+O (anywhere) to show it again.", "Overlay oculto: Ctrl+Mayús+O (desde cualquier sitio) para volver a mostrarlo.")
-                : L.T("Overlay masqué : touche O dans cette fenêtre pour le réafficher.", "Overlay hidden: O key in this window to show it again.", "Overlay oculto: tecla O en esta ventana para volver a mostrarlo."));
+                ? L.T("Overlay masqué : Ctrl+Maj+O (n'importe où) pour le réafficher.", "Overlay hidden: Ctrl+Shift+O (anywhere) to show it again.", "Overlay oculto: Ctrl+Mayús+O (desde cualquier sitio) para volver a mostrarlo.", "Overlay ausgeblendet: Strg+Umschalt+O (überall) zum erneuten Anzeigen.", "Оверлей скрыт: Ctrl+Shift+O (где угодно), чтобы показать снова.", "オーバーレイを非表示にしました。Ctrl+Shift+O（どこでも）で再表示します。")
+                : L.T("Overlay masqué : touche O dans cette fenêtre pour le réafficher.", "Overlay hidden: O key in this window to show it again.", "Overlay oculto: tecla O en esta ventana para volver a mostrarlo.", "Overlay ausgeblendet: Taste O in diesem Fenster zum erneuten Anzeigen.", "Оверлей скрыт: клавиша O в этом окне, чтобы показать снова.", "オーバーレイを非表示にしました。このウィンドウで O キーを押すと再表示します。"));
         }
     }
 

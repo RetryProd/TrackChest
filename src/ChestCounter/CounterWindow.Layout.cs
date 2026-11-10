@@ -16,36 +16,86 @@ internal sealed partial class CounterWindow
     private static readonly Color Soft = Color.FromArgb(203, 213, 225);
     private static readonly Color Muted = Color.FromArgb(148, 163, 184);
     private static readonly Color Gold = Color.FromArgb(255, 200, 96);
+    private static readonly Color Green = Color.FromArgb(74, 222, 128);
 
     private readonly TextBox _folder = new()
     {
         ReadOnly = true, BorderStyle = BorderStyle.None, BackColor = Field, ForeColor = Soft,
-        Dock = DockStyle.Top, AccessibleName = "Dossier des fichiers replay",
+        Dock = DockStyle.Top,
     };
     private readonly ComboBox _profiles = new()
     {
         DropDownStyle = ComboBoxStyle.DropDownList, FlatStyle = FlatStyle.Flat, DrawMode = DrawMode.OwnerDrawFixed,
         BackColor = Field, ForeColor = Ink, Dock = DockStyle.Fill, Margin = Padding.Empty,
-        DisplayMember = nameof(Profile.Name), AccessibleName = "Compte Fortnite",
+        DisplayMember = nameof(Profile.Name),
     };
-    private readonly PillButton _browse = new("Parcourir…");
-    private readonly PillButton _scan = new("Actualiser");
-    private readonly PillButton _report = new("Historique", Tone.Primary);
-    private readonly PillButton _overlay = new("Afficher / masquer l’overlay");
-    private readonly PillButton _position = new("Verrouiller / déplacer");
-    private readonly PillButton _export = new("Exporter");
-    private readonly PillButton _import = new("Importer");
-    private readonly PillButton _addons = new("Add-on");
-    private readonly PillButton _settings = new("Paramètres");
+    private readonly PillButton _browse = new("");
+    private readonly PillButton _scan = new("");
+    private readonly PillButton _report = new("", Tone.Primary);
+    private readonly PillButton _overlay = new("");
+    private readonly PillButton _position = new("");
+    private readonly PillButton _export = new("");
+    private readonly PillButton _import = new("");
+    private readonly PillButton _addons = new("");
+    private readonly PillButton _settings = new("");
     private readonly Label _totalValue = TextLabel("—", 26, Gold, FontStyle.Bold);
     private readonly Label _lastValue = TextLabel("—", 26, Ink, FontStyle.Bold);
     private readonly Label _pirateValue = TextLabel("—", 26, Ink, FontStyle.Bold);
-    private readonly PillLabel _statusTag = new() { Text = "À CONFIGURER", ForeColor = Gold };
-    private readonly Label _status = TextLabel("Choisis le dossier de tes rediffusions Fortnite.", 9, Muted);
+    private readonly PillLabel _statusTag = new() { ForeColor = Muted };
+    private readonly Label _status = TextLabel("", 9, Muted);
+    private readonly ToolTip _tips = new();
+    private bool _windowReady;
+
+    /// <summary>Texts of the controls that live as long as the window (the others are rebuilt with the layout).</summary>
+    private void ApplyTexts()
+    {
+        Text = L.T("TrackChest · Compteur de coffres Fortnite", "TrackChest · Fortnite chest counter", "TrackChest · Contador de cofres de Fortnite",
+            "TrackChest · Fortnite-Truhenzähler", "TrackChest · Счётчик сундуков Fortnite", "TrackChest · Fortnite 宝箱カウンター");
+        _folder.AccessibleName = L.T("Dossier des fichiers replay", "Replay files folder", "Carpeta de archivos replay", "Ordner der Replay-Dateien", "Папка файлов повторов", "リプレイファイルのフォルダー");
+        _profiles.AccessibleName = L.T("Compte Fortnite", "Fortnite account", "Cuenta de Fortnite", "Fortnite-Konto", "Учётная запись Fortnite", "Fortnite アカウント");
+        _browse.Text = L.T("Parcourir…", "Browse…", "Examinar…", "Durchsuchen…", "Обзор…", "参照…");
+        _scan.Text = L.T("Actualiser", "Refresh", "Actualizar", "Aktualisieren", "Обновить", "更新");
+        _report.Text = L.T("Historique", "History", "Historial", "Verlauf", "История", "履歴");
+        _overlay.Text = L.T("Afficher / masquer l’overlay", "Show / hide overlay", "Mostrar / ocultar overlay", "Overlay ein-/ausblenden", "Показать / скрыть оверлей", "オーバーレイ表示 / 非表示");
+        _position.Text = L.T("Verrouiller / déplacer", "Lock / move", "Bloquear / mover", "Sperren / verschieben", "Закрепить / переместить", "ロック / 移動");
+        _export.Text = L.T("Exporter", "Export", "Exportar", "Exportieren", "Экспорт", "エクスポート");
+        _import.Text = L.T("Importer", "Import", "Importar", "Importieren", "Импорт", "インポート");
+        _addons.Text = L.T("Add-on", "Add-ons", "Add-ons", "Add-ons", "Дополнения", "アドオン");
+        _settings.Text = L.T("Paramètres", "Settings", "Ajustes", "Einstellungen", "Настройки", "設定");
+        _tips.SetToolTip(_export, L.T("Sauvegarde l’historique dans un fichier .zip, avant de réinitialiser le PC",
+            "Saves the history to a .zip file, before resetting the PC", "Guarda el historial en un archivo .zip, antes de restablecer el PC",
+            "Speichert den Verlauf in einer .zip-Datei, bevor du den PC zurücksetzt", "Сохраняет историю в файл .zip перед сбросом ПК",
+            "PC をリセットする前に、履歴を .zip ファイルに保存します"));
+        _tips.SetToolTip(_import, L.T("Restaure ou ajoute l’historique d’une sauvegarde .zip", "Restores or adds the history from a .zip backup",
+            "Restaura o añade el historial de una copia .zip", "Stellt den Verlauf aus einer .zip-Sicherung wieder her oder fügt ihn hinzu",
+            "Восстанавливает или добавляет историю из резервной копии .zip", ".zip バックアップから履歴を復元または追加します"));
+    }
+
+    /// <summary>Rebuilds the window in the language just chosen: same controls and data, new texts.</summary>
+    private void RebuildForLanguage()
+    {
+        SuspendLayout();
+        var old = Controls.Cast<Control>().ToList();
+        Controls.Clear();
+        BuildLayout();
+        foreach (var control in old) control.Dispose();
+        ResumeLayout(true);
+    }
 
     private void BuildLayout()
     {
-        Text = "TrackChest · Compteur de coffres Fortnite";
+        ApplyTexts();
+        if (!_windowReady) SetupWindow();
+        BuildContent();
+    }
+
+    private void SetupWindow()
+    {
+        _windowReady = true;
+        _statusTag.Text = L.T("À CONFIGURER", "SET UP", "CONFIGURAR", "EINRICHTEN", "НАСТРОЙКА", "未設定");
+        _status.Text = L.T("Choisis le dossier de tes rediffusions Fortnite.", "Choose your Fortnite replays folder.", "Elige la carpeta de tus repeticiones de Fortnite.",
+            "Wähle den Ordner deiner Fortnite-Wiederholungen.", "Выберите папку с повторами Fortnite.", "Fortnite のリプレイフォルダーを選択してください。");
+        _profiles.DrawItem += DrawProfile;
         Icon = AppIcon(SystemInformation.IconSize.Width) ?? Icon;
         AutoScaleDimensions = new SizeF(96, 96);
         AutoScaleMode = AutoScaleMode.Dpi;
@@ -56,7 +106,10 @@ internal sealed partial class CounterWindow
         BackColor = Canvas;
         ForeColor = Ink;
         _report.Enabled = false;
+    }
 
+    private void BuildContent()
+    {
         var scroll = new GlowPanel { Dock = DockStyle.Fill, AutoScroll = true };
         var layout = Grid([100], 118, 124, 204, 164);
         layout.BackColor = Color.Transparent;
@@ -70,26 +123,29 @@ internal sealed partial class CounterWindow
         var heroGrid = Grid([100], 18, 38, 20);
         heroGrid.BackColor = Color.Transparent;
         heroGrid.Padding = new Padding(74, 0, 0, 0);
-        heroGrid.Controls.Add(TextLabel("FORTNITE  ·  REDIFFUSIONS", 8.5f, Gold, FontStyle.Bold), 0, 0);
+        heroGrid.Controls.Add(TextLabel(L.T("FORTNITE  ·  REDIFFUSIONS", "FORTNITE  ·  REPLAYS", "FORTNITE  ·  REPETICIONES", "FORTNITE  ·  WIEDERHOLUNGEN", "FORTNITE  ·  ПОВТОРЫ", "FORTNITE  ·  リプレイ"), 8.5f, Gold, FontStyle.Bold), 0, 0);
         heroGrid.Controls.Add(TextLabel("TrackChest", 22, Ink, FontStyle.Bold), 0, 1);
-        heroGrid.Controls.Add(TextLabel("Compteur de coffres et suivi du jeton pirate", 9.5f, Muted), 0, 2);
+        heroGrid.Controls.Add(TextLabel(L.T("Compteur de coffres et suivi du jeton pirate", "Chest counter and pirate token tracker", "Contador de cofres y seguimiento de la ficha pirata", "Truhenzähler und Piraten-Token-Tracker", "Счётчик сундуков и отслеживание пиратского жетона", "宝箱カウンターと海賊トークンの追跡"), 9.5f, Muted), 0, 2);
         hero.Controls.Add(heroGrid);
         layout.Controls.Add(hero, 0, 0);
 
         var stats = Grid([34, 33, 33], 106);
         stats.Margin = new Padding(0, 0, 0, 18);
-        stats.Controls.Add(Metric("TOTAL COFFRES", _totalValue, "Coffres et canons à butin", new Padding(0, 0, 7, 0)), 0, 0);
-        stats.Controls.Add(Metric("DERNIÈRE PARTIE", _lastValue, "Coffres comptés", new Padding(4, 0, 4, 0)), 1, 0);
-        stats.Controls.Add(Metric("JETON PIRATE", _pirateValue, "Probabilité cumulée estimée", new Padding(7, 0, 0, 0)), 2, 0);
+        stats.Controls.Add(Metric(L.T("TOTAL COFFRES", "TOTAL CHESTS", "TOTAL DE COFRES", "TRUHEN GESAMT", "ВСЕГО СУНДУКОВ", "宝箱の合計"), _totalValue,
+            L.T("Coffres et canons à butin", "Chests and loot cannons", "Cofres y cañones de botín", "Truhen und Beutekanonen", "Сундуки и пушки с добычей", "宝箱と戦利品キャノン"), new Padding(0, 0, 7, 0)), 0, 0);
+        stats.Controls.Add(Metric(L.T("DERNIÈRE PARTIE", "LAST MATCH", "ÚLTIMA PARTIDA", "LETZTES MATCH", "ПОСЛЕДНИЙ МАТЧ", "前回の試合"), _lastValue,
+            L.T("Coffres comptés", "Chests counted", "Cofres contados", "Gezählte Truhen", "Подсчитано сундуков", "数えた宝箱"), new Padding(4, 0, 4, 0)), 1, 0);
+        stats.Controls.Add(Metric(L.T("JETON PIRATE", "PIRATE TOKEN", "FICHA PIRATA", "PIRATEN-TOKEN", "ПИРАТСКИЙ ЖЕТОН", "海賊トークン"), _pirateValue,
+            L.T("Probabilité cumulée estimée", "Estimated cumulative chance", "Probabilidad acumulada estimada", "Geschätzte Gesamtchance", "Оценочный суммарный шанс", "推定累積確率"), new Padding(7, 0, 0, 0)), 2, 0);
         layout.Controls.Add(stats, 0, 1);
 
         var replays = Card(new Padding(18, 12, 18, 10), new Padding(0, 0, 0, 18));
         var replayGrid = Grid([100], 30, 24, 38, 42, 30);
         var replayHeader = Grid([65, 35], 30);
-        replayHeader.Controls.Add(TextLabel("Rediffusions", 13, Ink, FontStyle.Bold), 0, 0);
+        replayHeader.Controls.Add(TextLabel(L.T("Rediffusions", "Replays", "Repeticiones", "Wiederholungen", "Повторы", "リプレイ"), 13, Ink, FontStyle.Bold), 0, 0);
         replayHeader.Controls.Add(_statusTag, 1, 0);
         replayGrid.Controls.Add(replayHeader, 0, 0);
-        replayGrid.Controls.Add(TextLabel("Dossier des fichiers .replay", 9, Muted), 0, 1);
+        replayGrid.Controls.Add(TextLabel(L.T("Dossier des fichiers .replay", ".replay files folder", "Carpeta de archivos .replay", "Ordner der .replay-Dateien", "Папка файлов .replay", ".replay ファイルのフォルダー"), 9, Muted), 0, 1);
 
         var folderRow = Grid([78, 22], 38);
         var folderFrame = FieldFrame(new Padding(12, 10, 12, 0), new Padding(0, 0, 8, 0));
@@ -100,8 +156,7 @@ internal sealed partial class CounterWindow
 
         var accountRow = Grid([19, 81], 38);
         accountRow.Margin = new Padding(0, 4, 0, 0);
-        _profiles.DrawItem += DrawProfile;
-        accountRow.Controls.Add(TextLabel("Compte Fortnite", 9, Muted), 0, 0);
+        accountRow.Controls.Add(TextLabel(L.T("Compte Fortnite", "Fortnite account", "Cuenta de Fortnite", "Fortnite-Konto", "Аккаунт Fortnite", "アカウント"), 9, Muted), 0, 0);
         var profileFrame = FieldFrame(new Padding(6, 6, 6, 0), Padding.Empty);
         // The flat combo box draws a light border and a white arrow button: both are clipped out of a
         // field-coloured box, and a drawn chevron replaces the arrow.
@@ -136,7 +191,7 @@ internal sealed partial class CounterWindow
 
         var actions = Card(new Padding(18, 10, 18, 8), Padding.Empty);
         var actionGrid = Grid([100], 28, 38, 8, 38, 26);
-        actionGrid.Controls.Add(TextLabel("Commandes", 13, Ink, FontStyle.Bold), 0, 0);
+        actionGrid.Controls.Add(TextLabel(L.T("Commandes", "Actions", "Acciones", "Aktionen", "Действия", "操作"), 13, Ink, FontStyle.Bold), 0, 0);
         var buttons = Grid([19, 20, 31, 30], 38);
         _report.Margin = _scan.Margin = _overlay.Margin = new Padding(0, 0, 8, 0);
         buttons.Controls.Add(_report, 0, 0);
@@ -151,10 +206,12 @@ internal sealed partial class CounterWindow
         backupRow.Controls.Add(_addons, 2, 0);
         backupRow.Controls.Add(_settings, 3, 0);
         actionGrid.Controls.Add(backupRow, 0, 3);
-        var tips = new ToolTip();
-        tips.SetToolTip(_export, "Sauvegarde l’historique dans un fichier .zip, avant de réinitialiser le PC");
-        tips.SetToolTip(_import, "Restaure ou ajoute l’historique d’une sauvegarde .zip");
-        actionGrid.Controls.Add(TextLabel("Plein écran fenêtré  ·  Ctrl+Maj+O pour afficher  ·  Ctrl+Maj+L pour déplacer", 9, Muted), 0, 4);
+        actionGrid.Controls.Add(TextLabel(L.T("Plein écran fenêtré  ·  Ctrl+Maj+O pour afficher  ·  Ctrl+Maj+L pour déplacer",
+            "Windowed fullscreen  ·  Ctrl+Shift+O to show  ·  Ctrl+Shift+L to move",
+            "Pantalla completa en ventana  ·  Ctrl+Mayús+O para mostrar  ·  Ctrl+Mayús+L para mover",
+            "Vollbild (Fenster)  ·  Strg+Umschalt+O zum Anzeigen  ·  Strg+Umschalt+L zum Verschieben",
+            "Оконный полноэкранный режим  ·  Ctrl+Shift+O — показать  ·  Ctrl+Shift+L — переместить",
+            "ウィンドウ フルスクリーン  ·  Ctrl+Shift+O で表示  ·  Ctrl+Shift+L で移動"), 9, Muted), 0, 4);
         actions.Controls.Add(actionGrid);
         layout.Controls.Add(actions, 0, 3);
 
