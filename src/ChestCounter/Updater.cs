@@ -71,15 +71,23 @@ internal static class Updater
         return path;
     }
 
-    /// <summary>Starts the installer (per user, no administrator rights), which replaces the files and reopens TrackChest.</summary>
+    /// <summary>
+    /// Starts the installer (per user, no administrator rights), which replaces the files and reopens TrackChest.
+    /// The command line is passed to cmd.exe as is: ArgumentList would escape the inner quotes as \" , which cmd does
+    /// not understand, and msiexec then received a broken path and installed nothing (bug of 1.1.0 to 1.1.2).
+    /// A short pause lets this instance exit before its files are replaced; the log helps when an update fails.
+    /// </summary>
     public static void Install(string msiPath)
     {
-        var exe = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "TrackChest", "TrackChest.exe");
-        var start = new ProcessStartInfo("cmd.exe") { UseShellExecute = false, CreateNoWindow = true };
-        start.ArgumentList.Add("/c");
-        start.ArgumentList.Add($"msiexec /i \"{msiPath}\" /passive /norestart && start \"\" \"{exe}\"");
+        var exe = InstalledExe;
+        var log = Path.Combine(Path.GetDirectoryName(msiPath)!, "install.log");
+        var command = $"ping -n 3 127.0.0.1 >nul & msiexec /i \"{msiPath}\" /passive /norestart /l*v \"{log}\" && start \"\" \"{exe}\"";
+        var start = new ProcessStartInfo("cmd.exe", $"/d /c \"{command}\"") { UseShellExecute = false, CreateNoWindow = true };
         Process.Start(start);
     }
+
+    /// <summary>Where the .msi installs TrackChest (per user).</summary>
+    public static string InstalledExe => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "TrackChest", "TrackChest.exe");
 
     private static async Task<byte[]> GetBytesAsync(string url, long max, CancellationToken cancel)
     {
