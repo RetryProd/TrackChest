@@ -9,12 +9,28 @@ internal static class FortniteStartup
     private static string Shortcut => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.Startup), "TrackChest avec Fortnite.lnk");
 
+    // Shortcut of the app's former name (ChestOpen). Its watcher starts the old executable, which does not share
+    // TrackChest's single-instance mutex: with both shortcuts, Fortnite opened two overlays.
+    private static string LegacyShortcut => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.Startup), "ChestOpen avec Fortnite.lnk");
+
     /// <summary>True when TrackChest opens with Fortnite (the startup shortcut exists).</summary>
     public static bool IsEnabled => File.Exists(Shortcut);
+
+    /// <summary>Removes the ChestOpen shortcut, like Demarrage-Automatique.ps1; its old watcher then stops by itself.</summary>
+    private static void RemoveLegacyShortcut()
+    {
+        try
+        {
+            if (File.Exists(LegacyShortcut)) File.Delete(LegacyShortcut);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+    }
 
     /// <summary>Same as Demarrage-Automatique.ps1: creates or removes the startup shortcut (the watcher stops by itself).</summary>
     public static void SetEnabled(bool enable)
     {
+        RemoveLegacyShortcut();
         if (!enable)
         {
             if (File.Exists(Shortcut)) File.Delete(Shortcut);
@@ -47,6 +63,7 @@ internal static class FortniteStartup
     {
         using var watcher = new Mutex(false, @"Local\TrackChest.FortniteWatch." + Program.DataFolderKey(dataFolder), out var first);
         if (!first) return 0;
+        RemoveLegacyShortcut(); // upgrades from ChestOpen: otherwise both watchers open an overlay
 
         var executable = Environment.ProcessPath ?? throw new InvalidOperationException(L.T("Exécutable TrackChest introuvable.", "TrackChest executable not found.", "No se encontró el ejecutable de TrackChest.", "TrackChest-Programmdatei nicht gefunden.", "Исполняемый файл TrackChest не найден.", "TrackChest の実行ファイルが見つかりません。", "Eseguibile di TrackChest non trovato.", "Executável do TrackChest não encontrado.", "Nie znaleziono pliku wykonywalnego TrackChest.", "Uitvoerbaar bestand van TrackChest niet gevonden.", "TrackChest yürütülebilir dosyası bulunamadı.", "TrackChest 실행 파일을 찾을 수 없습니다.", "未找到 TrackChest 可执行文件。", "Виконуваний файл TrackChest не знайдено.", "TrackChest-programfilen hittades inte.", "Spustitelný soubor TrackChest nebyl nalezen."));
         using var current = Process.GetCurrentProcess();
