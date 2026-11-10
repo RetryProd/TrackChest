@@ -61,7 +61,7 @@ internal sealed partial class CounterWindow
             Icon = AppIcon(SystemInformation.IconSize.Width) ?? Icon;
             AutoScaleDimensions = new SizeF(96, 96);
             AutoScaleMode = AutoScaleMode.Dpi;
-            ClientSize = new Size(580, 730);
+            ClientSize = new Size(580, DesignHeight);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = MinimizeBox = false;
             ShowInTaskbar = false;
@@ -70,18 +70,24 @@ internal sealed partial class CounterWindow
             BackColor = Canvas;
             ForeColor = Ink;
 
-            var root = new GlowPanel { Dock = DockStyle.Fill };
-            var layout = Grid([100], 44, 102, 144, 110, 102, 144, 40);
+            var root = new GlowPanel { Dock = DockStyle.Fill, AutoScroll = true };
+            var layout = Grid([100], 44, 102, 144, 102, 102, 140);
             layout.BackColor = Color.Transparent;
-            layout.Dock = DockStyle.Fill;
-            layout.Padding = new Padding(22);
+            layout.Dock = DockStyle.Top;
+            layout.Height = DesignHeight;
+            layout.Padding = new Padding(22, 20, 22, 20);
             root.Controls.Add(layout);
             Controls.Add(root);
 
-            layout.Controls.Add(TextLabel(L.T("Paramètres", "Settings", "Ajustes", "Einstellungen", "Настройки", "設定"), 16, Ink, FontStyle.Bold), 0, 0);
+            var titleRow = SideRow(44);
+            titleRow.Controls.Add(TextLabel(L.T("Paramètres", "Settings", "Ajustes", "Einstellungen", "Настройки", "設定"), 16, Ink, FontStyle.Bold), 0, 0);
+            var close = new PillButton(L.T("Fermer", "Close", "Cerrar", "Schließen", "Закрыть", "閉じる"), Tone.Primary) { Margin = new Padding(0, 3, 0, 3) };
+            close.Click += (_, _) => Close();
+            titleRow.Controls.Add(close, 1, 0);
+            layout.Controls.Add(titleRow, 0, 0);
 
             // Language
-            var language = Card(new Padding(18, 12, 18, 10), new Padding(0, 0, 0, 14));
+            var language = Card(new Padding(18, 12, 18, 14), new Padding(0, 0, 0, 10));
             var languageGrid = Grid([100], 28, 38);
             languageGrid.Controls.Add(TextLabel(L.T("Langue", "Language", "Idioma", "Sprache", "Язык", "言語"), 13, Ink, FontStyle.Bold), 0, 0);
             var languageRow = SideRow();
@@ -95,7 +101,7 @@ internal sealed partial class CounterWindow
             layout.Controls.Add(language, 0, 1);
 
             // Overlay
-            var overlay = Card(new Padding(18, 12, 18, 10), new Padding(0, 0, 0, 14));
+            var overlay = Card(new Padding(18, 12, 18, 14), new Padding(0, 0, 0, 10));
             var overlayGrid = Grid([100], 28, 40, 40);
             overlayGrid.Controls.Add(TextLabel(L.T("Overlay", "Overlay", "Overlay", "Overlay", "Оверлей", "オーバーレイ"), 13, Ink, FontStyle.Bold), 0, 0);
             overlayGrid.Controls.Add(Stepper(L.T("Taille", "Size", "Tamaño", "Größe", "Размер", "サイズ"), _sizeValue, dir => ChangeSize(dir)), 0, 1);
@@ -104,7 +110,7 @@ internal sealed partial class CounterWindow
             layout.Controls.Add(overlay, 0, 2);
 
             // Replays folder
-            var replays = Card(new Padding(18, 12, 18, 10), new Padding(0, 0, 0, 14));
+            var replays = Card(new Padding(18, 12, 18, 14), new Padding(0, 0, 0, 10));
             var replayGrid = Grid([100], 28, 38);
             replayGrid.Controls.Add(TextLabel(L.T("Dossier des replays", "Replays folder", "Carpeta de replays", "Replay-Ordner", "Папка повторов", "リプレイフォルダー"), 13, Ink, FontStyle.Bold), 0, 0);
             var folderRow = SideRow();
@@ -123,7 +129,7 @@ internal sealed partial class CounterWindow
             layout.Controls.Add(replays, 0, 3);
 
             // Start with Fortnite
-            var start = Card(new Padding(18, 12, 18, 10), new Padding(0, 0, 0, 14));
+            var start = Card(new Padding(18, 12, 18, 14), new Padding(0, 0, 0, 10));
             var startGrid = Grid([100], 28, 38);
             startGrid.Controls.Add(TextLabel(L.T("Démarrage automatique", "Automatic start", "Inicio automático", "Automatischer Start", "Автозапуск", "自動起動"), 13, Ink, FontStyle.Bold), 0, 0);
             var startRow = SideRow();
@@ -135,7 +141,7 @@ internal sealed partial class CounterWindow
             layout.Controls.Add(start, 0, 4);
 
             // Updates
-            var updates = Card(new Padding(18, 12, 18, 10), new Padding(0, 0, 0, 14));
+            var updates = Card(new Padding(18, 12, 18, 14), new Padding(0, 0, 0, 10));
             var updateGrid = Grid([100], 28, 38, 38);
             updateGrid.Controls.Add(TextLabel(L.T("Mises à jour", "Updates", "Actualizaciones", "Updates", "Обновления", "アップデート"), 13, Ink, FontStyle.Bold), 0, 0);
             var versionRow = SideRow();
@@ -151,12 +157,6 @@ internal sealed partial class CounterWindow
             updateGrid.Controls.Add(autoRow, 0, 2);
             updates.Controls.Add(updateGrid);
             layout.Controls.Add(updates, 0, 5);
-
-            var closeRow = SideRow();
-            var close = new PillButton(L.T("Fermer", "Close", "Cerrar", "Schließen", "Закрыть", "閉じる"), Tone.Primary);
-            close.Click += (_, _) => Close();
-            closeRow.Controls.Add(close, 1, 0);
-            layout.Controls.Add(closeRow, 0, 6);
 
             AcceptButton = close;
             _folder.Text = _config.DemosFolder;
@@ -324,6 +324,20 @@ internal sealed partial class CounterWindow
             row.Controls.Add(TextLabel(label, 10, Soft), 0, 0);
             row.Controls.Add(steps, 1, 0);
             return row;
+        }
+
+        /// <summary>Height of the content at 96 DPI: rows of the layout plus its top and bottom padding.</summary>
+        private const int DesignHeight = 44 + 102 + 144 + 102 + 102 + 140 + 40;
+
+        /// <summary>On a short screen the window fits the work area and its content scrolls, so Close stays reachable.</summary>
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            var area = Screen.FromControl(Owner ?? this).WorkingArea;
+            if (Height <= area.Height) return;
+            StartPosition = FormStartPosition.Manual;
+            var centerX = Owner != null ? Owner.Left + Owner.Width / 2 : area.Left + area.Width / 2;
+            Bounds = new Rectangle(Math.Clamp(centerX - Width / 2, area.Left, Math.Max(area.Left, area.Right - Width)), area.Top, Width, area.Height);
         }
 
         protected override void OnHandleCreated(EventArgs e)
