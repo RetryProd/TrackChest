@@ -13,6 +13,12 @@ internal sealed partial class CounterWindow
         {
             using var form = new SettingsForm(_config, () => _store.SaveConfig(_config), () => _browse.PerformClick(), () => _ = RunUpdate(manual: true));
             form.ShowDialog(this);
+            if (form.BotSettingChanged && !form.LanguageChanged)
+            {
+                RefreshStats();
+                _reportDirty = true;
+                _ = Scan(); // rewrites the report
+            }
             if (!form.LanguageChanged) return;
             ApplyLanguage();
         }
@@ -41,6 +47,7 @@ internal sealed partial class CounterWindow
         };
         private readonly PillButton _startup = new("");
         private readonly PillButton _autoCheck = new("");
+        private readonly PillButton _ignoreBots = new("");
         private readonly PillButton _language = new("");
         private readonly ContextMenuStrip _languageMenu = new();
 
@@ -71,7 +78,7 @@ internal sealed partial class CounterWindow
             ForeColor = Ink;
 
             var root = new GlowPanel { Dock = DockStyle.Fill, AutoScroll = true };
-            var layout = Grid([100], 44, 102, 144, 102, 102, 140);
+            var layout = Grid([100], 44, 102, 144, 102, 102, 102, 140);
             layout.BackColor = Color.Transparent;
             layout.Dock = DockStyle.Top;
             layout.Height = DesignHeight;
@@ -81,7 +88,7 @@ internal sealed partial class CounterWindow
 
             var titleRow = SideRow(44);
             titleRow.Controls.Add(TextLabel(L.T("Paramètres", "Settings", "Ajustes", "Einstellungen", "Настройки", "設定", "Impostazioni", "Configurações", "Ustawienia", "Instellingen", "Ayarlar", "설정", "设置", "Налаштування", "Inställningar", "Nastavení"), 16, Ink, FontStyle.Bold), 0, 0);
-            var close = new PillButton(L.T("Fermer", "Close", "Cerrar", "Schließen", "Закрыть", "閉じる", "Chiudi", "Fechar", "Zamknij", "Sluiten", "Kapat", "닫기", "关闭", "Закрити", "Stäng", "Zavřít"), Tone.Primary) { Margin = new Padding(0, 3, 0, 3) };
+            var close = new PillButton(L.T("Fermer", "Close", "Cerrar", "Schließen", "Закрыть", "閉じる", "Chiudi", "Fechar", "Zamknij", "Sluiten", "Kapat", "닫기", "关闭", "Закрити", "Stäng", "Zavřít"), Tone.Primary) { Margin = new Padding(0, 0, 0, 6) };
             close.Click += (_, _) => Close();
             titleRow.Controls.Add(close, 1, 0);
             layout.Controls.Add(titleRow, 0, 0);
@@ -140,6 +147,18 @@ internal sealed partial class CounterWindow
             start.Controls.Add(startGrid);
             layout.Controls.Add(start, 0, 4);
 
+            // Bot games
+            var bots = Card(new Padding(18, 12, 18, 14), new Padding(0, 0, 0, 10));
+            var botGrid = Grid([100], 28, 38);
+            botGrid.Controls.Add(TextLabel(L.T("Parties bots", "Bot games", "Partidas de bots", "Bot-Partien", "Матчи с ботами", "ボット戦", "Partite con bot", "Partidas com bots", "Mecze z botami", "Botpotjes", "Bot maçları", "봇 게임", "机器人对局", "Матчі з ботами", "Botmatcher", "Hry s boty"), 13, Ink, FontStyle.Bold), 0, 0);
+            var botRow = SideRow();
+            botRow.Controls.Add(TextLabel(L.T("Ne pas compter les coffres des parties bots", "Don't count chests in bot games", "No contar los cofres de las partidas de bots", "Truhen in Bot-Partien nicht zählen", "Не считать сундуки в матчах с ботами", "ボット戦の宝箱を数えない", "Non contare i forzieri delle partite con bot", "Não contar os baús das partidas com bots", "Nie licz skrzyń z meczów z botami", "Kisten in botpotjes niet tellen", "Bot maçlarındaki sandıkları sayma", "봇 게임의 상자는 세지 않기", "不统计机器人对局中的宝箱", "Не рахувати скрині в матчах з ботами", "Räkna inte kistor i botmatcher", "Nepočítat truhly ve hrách s boty"), 9.5f, Muted), 0, 0);
+            _ignoreBots.Click += (_, _) => { _config.IgnoreBotGames = !_config.IgnoreBotGames; _save(); BotSettingChanged = !BotSettingChanged; RefreshIgnoreBots(); };
+            botRow.Controls.Add(_ignoreBots, 1, 0);
+            botGrid.Controls.Add(botRow, 0, 1);
+            bots.Controls.Add(botGrid);
+            layout.Controls.Add(bots, 0, 5);
+
             // Updates
             var updates = Card(new Padding(18, 12, 18, 14), new Padding(0, 0, 0, 10));
             var updateGrid = Grid([100], 28, 38, 38);
@@ -156,13 +175,23 @@ internal sealed partial class CounterWindow
             autoRow.Controls.Add(_autoCheck, 1, 0);
             updateGrid.Controls.Add(autoRow, 0, 2);
             updates.Controls.Add(updateGrid);
-            layout.Controls.Add(updates, 0, 5);
+            layout.Controls.Add(updates, 0, 6);
 
             AcceptButton = close;
             _folder.Text = _config.DemosFolder;
             RefreshValues();
             RefreshStartup();
             RefreshAutoCheck();
+            RefreshIgnoreBots();
+        }
+
+        /// <summary>True when the bot games setting differs from when the window opened (the counts must be redrawn).</summary>
+        public bool BotSettingChanged { get; private set; }
+
+        private void RefreshIgnoreBots()
+        {
+            _ignoreBots.Text = OnOff(_config.IgnoreBotGames);
+            _ignoreBots.Tone = _config.IgnoreBotGames ? Tone.Primary : Tone.Normal;
         }
 
         private static string OnOff(bool on) => on
@@ -327,7 +356,7 @@ internal sealed partial class CounterWindow
         }
 
         /// <summary>Height of the content at 96 DPI: rows of the layout plus its top and bottom padding.</summary>
-        private const int DesignHeight = 44 + 102 + 144 + 102 + 102 + 140 + 40;
+        private const int DesignHeight = 44 + 102 + 144 + 102 + 102 + 102 + 140 + 40;
 
         /// <summary>On a short screen the window fits the work area and its content scrolls, so Close stays reachable.</summary>
         protected override void OnLoad(EventArgs e)

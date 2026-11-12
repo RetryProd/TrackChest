@@ -36,22 +36,24 @@ public static class OverlayModel
             var avgText = Math.Round(avg, MidpointRounding.AwayFromZero).ToString("0", L.Culture);
             sessionDetail = $"{L.Matches(session.Count)} · {L.T("moy.", "avg.", "media", "Ø", "сред.", "平均", "media", "méd.", "śr.", "gem.", "ort.", "평균", "平均", "сер.", "snitt", "prům.")} {avgText}";
         }
-        rows.Add(new OverlayRow(L.T("Session", "Session", "Sesión", "Sitzung", "Сессия", "セッション", "Sessione", "Sessão", "Sesja", "Sessie", "Oturum", "세션", "本次", "Сесія", "Session", "Relace"), L.Chests(sessionTotal), Detail: sessionDetail));
+        rows.Add(new OverlayRow(L.T("Session", "Session", "Sesión", "Sitzung", "Сессия", "セッション", "Sessione", "Sessão", "Sesja", "Sessie", "Oturum", "세션", "本次", "Сесія", "Session", "Relace"), L.Chests(sessionTotal), Detail: sessionDetail, Icon: "Chest.png"));
 
         var last = d.Matches.OrderByDescending(m => m.MatchStartUtc ?? m.AnalyzedAtUtc).FirstOrDefault();
         if (last != null)
         {
-            rows.Add(new OverlayRow(L.T("Dernière", "Last", "Última", "Letztes", "Последний", "前回", "Ultima", "Última", "Ostatni", "Laatste", "Son", "마지막", "上一场", "Останній", "Senaste", "Poslední"), L.Chests(last.ChestsTotal)));
+            rows.Add(new OverlayRow(L.T("Dernière", "Last", "Última", "Letztes", "Последний", "前回", "Ultima", "Última", "Ostatni", "Laatste", "Son", "마지막", "上一场", "Останній", "Senaste", "Poslední"), L.Chests(last.ChestsTotal), Icon: "Chest.png"));
         }
 
-        // Counters from enabled add-ons (permissions: stats.read + overlay.rows).
-        rows.AddRange(AddonRuntime.CounterRows(d, session, last));
-
+        // Software rows (Treasures and Pirate Token), with their icons to the left of the label.
         var treasures = d.Matches.Sum(m => m.TreasureFinds.Count);
-        rows.Add(new OverlayRow(L.T("Trésors", "Treasures", "Tesoros", "Schätze", "Сокровища", "宝", "Tesori", "Tesouros", "Skarby", "Schatten", "Hazineler", "보물", "宝藏", "Скарби", "Skatter", "Poklady"), $"★ {L.N(treasures)}", Treasure: true));
+        rows.Add(new OverlayRow(L.T("Trésors", "Treasures", "Tesoros", "Schätze", "Сокровища", "宝", "Tesori", "Tesouros", "Skarby", "Schatten", "Hazineler", "보물", "宝藏", "Скарби", "Skatter", "Poklady"), L.N(treasures), Treasure: true, Icon: "Treasures.png"));
         var opened = d.Matches.Sum(m => m.ChestsOpened);
         rows.Add(new OverlayRow(L.T("Jeton pirate", "Pirate token", "Ficha pirata", "Piraten-Token", "Пиратский жетон", "海賊トークン", "Gettone pirata", "Ficha pirata", "Piracki żeton", "Piratenmunt", "Korsan jetonu", "해적 토큰", "海盗代币", "Піратський жетон", "Piratpollett", "Pirátský žeton"), PirateTokenOdds.Format(opened),
-            Detail: L.T("· cumul estimé", "· estimated cumulative chance", "· probabilidad acumulada estimada", "· geschätzte Gesamtchance", "· оценочный суммарный шанс", "· 推定累積確率", "· probabilità cumulativa stimata", "· chance acumulada estimada", "· szacowana łączna szansa", "· geschatte cumulatieve kans", "· tahmini kümülatif şans", "· 추정 누적 확률", "· 估计累计概率", "· оцінена сукупна ймовірність", "· uppskattad sammanlagd chans", "· odhadovaná kumulativní šance")));
+            Detail: L.T("· cumul estimé", "· estimated cumulative chance", "· probabilidad acumulada estimada", "· geschätzte Gesamtchance", "· оценочный суммарный шанс", "· 推定累積確率", "· probabilità cumulativa stimata", "· chance acumulada estimada", "· szacowana łączna szansa", "· geschatte cumulatieve kans", "· tahmini kümülatif şans", "· 추정 누적 확률", "· 估计累计概率", "· оцінена сукупна ймовірність", "· uppskattad sammanlagd chans", "· odhadovaná kumulativní šance"),
+            Icon: "Pirate_Token.png"));
+
+        // Counters from enabled add-ons (permissions: stats.read + overlay.rows), visually separated from the software rows.
+        rows.AddRange(AddonRuntime.CounterRows(d, session, last));
 
         // Fortnite finalizes the replay at the end of the match.
         var view = inProgress

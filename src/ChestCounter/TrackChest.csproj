@@ -13,6 +13,15 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\..\assets\TrackChest.ico" LogicalName="TrackChest.ico" />
+    <!-- Icons of the software itself (Chest, Treasures, Pirate Token) -->
+    <EmbeddedResource Include="..\..\assets\Icon\Logiciel\Chest.png" LogicalName="icon-software-chest.png" />
+    <EmbeddedResource Include="..\..\assets\Icon\Logiciel\Treasures.png" LogicalName="icon-software-treasures.png" />
+    <EmbeddedResource Include="..\..\assets\Icon\Logiciel\Pirate_Token.png" LogicalName="icon-software-pirate_token.png" />
+    <!-- Icons for the detailed statistics add-on counters -->
+    <EmbeddedResource Include="..\..\assets\Icon\Addons\break_chest.png" LogicalName="icon-addon-break_chest.png" />
+    <EmbeddedResource Include="..\..\assets\Icon\Addons\Esprit_Chest.png" LogicalName="icon-addon-esprit_chest.png" />
+    <EmbeddedResource Include="..\..\assets\Icon\Addons\Wanted_Card.png" LogicalName="icon-addon-wanted_card.png" />
+    <EmbeddedResource Include="..\..\assets\Icon\Addons\Loot_Cannons.png" LogicalName="icon-addon-loot_cannons.png" />
     <!-- Public key of the add-on catalog (made by the addon-keygen option) and its default address: optional files. -->
     <EmbeddedResource Include="..\..\assets\addon-public.key" LogicalName="addon-public.key" Condition="Exists('..\..\assets\addon-public.key')" />
     <EmbeddedResource Include="..\..\assets\addon-catalog.txt" LogicalName="addon-catalog.txt" Condition="Exists('..\..\assets\addon-catalog.txt')" />

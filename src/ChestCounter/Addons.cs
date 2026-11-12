@@ -21,6 +21,8 @@ public sealed class AddonCounter
     public string Scope { get; set; } = "total";
     /// <summary>Adds "· n dernière partie" after a total.</summary>
     public bool ShowLast { get; set; }
+    /// <summary>Optional small icon drawn to the left of the label (e.g. "break_chest.png", "Esprit_Chest.png", "Wanted_Card.png", "Loot_Cannons.png").</summary>
+    public string? Icon { get; set; }
 }
 
 /// <summary>Overlay colours as "#RRGGBB". Missing ones keep the default look.</summary>
@@ -63,6 +65,10 @@ public sealed class AddonManifest
     [JsonIgnore]
     public string? Script { get; set; }
 
+    /// <summary>PNG icon files bundled in the add-on package (filename -> bytes).</summary>
+    [JsonIgnore]
+    public Dictionary<string, byte[]> Icons { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+
     public bool HasScript => Permissions.Contains(AddonRules.OverlayScript);
 }
 
@@ -72,16 +78,19 @@ public static class AddonRules
     public static readonly string[] AllPermissions = [StatsRead, OverlayRows, OverlayTheme, OverlayScript];
     public static readonly string[] Metrics = ["chests", "opened", "destroyed", "sprites", "wanted", "cannons", "treasures", "matches"];
     public static readonly string[] Scopes = ["total", "last", "session"];
-    public const int MaxCounters = 8, MaxZipBytes = 64 * 1024, MaxManifestBytes = 16 * 1024;
+    public const int MaxCounters = 8, MaxZipBytes = 64 * 1024, MaxManifestBytes = 16 * 1024, MaxIconBytes = 32 * 1024;
 
     private static readonly Regex IdPattern = new(@"^[a-z0-9]+(-[a-z0-9]+)*\z", RegexOptions.CultureInvariant);
     private static readonly Regex VersionPattern = new(@"^\d{1,4}\.\d{1,4}\.\d{1,4}\z", RegexOptions.CultureInvariant);
     private static readonly Regex ColorPattern = new(@"^#[0-9A-Fa-f]{6}\z", RegexOptions.CultureInvariant);
     private static readonly Regex HexPattern = new(@"^[0-9a-fA-F]{64}\z", RegexOptions.CultureInvariant);
+    private static readonly Regex IconPattern = new(@"^[A-Za-z0-9_-]{1,32}(\.png)?\z", RegexOptions.CultureInvariant);
 
     public static bool IsId(string? s) => s is { Length: >= 3 and <= 40 } && IdPattern.IsMatch(s);
     public static bool IsVersion(string? s) => s != null && VersionPattern.IsMatch(s);
     public static bool IsSha256(string? s) => s != null && HexPattern.IsMatch(s);
+    public static bool IsIconName(string? s) => s != null && IconPattern.IsMatch(s);
+    public static bool IsIconFile(string? s) => s != null && s.EndsWith(".png", StringComparison.OrdinalIgnoreCase) && IconPattern.IsMatch(s);
     public static bool IsText(string? s, int min, int max) => s != null && s.Length >= min && s.Length <= max && !s.Any(char.IsControl);
 
     /// <summary>All the problems of a manifest (empty = valid).</summary>
@@ -105,6 +114,7 @@ public static class AddonRules
             if (!IsText(c.Label, 1, 24)) errors.Add("label de compteur invalide (1 à 24 caractères).");
             if (!Metrics.Contains(c.Metric)) errors.Add($"metric inconnue : {c.Metric}.");
             if (!Scopes.Contains(c.Scope)) errors.Add($"scope inconnu : {c.Scope}.");
+            if (c.Icon != null && !IsIconName(c.Icon)) errors.Add($"icône de compteur invalide : {c.Icon}.");
         }
         if (counters.Count > 0 && !(permissions.Contains(StatsRead) && permissions.Contains(OverlayRows)))
             errors.Add("les compteurs demandent les permissions stats.read et overlay.rows.");
@@ -177,16 +187,20 @@ public static class AddonPackage
 
         byte[] manifestBytes;
         byte[]? scriptBytes = null;
+        var icons = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
         try
         {
             using var archive = new ZipArchive(new MemoryStream(zip), ZipArchiveMode.Read);
             var names = archive.Entries.Select(e => e.FullName).ToList();
-            var allowed = names.Count is 1 or 2 && names.Contains("manifest.json") && names.All(n => n is "manifest.json" or AddonScript.FileName);
+            var allowed = names.Count is >= 1 and <= 10 && names.Contains("manifest.json")
+                && names.All(n => n is "manifest.json" or AddonScript.FileName || AddonRules.IsIconFile(n));
             if (!allowed)
-                throw new InvalidDataException(L.T("Un add-on contient manifest.json, et script.js s’il a un script : aucun autre fichier.", "An add-on holds manifest.json, plus script.js for a script add-on: no other file.", "Un add-on contiene manifest.json y, si tiene script, script.js: ningún otro archivo.", "Ein Add-on enthält manifest.json und bei Skript-Add-ons script.js: keine anderen Dateien.", "Дополнение содержит manifest.json и, если есть скрипт, script.js: никаких других файлов.", "アドオンに含めるのは manifest.json と（スクリプトがある場合）script.js のみです。", "Un componente aggiuntivo contiene manifest.json, più script.js per un componente con script: nessun altro file.", "Um complemento contém manifest.json, mais script.js para um complemento com script: nenhum outro arquivo.", "Dodatek zawiera manifest.json oraz script.js w przypadku dodatku ze skryptem: żadnych innych plików.", "Een add-on bevat manifest.json, plus script.js voor een script-add-on: geen andere bestanden.", "Bir eklenti manifest.json, betikli eklentide ayrıca script.js içerir: başka dosya yok.", "애드온에는 manifest.json과, 스크립트 애드온의 경우 script.js만 들어 있습니다: 다른 파일은 없습니다.", "插件包含 manifest.json，脚本插件另含 script.js：不能有其他文件。", "Доповнення містить manifest.json, а для доповнення зі скриптом ще й script.js: жодних інших файлів.", "Ett tillägg innehåller manifest.json, plus script.js för ett skripttillägg: inga andra filer.", "Doplněk obsahuje manifest.json a u skriptového doplňku také script.js: žádné jiné soubory."));
+                throw new InvalidDataException(L.T("Un add-on contient manifest.json, ses icônes .png et script.js s’il a un script : aucun autre fichier.", "An add-on holds manifest.json, its .png icons, plus script.js for a script add-on: no other file.", "Un add-on contiene manifest.json, sus iconos .png y, si tiene script, script.js: ningún otro archivo.", "Ein Add-on enthält manifest.json, seine .png-Symbole und bei Skript-Add-ons script.js: keine anderen Dateien.", "Дополнение содержит manifest.json, значки .png и, если есть скрипт, script.js: никаких других файлов.", "アドオンに含めるのは manifest.json、.png アイコン、および（スクリプトがある場合）script.js のみです。", "Un componente aggiuntivo contiene manifest.json, le icone .png, più script.js per un componente con script: nessun altro file.", "Um complemento contém manifest.json, seus ícones .png, mais script.js para um complemento com script: nenhum outro arquivo.", "Dodatek zawiera manifest.json, ikony .png oraz script.js w przypadku dodatku ze skryptem: żadnych innych plików.", "Een add-on bevat manifest.json, .png-pictogrammen, plus script.js voor een script-add-on: geen andere bestanden.", "Bir eklenti manifest.json, .png simgeleri, betikli eklentide ayrıca script.js içerir: başka dosya yok.", "애드온에는 manifest.json, .png 아이콘과, 스크립트 애드온의 경우 script.js만 들어 있습니다: 다른 파일은 없습니다.", "插件包含 manifest.json、.png 图标，脚本插件另含 script.js：不能有其他文件。", "Доповнення містить manifest.json, значки .png, а для доповнення зі скриптом ще й script.js: жодних інших файлів.", "Ett tillägg innehåller manifest.json, .png-ikoner, plus script.js för ett skripttillägg: inga andra filer.", "Doplněk obsahuje manifest.json, ikony .png a u skriptového doplňku také script.js: žádné jiné soubory."));
             manifestBytes = ReadEntry(archive.GetEntry("manifest.json")!, AddonRules.MaxManifestBytes, "manifest.json");
             if (archive.GetEntry(AddonScript.FileName) is { } scriptEntry)
                 scriptBytes = ReadEntry(scriptEntry, AddonScript.MaxScriptBytes, AddonScript.FileName);
+            foreach (var iconEntry in archive.Entries.Where(e => AddonRules.IsIconFile(e.FullName)))
+                icons[iconEntry.FullName] = ReadEntry(iconEntry, AddonRules.MaxIconBytes, iconEntry.FullName);
         }
         catch (InvalidDataException) { throw; }
         catch (Exception ex) when (ex is IOException or NotSupportedException)
@@ -195,6 +209,7 @@ public static class AddonPackage
         }
 
         var manifest = ParseManifest(manifestBytes);
+        manifest.Icons = icons;
         if (manifest.HasScript != (scriptBytes != null))
             throw new InvalidDataException(manifest.HasScript
                 ? L.T("La permission overlay.script demande un fichier script.js.", "The overlay.script permission needs a script.js file.", "El permiso overlay.script necesita un archivo script.js.", "Die Berechtigung overlay.script benötigt eine Datei script.js.", "Разрешению overlay.script нужен файл script.js.", "overlay.script 権限には script.js ファイルが必要です。", "Il permesso overlay.script richiede un file script.js.", "A permissão overlay.script exige um arquivo script.js.", "Uprawnienie overlay.script wymaga pliku script.js.", "De machtiging overlay.script vereist een bestand script.js.", "overlay.script izni bir script.js dosyası gerektirir.", "overlay.script 권한에는 script.js 파일이 필요합니다.", "overlay.script 权限需要 script.js 文件。", "Дозвіл overlay.script потребує файлу script.js.", "Behörigheten overlay.script kräver en script.js-fil.", "Oprávnění overlay.script vyžaduje soubor script.js.")

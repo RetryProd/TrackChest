@@ -62,6 +62,18 @@ public sealed class MatchRecord
     public int? Placement { get; set; }
     public int? TotalPlayers { get; set; }
     public int? Eliminations { get; set; }
+    /// <summary>Players of the match controlled by the game (bots, not the NPCs) and by real people. Null for older analyses.</summary>
+    public int? Bots { get; set; }
+    public int? Humans { get; set; }
+    /// <summary>Real players outside the tracked player's team. Null for older analyses.</summary>
+    public int? HumanOpponents { get; set; }
+
+    /// <summary>At most this many real opponents, the rest being bots: a bot game.</summary>
+    public const int BotGameMaxHumanOpponents = 3;
+
+    /// <summary>Bot game: the lobby is (almost) only bots. Older analyses (unknown) are never bot games.</summary>
+    [JsonIgnore]
+    public bool IsBotGame => Bots is > 0 && HumanOpponents is int h && h <= BotGameMaxHumanOpponents;
     public int ChestsOpened { get; set; }
     public int AmmoBoxesOpened { get; set; }
     public int OtherContainersOpened { get; set; }
@@ -110,6 +122,9 @@ public sealed class Config
 
     /// <summary>Look for a newer version on GitHub when the app starts (the installation itself always asks first).</summary>
     public bool CheckUpdates { get; set; } = true;
+
+    /// <summary>Leave bot games (almost no real opponent) out of the counts. On by default.</summary>
+    public bool IgnoreBotGames { get; set; } = true;
 
     /// <summary>Interface language (one of L.Codes: "fr", "en", "es", "de", "ru", "ja", "it", "pt", "pl", "nl", "tr", "ko", "zh", "uk", "sv", "cs"). Empty = language of Windows.</summary>
     public string? Language { get; set; }

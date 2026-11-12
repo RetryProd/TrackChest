@@ -226,7 +226,7 @@ internal sealed partial class CounterWindow : Form
 
     private void RefreshStats()
     {
-        var profiles = Profiles.List(_data);
+        var profiles = Profiles.List(_data, _config);
         var current = Profiles.Current(_data, _config);
         if (current != null && _config.Profile != current.Key)
         {

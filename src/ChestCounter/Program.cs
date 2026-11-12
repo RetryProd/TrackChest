@@ -141,9 +141,9 @@ internal static class Program
 
         ReportWriter.WriteAll(store, config, data);
         Console.WriteLine($"{L.Files(scan.Files)} · {scan.Errors} illisible(s) · {scan.Incomplete} incomplet(s)");
-        foreach (var profile in Profiles.List(data))
+        foreach (var profile in Profiles.List(data, config))
         {
-            var matches = data.Matches.Where(m => Profiles.Key(m) == profile.Key)
+            var matches = data.Matches.Where(m => Profiles.Key(m) == profile.Key && Profiles.Counted(m, config))
                 .OrderByDescending(m => m.MatchStartUtc ?? m.AnalyzedAtUtc).ToList();
             var wanted = matches.Any(m => m.WantedMaps != null) ? L.N(matches.Sum(m => m.WantedMaps?.Count ?? 0)) : "—";
             Console.WriteLine($"{L.Matches(profile.Matches)} · {L.N(profile.Chests)} coffres · dernière partie {matches[0].ChestsTotal} coffres");

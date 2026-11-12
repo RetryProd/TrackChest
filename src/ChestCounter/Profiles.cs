@@ -13,7 +13,11 @@ public static class Profiles
     /// <summary>Stable key of a match's account: Epic id (survives a name change), else the display name.</summary>
     public static string Key(MatchRecord m) => !string.IsNullOrEmpty(m.EpicId) ? m.EpicId : m.PlayerName ?? "";
 
-    public static List<Profile> List(TrackerData d) => d.Matches
+    /// <summary>Bot games (almost no real opponent) are left out of the stats when the setting is on.</summary>
+    public static bool Counted(MatchRecord m, Config? c) => c?.IgnoreBotGames != true || !m.IsBotGame;
+
+    public static List<Profile> List(TrackerData d, Config? c = null) => d.Matches
+        .Where(m => Counted(m, c))
         .GroupBy(Key)
         .Select(g =>
         {
@@ -29,7 +33,7 @@ public static class Profiles
     /// <summary>The selected profile when it exists, else the most recently played one (null = no match yet).</summary>
     public static Profile? Current(TrackerData d, Config c)
     {
-        var all = List(d);
+        var all = List(d, c);
         return all.FirstOrDefault(p => p.Key == c.Profile) ?? all.FirstOrDefault();
     }
 
@@ -37,16 +41,12 @@ public static class Profiles
     public static TrackerData View(TrackerData d, Config c)
     {
         var current = Current(d, c);
-        if (current == null)
-        {
-            return d;
-        }
         return new TrackerData
         {
             Version = d.Version,
             AnalyzerVersion = d.AnalyzerVersion,
             CreatedUtc = d.CreatedUtc,
-            Matches = d.Matches.Where(m => Key(m) == current.Key).ToList(),
+            Matches = d.Matches.Where(m => (current == null || Key(m) == current.Key) && Counted(m, c)).ToList(),
             ProcessedFiles = d.ProcessedFiles,
         };
     }

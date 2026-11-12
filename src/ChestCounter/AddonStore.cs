@@ -324,6 +324,12 @@ public static class AddonRuntime
         var counters = active.Where(a => a.Manifest.Permissions.Contains(AddonRules.OverlayRows))
             .SelectMany(a => a.Manifest.Counters).Take(10).ToList();
         _counters = counters;
+        var addonIcons = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+        foreach (var addon in active)
+        {
+            foreach (var (name, bytes) in addon.Manifest.Icons) addonIcons[name] = bytes;
+        }
+        OverlayIcons.SetAddonIcons(addonIcons);
         _scripts = active.Where(a => a.Manifest.HasScript && a.Manifest.Script != null)
             .Select(a => (a.Manifest.Id, a.Manifest.Script!)).ToList();
         lock (ScriptErrors) ScriptErrors.Clear(); // a reload (enable, update) gives every script a new chance
@@ -386,10 +392,22 @@ public static class AddonRuntime
             {
                 detail = $"· {L.N(latest)} {L.T("dernière partie", "last match", "última partida", "letztes Match", "последний матч", "前回の試合", "ultima partita", "última partida", "ostatni mecz", "laatste potje", "son maç", "마지막 경기", "上一场比赛", "останній матч", "senaste matchen", "poslední zápas")}";
             }
-            rows.Add(new OverlayRow(counter.Label, value is int n ? L.N(n) : "—", Detail: detail));
+            var icon = counter.Icon ?? DefaultMetricIcon(counter.Metric);
+            rows.Add(new OverlayRow(counter.Label, value is int n ? L.N(n) : "—", Detail: detail, Icon: icon, Separator: rows.Count == 0));
         }
         return rows;
     }
+
+    private static string? DefaultMetricIcon(string metric) => metric switch
+    {
+        "chests" or "opened" => "Chest.png",
+        "destroyed" => "break_chest.png",
+        "sprites" => "Esprit_Chest.png",
+        "wanted" => "Wanted_Card.png",
+        "cannons" => "Loot_Cannons.png",
+        "treasures" => "Treasures.png",
+        _ => null,
+    };
 
     /// <summary>Null = not available for these matches (older analysis without Wanted maps).</summary>
     private static int? Compute(string metric, IReadOnlyList<MatchRecord> matches) => metric switch

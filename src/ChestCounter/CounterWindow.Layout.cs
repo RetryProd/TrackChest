@@ -142,11 +142,11 @@ internal sealed partial class CounterWindow
         var stats = Grid([34, 33, 33], 106);
         stats.Margin = new Padding(0, 0, 0, 18);
         stats.Controls.Add(Metric(L.T("TOTAL COFFRES", "TOTAL CHESTS", "TOTAL DE COFRES", "TRUHEN GESAMT", "ВСЕГО СУНДУКОВ", "宝箱の合計", "FORZIERI TOTALI", "TOTAL DE BAÚS", "SKRZYNIE ŁĄCZNIE", "TOTAAL KISTEN", "TOPLAM SANDIK", "총 상자", "宝箱总数", "УСЬОГО СКРИНЬ", "KISTOR TOTALT", "TRUHLY CELKEM"), _totalValue,
-            L.T("Coffres et canons à butin", "Chests and loot cannons", "Cofres y cañones de botín", "Truhen und Beutekanonen", "Сундуки и пушки с добычей", "宝箱と戦利品キャノン", "Forzieri e cannoni del bottino", "Baús e canhões de saque", "Skrzynie i działa z łupem", "Kisten en buitkanonnen", "Sandıklar ve ganimet topları", "상자 및 전리품 대포", "宝箱和战利品大炮", "Скрині та гармати зі здобиччю", "Kistor och bytekanoner", "Truhly a kořistní děla"), new Padding(0, 0, 7, 0)), 0, 0);
+            L.T("Coffres et canons à butin", "Chests and loot cannons", "Cofres y cañones de botín", "Truhen und Beutekanonen", "Сундуки и пушки с добычей", "宝箱と戦利品キャノン", "Forzieri e cannoni del bottino", "Baús e canhões de saque", "Skrzynie i działa z łupem", "Kisten en buitkanonnen", "Sandıklar ve ganimet topları", "상자 및 전리품 대포", "宝箱和战利品大炮", "Скрині та гармати зі здобиччю", "Kistor och bytekanoner", "Truhly a kořistní děla"), new Padding(0, 0, 7, 0), "Chest.png"), 0, 0);
         stats.Controls.Add(Metric(L.T("DERNIÈRE PARTIE", "LAST MATCH", "ÚLTIMA PARTIDA", "LETZTES MATCH", "ПОСЛЕДНИЙ МАТЧ", "前回の試合", "ULTIMA PARTITA", "ÚLTIMA PARTIDA", "OSTATNI MECZ", "LAATSTE POTJE", "SON MAÇ", "마지막 경기", "上一场比赛", "ОСТАННІЙ МАТЧ", "SENASTE MATCHEN", "POSLEDNÍ ZÁPAS"), _lastValue,
-            L.T("Coffres comptés", "Chests counted", "Cofres contados", "Gezählte Truhen", "Подсчитано сундуков", "数えた宝箱", "Forzieri contati", "Baús contados", "Policzone skrzynie", "Getelde kisten", "Sayılan sandıklar", "집계된 상자", "已统计宝箱", "Пораховані скрині", "Räknade kistor", "Započítané truhly"), new Padding(4, 0, 4, 0)), 1, 0);
+            L.T("Coffres comptés", "Chests counted", "Cofres contados", "Gezählte Truhen", "Подсчитано сундуков", "数えた宝箱", "Forzieri contati", "Baús contados", "Policzone skrzynie", "Getelde kisten", "Sayılan sandıklar", "집계된 상자", "已统计宝箱", "Пораховані скрині", "Räknade kistor", "Započítané truhly"), new Padding(4, 0, 4, 0), "Chest.png"), 1, 0);
         stats.Controls.Add(Metric(L.T("JETON PIRATE", "PIRATE TOKEN", "FICHA PIRATA", "PIRATEN-TOKEN", "ПИРАТСКИЙ ЖЕТОН", "海賊トークン", "GETTONE PIRATA", "FICHA PIRATA", "PIRACKI ŻETON", "PIRATENMUNT", "KORSAN JETONU", "해적 토큰", "海盗代币", "ПІРАТСЬКИЙ ЖЕТОН", "PIRATPOLLETT", "PIRÁTSKÝ ŽETON"), _pirateValue,
-            L.T("Probabilité cumulée estimée", "Estimated cumulative chance", "Probabilidad acumulada estimada", "Geschätzte Gesamtchance", "Оценочный суммарный шанс", "推定累積確率", "Probabilità cumulativa stimata", "Chance acumulada estimada", "Szacowana łączna szansa", "Geschatte cumulatieve kans", "Tahmini kümülatif şans", "추정 누적 확률", "估计累计概率", "Оцінена сукупна ймовірність", "Uppskattad sammanlagd chans", "Odhadovaná kumulativní šance"), new Padding(7, 0, 0, 0)), 2, 0);
+            L.T("Probabilité cumulée estimée", "Estimated cumulative chance", "Probabilidad acumulada estimada", "Geschätzte Gesamtchance", "Оценочный суммарный шанс", "推定累積確率", "Probabilità cumulativa stimata", "Chance acumulada estimada", "Szacowana łączna szansa", "Geschatte cumulatieve kans", "Tahmini kümülatif şans", "추정 누적 확률", "估计累计概率", "Оцінена сукупна ймовірність", "Uppskattad sammanlagd chans", "Odhadovaná kumulativní šance"), new Padding(7, 0, 0, 0), "Pirate_Token.png"), 2, 0);
         layout.Controls.Add(stats, 0, 1);
 
         var replays = Card(new Padding(18, 12, 18, 10), new Padding(0, 0, 0, 18));
@@ -310,15 +310,55 @@ internal sealed partial class CounterWindow
     private static RoundPanel FieldFrame(Padding padding, Padding margin) =>
         new() { Dock = DockStyle.Fill, Padding = padding, Margin = margin, BackColor = Field, Radius = 8 };
 
-    private static RoundPanel Metric(string caption, Label value, string detail, Padding margin)
+    private static RoundPanel Metric(string caption, Label value, string detail, Padding margin, string? icon = null)
     {
         var card = Card(new Padding(18, 10, 16, 10), margin);
         var grid = Grid([100], 18, 48, 20);
-        grid.Controls.Add(TextLabel(caption, 8.5f, Muted, FontStyle.Bold), 0, 0);
+        grid.Controls.Add(icon != null ? IconCaption(caption, icon) : TextLabel(caption, 8.5f, Muted, FontStyle.Bold), 0, 0);
         grid.Controls.Add(value, 0, 1);
         grid.Controls.Add(TextLabel(detail, 9, Muted), 0, 2);
         card.Controls.Add(grid);
         return card;
+    }
+
+    private static Control IconCaption(string text, string iconKey)
+    {
+        var label = new IconCaptionLabel(text, iconKey);
+        return label;
+    }
+
+    private sealed class IconCaptionLabel : Label
+    {
+        private readonly string _iconKey;
+
+        public IconCaptionLabel(string text, string iconKey)
+        {
+            _iconKey = iconKey;
+            Text = text;
+            ForeColor = Muted;
+            BackColor = Color.Transparent;
+            Font = new Font("Segoe UI", 8.5f, FontStyle.Bold);
+            Dock = DockStyle.Fill;
+            Margin = Padding.Empty;
+            SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true);
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var g = e.Graphics;
+            var s = DeviceDpi / 96f;
+            var x = 0;
+            if (OverlayIcons.Get(_iconKey) is { } bmp)
+            {
+                var sz = (int)Math.Round(15 * s);
+                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                g.SmoothingMode = SmoothingMode.HighQuality;
+                g.DrawImage(bmp, 0, (Height - sz) / 2f, sz, sz);
+                x = sz + (int)Math.Round(5 * s);
+            }
+            TextRenderer.DrawText(g, Text, Font, new Rectangle(x, 0, Width - x, Height), ForeColor,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+        }
     }
 
     private static Label TextLabel(string text, float size, Color color, FontStyle style = FontStyle.Regular) => new()

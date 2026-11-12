@@ -102,7 +102,7 @@ public static class AddonScript
         current = v.Current,
         currentCaption = v.CurrentCaption,
         badge = v.Badge,
-        rows = v.Rows.Select(r => new { label = r.Label, value = r.Value, detail = r.Detail, color = r.Color, treasure = r.Treasure }),
+        rows = v.Rows.Select(r => new { label = r.Label, value = r.Value, detail = r.Detail, color = r.Color, treasure = r.Treasure, icon = r.Icon, separator = r.Separator }),
     });
 
     /// <summary>Reads what the script returned, keeping only known fields with safe lengths. Missing fields keep their value.</summary>
@@ -135,12 +135,16 @@ public static class AddonScript
                 if (r.ValueKind != JsonValueKind.Object) throw new InvalidDataException("Chaque ligne doit être un objet.");
                 var color = Text(r, "color", 7, null);
                 if (color != null && !ColorPattern.IsMatch(color)) throw new InvalidDataException($"Couleur invalide : {color} (#RRGGBB).");
+                var icon = Text(r, "icon", 36, null);
+                if (icon != null && !AddonRules.IsIconName(icon)) icon = null;
                 list.Add(new OverlayRow(
                     Text(r, "label", 24, "") ?? "",
                     Text(r, "value", 32, "") ?? "",
                     r.TryGetProperty("treasure", out var t) && t.ValueKind == JsonValueKind.True,
                     Text(r, "detail", 48, null),
-                    color));
+                    color,
+                    icon,
+                    r.TryGetProperty("separator", out var sep) && sep.ValueKind == JsonValueKind.True));
             }
             rows = list;
         }

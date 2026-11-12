@@ -1,3 +1,4 @@
+using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 
@@ -11,7 +12,67 @@ namespace ChestCounter;
 /// <summary>What the overlay shows. <see cref="Current"/> null = no match in progress.</summary>
 /// <param name="Detail">Optional secondary text drawn small and grey after the value.</param>
 /// <param name="Color">Value colour "#RRGGBB" set by a script add-on (null = theme colour).</param>
-public sealed record OverlayRow(string Label, string Value, bool Treasure = false, string? Detail = null, string? Color = null);
+/// <param name="Icon">Optional icon name drawn to the left of the label.</param>
+/// <param name="Separator">Draws a horizontal divider line before this row (used to separate add-on rows from software rows).</param>
+public sealed record OverlayRow(string Label, string Value, bool Treasure = false, string? Detail = null, string? Color = null, string? Icon = null, bool Separator = false);
+
+/// <summary>Icons separated between the software (Treasures, Pirate Token) and add-ons (broken chests, sprites, Wanted cards, loot cannons).</summary>
+public static class OverlayIcons
+{
+    private static readonly Dictionary<string, Bitmap> BuiltIn = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, string> BuiltInDataUris = new(StringComparer.OrdinalIgnoreCase);
+    private static volatile Dictionary<string, Bitmap> _addonBitmaps = new(StringComparer.OrdinalIgnoreCase);
+
+    static OverlayIcons()
+    {
+        // Software icons (assets\Icon\Logiciel)
+        RegisterBuiltIn("icon-software-chest.png", "Chest.png", "chests", "opened");
+        RegisterBuiltIn("icon-software-treasures.png", "Treasures.png", "treasures");
+        RegisterBuiltIn("icon-software-pirate_token.png", "Pirate_Token.png", "pirate_token");
+        // Add-on icons (assets\Icon\Addons & addons\stats-detail)
+        RegisterBuiltIn("icon-addon-break_chest.png", "break_chest.png", "destroyed");
+        RegisterBuiltIn("icon-addon-esprit_chest.png", "Esprit_Chest.png", "sprites");
+        RegisterBuiltIn("icon-addon-wanted_card.png", "Wanted_Card.png", "wanted");
+        RegisterBuiltIn("icon-addon-loot_cannons.png", "Loot_Cannons.png", "cannons");
+    }
+
+    private static void RegisterBuiltIn(string resourceName, params string[] keys)
+    {
+        using var stream = typeof(OverlayIcons).Assembly.GetManifestResourceStream(resourceName);
+        if (stream == null) return;
+        using var ms = new MemoryStream();
+        stream.CopyTo(ms);
+        var bytes = ms.ToArray();
+        var dataUri = "data:image/png;base64," + Convert.ToBase64String(bytes);
+        var bmp = new Bitmap(new MemoryStream(bytes));
+        foreach (var key in keys)
+        {
+            BuiltIn[key] = bmp;
+            BuiltInDataUris[key] = dataUri;
+        }
+    }
+
+    public static void SetAddonIcons(Dictionary<string, byte[]> icons)
+    {
+        var next = new Dictionary<string, Bitmap>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (name, bytes) in icons)
+        {
+            try { next[name] = new Bitmap(new MemoryStream(bytes)); }
+            catch { /* ignore invalid image */ }
+        }
+        _addonBitmaps = next;
+    }
+
+    public static Bitmap? Get(string? key)
+    {
+        if (string.IsNullOrWhiteSpace(key)) return null;
+        if (_addonBitmaps.TryGetValue(key, out var custom)) return custom;
+        return BuiltIn.TryGetValue(key, out var bmp) ? bmp : null;
+    }
+
+    public static string? DataUri(string? key) =>
+        key != null && BuiltInDataUris.TryGetValue(key, out var uri) ? uri : null;
+}
 
 /// <param name="Current">Right counter (match in progress, or last match); null = "—".</param>
 /// <param name="CurrentLive">Right counter is the match in progress (gold).</param>
@@ -426,24 +487,26 @@ public static class NativeOverlay
         var hdc = GetDC(hwnd);
         try
         {
-            // Header: "COFFRES" ... "● EN DIRECT" [lock]
-            var headerW = TextWidth(hdc, _fontHeader, v.HeaderText ?? Header, out _headerH) + S(16) + (v.Badge != null ? TextWidth(hdc, _fontHeader, v.Badge, out _) : 0) + S(30);
+            // Header: [chest icon] "COFFRES" ... "● EN DIRECT" [lock]
+            var headerW = S(20) + TextWidth(hdc, _fontHeader, v.HeaderText ?? Header, out _headerH) + S(16) + (v.Badge != null ? TextWidth(hdc, _fontHeader, v.Badge, out _) : 0) + S(30);
 
             // Two counters side by side.
             _col1W = Math.Max(TextWidth(hdc, _fontBig, v.Total, out _bigH), TextWidth(hdc, _fontCaption, v.TotalCaption ?? CaptionTotal, out _captionH));
             _col2W = Math.Max(TextWidth(hdc, _fontBig, v.Current ?? "—", out _), Math.Max(TextWidth(hdc, _fontCaption, v.CurrentCaption, out _), TextWidth(hdc, _fontCaption, OverlayModel.LastMatchCaption, out _)));
             var countersW = _col1W + S(ColGap) + _col2W;
 
-            // Detail rows: grey label column + value.
+            // Detail rows: optional small icon + grey label column + value.
             _labelW = 0;
             var valueW = 0;
             _rowH = 0;
+            var iconLead = S(16) + S(6);
             foreach (var row in v.Rows)
             {
-                _labelW = Math.Max(_labelW, TextWidth(hdc, _fontLabel, row.Label, out var lh));
+                var hasIcon = OverlayIcons.Get(row.Icon) != null;
+                _labelW = Math.Max(_labelW, (hasIcon ? iconLead : 0) + TextWidth(hdc, _fontLabel, row.Label, out var lh));
                 valueW = Math.Max(valueW, TextWidth(hdc, _fontSmall, row.Value, out var vh)
                     + (row.Detail != null ? S(6) + TextWidth(hdc, _fontCaption, row.Detail, out _) : 0));
-                _rowH = Math.Max(_rowH, Math.Max(lh, vh));
+                _rowH = Math.Max(_rowH, Math.Max(S(16), Math.Max(lh, vh)));
             }
             var rowsW = v.Rows.Count > 0 ? _labelW + S(12) + valueW : 0;
 
@@ -453,7 +516,8 @@ public static class NativeOverlay
             var h = S(12) + _headerH + S(6) + _bigH + _captionH + S(12);
             if (v.Rows.Count > 0)
             {
-                h += 1 + S(10) + v.Rows.Count * (_rowH + S(4)) + S(4);
+                var sepCount = v.Rows.Skip(1).Count(r => r.Separator);
+                h += 1 + S(10) + v.Rows.Count * (_rowH + S(4)) + sepCount * (1 + S(12)) + S(4);
             }
             _lockRect = new RECT { Left = w - S(Pad) - S(18), Top = S(6), Right = w - S(6), Bottom = S(12) + _headerH + S(6) };
             // Keep it fully on its screen: on the right half of the screen it grows to the left, and it is
@@ -526,7 +590,18 @@ public static class NativeOverlay
             DeleteObject(border);
 
             // Header
-            Text(hdc, _fontHeader, _theme.Muted, v.HeaderText ?? Header, x, y, right, y + _headerH);
+            var headerX = x;
+            if (OverlayIcons.Get("Chest.png") is { } chestIcon)
+            {
+                var hIconSize = S(15);
+                using var g = Graphics.FromHdc(hdc);
+                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                g.SmoothingMode = SmoothingMode.HighQuality;
+                g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                g.DrawImage(chestIcon, x, y + (_headerH - hIconSize) / 2f, hIconSize, hIconSize);
+                headerX += hIconSize + S(5);
+            }
+            Text(hdc, _fontHeader, _theme.Muted, v.HeaderText ?? Header, headerX, y, right, y + _headerH);
             if (v.Badge != null)
             {
                 Text(hdc, _fontHeader, _theme.Accent, v.Badge, x, y, _lockRect.Left - S(6), y + _headerH, DT_RIGHT);
@@ -554,9 +629,29 @@ public static class NativeOverlay
                 var line = new RECT { Left = x, Top = y, Right = right, Bottom = y + 1 };
                 FillRect(hdc, ref line, _brushLine);
                 y += 1 + S(10);
-                foreach (var row in v.Rows)
+                var iconSize = S(16);
+                var iconGap = S(6);
+                for (var i = 0; i < v.Rows.Count; i++)
                 {
-                    Text(hdc, _fontLabel, _theme.Muted, row.Label, x, y, x + _labelW, y + _rowH);
+                    var row = v.Rows[i];
+                    if (i > 0 && row.Separator)
+                    {
+                        y += S(4);
+                        var sepLine = new RECT { Left = x, Top = y, Right = right, Bottom = y + 1 };
+                        FillRect(hdc, ref sepLine, _brushLine);
+                        y += 1 + S(8);
+                    }
+                    var labelX = x;
+                    if (OverlayIcons.Get(row.Icon) is { } icon)
+                    {
+                        using var g = Graphics.FromHdc(hdc);
+                        g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        g.SmoothingMode = SmoothingMode.HighQuality;
+                        g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                        g.DrawImage(icon, x, y + (_rowH - iconSize) / 2f, iconSize, iconSize);
+                        labelX += iconSize + iconGap;
+                    }
+                    Text(hdc, _fontLabel, _theme.Muted, row.Label, labelX, y, x + _labelW, y + _rowH);
                     var vx = x + _labelW + S(12);
                     Text(hdc, _fontSmall, row.Color != null ? OverlayTheme.FromHex(row.Color) : row.Treasure ? _theme.Treasure : _theme.Text, row.Value, vx, y, right + S(4), y + _rowH);
                     if (row.Detail != null)

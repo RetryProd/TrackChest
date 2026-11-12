@@ -106,7 +106,7 @@ public sealed class ReplayAnalyzer : FortniteReplayReader.ReplayReader
     private readonly List<GrantEvent> _grants = new();
 
     /// <summary>Bump when the analysis changes so that existing replays are re-analyzed.</summary>
-    public const int CurrentVersion = 12;
+    public const int CurrentVersion = 13;
 
     private static readonly bool ProbeDebug = Environment.GetEnvironmentVariable("CHESTCOUNTER_DEBUG") == "4";
 
@@ -747,6 +747,11 @@ public sealed class ReplayAnalyzer : FortniteReplayReader.ReplayReader
 
         finds.Sort((a, b) => (a.ObtainedAtSeconds ?? float.MaxValue).CompareTo(b.ObtainedAtSeconds ?? float.MaxValue));
 
+        // Bots: player bots carry a bot id; the NPCs (guards, bosses) are bots too but have none.
+        var bots = players.Count(p => p.IsBot && !string.IsNullOrEmpty(p.BotId));
+        var humans = players.Where(p => !p.IsBot).ToList();
+        var humanOpponents = target?.TeamIndex is int myTeam ? humans.Count(p => p.TeamIndex != myTeam) : (int?)null;
+
         var info = replay.Info;
         var header = replay.Header;
         var isRecorder = recorderPs != null && targetPlayerStates.Contains(recorderPs.Value);
@@ -769,6 +774,9 @@ public sealed class ReplayAnalyzer : FortniteReplayReader.ReplayReader
             TotalPlayers = (int?)replay.TeamStats?.TotalPlayers,
             IsReplayOwner = isRecorder,
             Eliminations = isRecorder ? (int?)replay.Stats?.Eliminations : null,
+            Bots = bots,
+            Humans = humans.Count,
+            HumanOpponents = humanOpponents,
             ChestsOpened = chests.Count(c => !c.Destroyed),
             AmmoBoxesOpened = others.GetValueOrDefault(ChestKinds.AmmoBox),
             OtherContainersOpened = others.Where(kv => kv.Key != ChestKinds.AmmoBox).Sum(kv => kv.Value),

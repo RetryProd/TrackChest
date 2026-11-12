@@ -21,3 +21,6 @@ addons-registry/site/*
 
 # Versions fabriquées par Publier-Version.ps1
 dist/release/
+
+# Dumps de débogage des replays (peuvent contenir des pseudos d'autres joueurs)
+cmds/
