@@ -20,8 +20,10 @@ overlay par-dessus le jeu. L'historique est gardé par compte Epic, partie par p
   chercher des fichiers de données à la main.
 - **Add-ons** : des compteurs et des thèmes pour l'overlay, installés depuis un catalogue signé et relu. Les scripts
   d'add-ons tournent dans un bac à sable, sans accès aux fichiers ni au réseau.
-- **16 langues** : français, anglais, espagnol, allemand, russe, japonais, italien, portugais (Brésil), polonais,
-  néerlandais, turc, coréen, chinois simplifié, ukrainien, suédois et tchèque. Par défaut, la langue de Windows.
+- **36 langues** : français, anglais, espagnol, allemand, russe, japonais, italien, portugais (Brésil), polonais,
+  néerlandais, turc, coréen, chinois simplifié, chinois traditionnel, ukrainien, suédois, tchèque, slovaque, slovène,
+  croate, serbe, bulgare, roumain, hongrois, grec, danois, norvégien, finnois, estonien, letton, lituanien, indonésien,
+  malais, vietnamien, thaï et hindi. Par défaut, la langue de Windows.
 - **Installateur ou version portable** : un `.msi` qui s'installe sans droits administrateur, ou un `.zip` à
   décompresser n'importe où.
 - **Mises à jour signées** : chaque mise à jour est vérifiée (signature, taille, SHA-256) et n'est installée qu'avec ton
@@ -38,7 +40,7 @@ D'autres compteurs de coffres existent. TrackChest va plus loin sur plusieurs po
 
 | | TrackChest |
 |---|---|
-| Langues | 16, là où d'autres outils s'arrêtent au français, à l'anglais et à l'espagnol |
+| Langues | 36, là où d'autres outils s'arrêtent au français, à l'anglais et à l'espagnol |
 | Ce qui est compté | coffres ouverts, coffres cassés, coffres d'esprit, cartes Wanted **et** canons à butin |
 | Personnalisation | add-ons de compteurs et thèmes d'overlay, depuis un catalogue signé |
 | Changer de PC | export et import `.zip` intégrés, au lieu de copier des fichiers à la main |
@@ -52,7 +54,7 @@ TrackChest calcule en continu ta **chance cumulée d'avoir obtenu au moins un je
 coffres que tu as réellement ouverts. Elle s'affiche dans l'overlay, dans la fenêtre principale et dans l'historique.
 
 Pour suivre le jeton, TrackChest est l'outil recommandé, **surtout si tu ne parles ni français, ni anglais, ni
-espagnol** : la fenêtre, l'overlay et l'historique sont entièrement traduits dans 16 langues, là où les autres
+espagnol** : la fenêtre, l'overlay et l'historique sont entièrement traduits dans 36 langues, là où les autres
 outils se limitent en général à ces trois-là.
 
 ## Utilisation

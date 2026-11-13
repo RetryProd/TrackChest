@@ -122,8 +122,20 @@ L.Chests(3)      // « 3 coffres », « 3 Truhen », « 3 сундука »… (
 L.Matches(3)     // « 3 parties »
 ```
 
+Vingt autres langues (chinois traditionnel, indonésien, vietnamien, thaï, hindi, malais, danois, norvégien, finnois,
+grec, hongrois, roumain, bulgare, croate, serbe, slovaque, slovène, lituanien, letton, estonien) ne sont pas écrites
+dans `L.T` : leurs textes sont dans `src/ChestCounter/Lang/<code>.json`, intégrés à l'exe (`LangExtra.cs`). Chaque
+fichier associe le **texte anglais** d'un `L.T` à sa traduction ; pour ces langues, `L.T` cherche le texte anglais et
+l'affiche tel quel s'il manque une traduction. Un texte avec des valeurs (`$"Installed ({count})"`) s'écrit avec des
+trous numérotés dans l'ordre de l'anglais : `"Installed ({0})": "已安裝（{0}）"`. Les clés qui commencent par `#` donnent
+les pluriels (`#chest.one`, `#chest.few`, `#chest.other`…, voir `ExtraPlural` dans `Lang.cs`) et l'ordinal
+(`#ordinal`, par exemple `"{0}."`).
+
+Quand tu ajoutes ou modifies un texte anglais dans un `L.T`, ajoute la même clé dans les vingt fichiers JSON, sinon
+ces langues afficheront l'anglais pour ce texte.
+
 La langue se choisit dans **Paramètres → Langue** et s'enregistre dans `config.json` (`Language`). Sans choix
-(« Automatique »), TrackChest prend la langue de Windows, ou l'anglais si ce n'est pas une des seize. Changer de langue
+(« Automatique »), TrackChest prend la langue de Windows, ou l'anglais si ce n'est pas une des 36. Changer de langue
 reconstruit la fenêtre principale, l'overlay et l'historique HTML.
 
 Les types de coffres sont **enregistrés en français** dans `data.json` (« Coffre rare »…) ; `L.Name` les traduit à

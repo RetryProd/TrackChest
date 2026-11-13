@@ -9,11 +9,29 @@ namespace ChestCounter;
 /// Texts are written inline as <c>L.T("français", "English", "español", "Deutsch", "русский", "日本語", "italiano",
 /// "português", "polski", "Nederlands", "Türkçe", "한국어", "中文", "українська", "svenska", "čeština")</c>. Names stored
 /// in data.json (chest kinds, treasure items) are kept in French for compatibility and translated when displayed (<see cref="Name"/>).
+/// The 20 languages of <see cref="ExtraCodes"/> are not written inline: their texts come from <c>Lang\&lt;code&gt;.json</c>,
+/// looked up by the English text (<see cref="LangExtra"/>).
 /// </summary>
 public static class L
 {
+    /// <summary>Languages whose texts are written inline in <see cref="T"/>.</summary>
+    private static readonly string[] InlineCodes = { "fr", "en", "es", "de", "ru", "ja", "it", "pt", "pl", "nl", "tr", "ko", "zh", "uk", "sv", "cs" };
+
+    /// <summary>Languages translated in Lang\&lt;code&gt;.json, with their culture and their name in that language.</summary>
+    private static readonly (string Code, string Culture, string Name)[] Extra =
+    {
+        ("zh-tw", "zh-TW", "繁體中文"), ("id", "id-ID", "Bahasa Indonesia"), ("vi", "vi-VN", "Tiếng Việt"), ("th", "th-TH", "ไทย"),
+        ("hi", "hi-IN", "हिन्दी"), ("ms", "ms-MY", "Bahasa Melayu"), ("da", "da-DK", "Dansk"), ("nb", "nb-NO", "Norsk"),
+        ("fi", "fi-FI", "Suomi"), ("el", "el-GR", "Ελληνικά"), ("hu", "hu-HU", "Magyar"), ("ro", "ro-RO", "Română"),
+        ("bg", "bg-BG", "Български"), ("hr", "hr-HR", "Hrvatski"), ("sr", "sr-Latn-RS", "Srpski"), ("sk", "sk-SK", "Slovenčina"),
+        ("sl", "sl-SI", "Slovenščina"), ("lt", "lt-LT", "Lietuvių"), ("lv", "lv-LV", "Latviešu"), ("et", "et-EE", "Eesti"),
+    };
+
+    /// <summary>Codes of the languages translated in Lang\&lt;code&gt;.json.</summary>
+    public static readonly string[] ExtraCodes = Extra.Select(e => e.Code).ToArray();
+
     /// <summary>Languages offered, in menu order.</summary>
-    public static readonly string[] Codes = { "fr", "en", "es", "de", "ru", "ja", "it", "pt", "pl", "nl", "tr", "ko", "zh", "uk", "sv", "cs" };
+    public static readonly string[] Codes = InlineCodes.Concat(ExtraCodes).ToArray();
 
     /// <summary>One of <see cref="Codes"/>.</summary>
     public static string Code { get; private set; } = "fr";
@@ -32,9 +50,14 @@ public static class L
         var chosen = Normalize(code);
         Auto = chosen == null;
         Code = chosen ?? SystemDefault;
-        Culture = CultureInfo.GetCultureInfo(T("fr-FR", "en-GB", "es-ES", "de-DE", "ru-RU", "ja-JP", "it-IT", "pt-BR", "pl-PL",
-            "nl-NL", "tr-TR", "ko-KR", "zh-CN", "uk-UA", "sv-SE", "cs-CZ"));
+        LangExtra.Load(Code);
+        var extra = Array.FindIndex(Extra, e => e.Code == Code);
+        Culture = CultureInfo.GetCultureInfo(extra >= 0 ? Extra[extra].Culture : T("fr-FR", "en-GB", "es-ES", "de-DE", "ru-RU", "ja-JP",
+            "it-IT", "pt-BR", "pl-PL", "nl-NL", "tr-TR", "ko-KR", "zh-CN", "uk-UA", "sv-SE", "cs-CZ"));
     }
+
+    /// <summary>True for the languages translated in Lang\&lt;code&gt;.json.</summary>
+    private static bool IsExtra => Array.IndexOf(ExtraCodes, Code) >= 0;
 
     /// <summary>Language code, or null when the answer is not recognized (or "auto").</summary>
     public static string? Normalize(string? code) => code?.Trim().ToLowerInvariant() switch
@@ -55,6 +78,11 @@ public static class L
         "uk" or "ukr" or "ukrainian" or "українська" or "ukrainien" => "uk",
         "sv" or "swe" or "swedish" or "svenska" or "suédois" or "suedois" => "sv",
         "cs" or "ces" or "cze" or "czech" or "čeština" or "cestina" or "tchèque" or "tcheque" => "cs",
+        "zh-tw" or "zh-hk" or "zh-mo" or "zh-hant" or "繁體中文" => "zh-tw",
+        "no" or "nb" or "nn" or "nob" or "nor" or "norsk" => "nb",
+        "sr" or "sr-latn" or "sr-cyrl" or "srp" or "srpski" => "sr",
+        { } other => Array.Find(Extra, e => e.Code == other || e.Culture.Equals(other, StringComparison.OrdinalIgnoreCase)
+            || e.Name.Equals(other, StringComparison.OrdinalIgnoreCase)).Code,
         _ => null,
     };
 
@@ -64,17 +92,31 @@ public static class L
         "en" => "English", "es" => "Español", "de" => "Deutsch", "ru" => "Русский", "ja" => "日本語",
         "it" => "Italiano", "pt" => "Português (Brasil)", "pl" => "Polski", "nl" => "Nederlands", "tr" => "Türkçe",
         "ko" => "한국어", "zh" => "简体中文", "uk" => "Українська", "sv" => "Svenska", "cs" => "Čeština",
-        _ => "Français",
+        _ => Array.Find(Extra, e => e.Code == code).Name ?? "Français",
     };
 
     /// <summary>Language of Windows when it is one of ours, English otherwise.</summary>
-    public static string SystemDefault => Normalize(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName) ?? "en";
+    public static string SystemDefault
+    {
+        get
+        {
+            var ui = CultureInfo.CurrentUICulture;
+            // Traditional Chinese (Taiwan, Hong Kong, Macao) shares the two-letter code "zh" with simplified Chinese.
+            if (ui.Name.StartsWith("zh-", StringComparison.OrdinalIgnoreCase)
+                && (ui.Name.Contains("Hant", StringComparison.OrdinalIgnoreCase) || ui.Name.EndsWith("TW", StringComparison.OrdinalIgnoreCase)
+                    || ui.Name.EndsWith("HK", StringComparison.OrdinalIgnoreCase) || ui.Name.EndsWith("MO", StringComparison.OrdinalIgnoreCase)))
+            {
+                return "zh-tw";
+            }
+            return Normalize(ui.TwoLetterISOLanguageName) ?? "en";
+        }
+    }
 
     public static string T(string fr, string en, string es, string de, string ru, string ja, string it, string pt, string pl,
         string nl, string tr, string ko, string zh, string uk, string sv, string cs) => Code switch
     {
         "en" => en, "es" => es, "de" => de, "ru" => ru, "ja" => ja, "it" => it, "pt" => pt, "pl" => pl, "nl" => nl,
-        "tr" => tr, "ko" => ko, "zh" => zh, "uk" => uk, "sv" => sv, "cs" => cs, _ => fr,
+        "tr" => tr, "ko" => ko, "zh" => zh, "uk" => uk, "sv" => sv, "cs" => cs, "fr" => fr, _ => LangExtra.T(en),
     };
 
     public static string N(int n) => n.ToString("N0", Culture);
@@ -90,8 +132,9 @@ public static class L
         string NlOne, string NlMany, string Tr, string KoCounter, string ZhCounter,
         string UkOne, string UkFew, string UkMany, string SvOne, string SvMany, string CsOne, string CsFew, string CsMany);
 
-    private static string Count(int n, Forms f) => $"{N(n)} {Code switch
+    private static string Count(int n, string kind, Forms f) => $"{N(n)} {Code switch
     {
+        _ when IsExtra => LangExtra.Get($"#{kind}.{ExtraPlural(n)}") ?? LangExtra.Get($"#{kind}.other") ?? (n == 1 ? f.EnOne : f.EnMany),
         "en" => n == 1 ? f.EnOne : f.EnMany,
         "es" => n == 1 ? f.EsOne : f.EsMany,
         "de" => n == 1 ? f.DeOne : f.DeMany,
@@ -119,6 +162,30 @@ public static class L
         return units == 1 ? one : units is >= 2 and <= 4 ? few : many;
     }
 
+    /// <summary>
+    /// Plural category of an added language, used as the suffix of its #kind.* keys (one, two, few, zero, other).
+    /// Chinese, Indonesian, Vietnamese, Thai, Malay: no plural. Hindi: one for 0 and 1. Romanian: one / few (0, 2-19,
+    /// x01-x19) / other ("de"). Croatian, Serbian: like Russian. Slovak: like Czech. Slovenian: by the last two
+    /// digits (1, 2, 3-4). Lithuanian, Latvian: by the last digit, except 11-19.
+    /// </summary>
+    private static string ExtraPlural(int n)
+    {
+        var tens = Math.Abs(n) % 100;
+        var units = tens % 10;
+        return Code switch
+        {
+            "zh-tw" or "id" or "vi" or "th" or "ms" => "other",
+            "hi" => n is 0 or 1 ? "one" : "other",
+            "ro" => n == 1 ? "one" : n == 0 || tens is >= 1 and <= 19 ? "few" : "other",
+            "hr" or "sr" => tens is >= 11 and <= 14 ? "other" : units == 1 ? "one" : units is >= 2 and <= 4 ? "few" : "other",
+            "sk" => n == 1 ? "one" : n is >= 2 and <= 4 ? "few" : "other",
+            "sl" => tens == 1 ? "one" : tens == 2 ? "two" : tens is 3 or 4 ? "few" : "other",
+            "lt" => tens is >= 11 and <= 19 ? "other" : units == 1 ? "one" : units >= 2 ? "few" : "other",
+            "lv" => units == 0 || tens is >= 11 and <= 19 ? "zero" : units == 1 ? "one" : "other",
+            _ => n == 1 ? "one" : "other",
+        };
+    }
+
     /// <summary>Polish: 1 one; 2-4, 22-24… few (not 12-14); the rest many.</summary>
     private static string PolishPlural(int n, string one, string few, string many)
     {
@@ -129,28 +196,28 @@ public static class L
     }
 
     /// <summary>"3 coffres" / "3 chests" / "3 Truhen" / "3 сундука" / "3 個"…</summary>
-    public static string Chests(int n) => Count(n, new("coffre", "coffres", "chest", "chests", "cofre", "cofres",
+    public static string Chests(int n) => Count(n, "chest", new("coffre", "coffres", "chest", "chests", "cofre", "cofres",
         "Truhe", "Truhen", "сундук", "сундука", "сундуков", "個",
         "forziere", "forzieri", "baú", "baús", "skrzynia", "skrzynie", "skrzyń",
         "kist", "kisten", "sandık", "개", "个宝箱",
         "скриня", "скрині", "скринь", "kista", "kistor", "truhla", "truhly", "truhel"));
 
     /// <summary>"3 parties" / "3 matches" / …</summary>
-    public static string Matches(int n) => Count(n, new("partie", "parties", "match", "matches", "partida", "partidas",
+    public static string Matches(int n) => Count(n, "match", new("partie", "parties", "match", "matches", "partida", "partidas",
         "Match", "Matches", "матч", "матча", "матчей", "試合",
         "partita", "partite", "partida", "partidas", "mecz", "mecze", "meczów",
         "potje", "potjes", "maç", "경기", "场比赛",
         "матч", "матчі", "матчів", "match", "matcher", "zápas", "zápasy", "zápasů"));
 
     /// <summary>"3 fichiers" / "3 files" / …</summary>
-    public static string Files(int n) => Count(n, new("fichier", "fichiers", "file", "files", "archivo", "archivos",
+    public static string Files(int n) => Count(n, "file", new("fichier", "fichiers", "file", "files", "archivo", "archivos",
         "Datei", "Dateien", "файл", "файла", "файлов", "件",
         "file", "file", "arquivo", "arquivos", "plik", "pliki", "plików",
         "bestand", "bestanden", "dosya", "개 파일", "个文件",
         "файл", "файли", "файлів", "fil", "filer", "soubor", "soubory", "souborů"));
 
     /// <summary>"3 trésors obtenus" / "3 treasures" / …</summary>
-    public static string TreasuresObtained(int n) => Count(n, new("trésor obtenu", "trésors obtenus", "treasure", "treasures",
+    public static string TreasuresObtained(int n) => Count(n, "treasure", new("trésor obtenu", "trésors obtenus", "treasure", "treasures",
         "tesoro obtenido", "tesoros obtenidos", "Schatz erhalten", "Schätze erhalten", "сокровище получено", "сокровища получено",
         "сокровищ получено", "個の宝を入手",
         "tesoro ottenuto", "tesori ottenuti", "tesouro obtido", "tesouros obtidos", "skarb zdobyty", "skarby zdobyte", "skarbów zdobytych",
@@ -173,6 +240,7 @@ public static class L
             case "zh": return $"第{n}名";
             case "sv": return $"{n}:{((n % 10) is 1 or 2 && (n % 100) is not (11 or 12) ? "a" : "e")}";
             case "fr": return n == 1 ? "1er" : $"{n}e";
+            case var _ when IsExtra && LangExtra.Get("#ordinal") is { } ordinal: return ordinal.Replace("{0}", n.ToString(CultureInfo.InvariantCulture));
         }
         var suffix = (n % 100) is 11 or 12 or 13 ? "th" : (n % 10) switch { 1 => "st", 2 => "nd", 3 => "rd", _ => "th" };
         return $"{n}{suffix}";

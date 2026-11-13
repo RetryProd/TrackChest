@@ -167,7 +167,8 @@ public static class ReportWriter
         var title = L.T("Compteur de coffres", "Chest Counter", "Contador de cofres", "Truhenzähler", "Счётчик сундуков", "宝箱カウンター", "Contatore di forzieri", "Contador de baús", "Licznik skrzyń", "Kistenteller", "Sandık Sayacı", "상자 카운터", "宝箱计数器", "Лічильник скринь", "Kisträknare", "Počítadlo truhel");
         var updated = L.T(
             $"Mis à jour le {DateTime.Now.ToString("dd/MM/yyyy à HH:mm:ss", Fr)}",
-            $"Updated {DateTime.Now.ToString("d MMM yyyy 'at' HH:mm:ss", Fr)}",
+            // The added languages (Lang\*.json) reuse this English text: they get their culture's own date format.
+            $"Updated {DateTime.Now.ToString(L.En ? "d MMM yyyy 'at' HH:mm:ss" : "G", Fr)}",
             $"Actualizado el {DateTime.Now.ToString("dd/MM/yyyy 'a las' HH:mm:ss", Fr)}",
             $"Aktualisiert am {DateTime.Now.ToString("dd.MM.yyyy 'um' HH:mm:ss", Fr)}",
             $"Обновлено {DateTime.Now.ToString("dd.MM.yyyy 'в' HH:mm:ss", Fr)}",

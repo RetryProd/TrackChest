@@ -13,6 +13,8 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\..\assets\TrackChest.ico" LogicalName="TrackChest.ico" />
+    <!-- Texts of the languages added after the first 16 (LangExtra.cs) -->
+    <EmbeddedResource Include="Lang\*.json" LogicalName="lang-%(Filename).json" />
     <!-- Icons of the software itself (Chest, Treasures, Pirate Token) -->
     <EmbeddedResource Include="..\..\assets\Icon\Logiciel\Chest.png" LogicalName="icon-software-chest.png" />
     <EmbeddedResource Include="..\..\assets\Icon\Logiciel\Treasures.png" LogicalName="icon-software-treasures.png" />
