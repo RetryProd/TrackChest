@@ -177,12 +177,15 @@ public sealed class AddonState
     public bool Revoked { get; set; }
     public string Sha256 { get; set; } = "";
     public DateTime InstalledUtc { get; set; }
+    /// <summary>Labels of the add-on's counters the player turned off with "Configure" (null = all shown).</summary>
+    public List<string>? HiddenCounters { get; set; }
 }
 
 public sealed record InstalledAddon(AddonManifest Manifest, AddonState State)
 {
     public AddonTier Tier => State.Tier switch { "verified" => AddonTier.Verified, "community" => AddonTier.Community, _ => AddonTier.Local };
     public bool IsActive => State.Enabled && !State.Revoked;
+    public bool IsCounterShown(AddonCounter counter) => State.HiddenCounters?.Contains(counter.Label) != true;
 }
 
 /// <summary>Installed add-ons: %APPDATA%\TrackChest\addons\&lt;id&gt;\package.zip, plus addons\state.json.</summary>
@@ -253,6 +256,10 @@ public sealed class AddonStore
             Enabled = true,
             Sha256 = Convert.ToHexString(SHA256.HashData(zip)),
             InstalledUtc = DateTime.UtcNow,
+            // An update keeps the counters the player turned off (those that still exist).
+            HiddenCounters = state.TryGetValue(manifest.Id, out var previous) && previous.HiddenCounters is { Count: > 0 } hidden
+                && hidden.Where(label => manifest.Counters.Any(c => c.Label == label)).ToList() is { Count: > 0 } kept
+                ? kept : null,
         };
         state[manifest.Id] = entry;
         SaveState(state);
@@ -267,6 +274,18 @@ public sealed class AddonStore
         entry.Enabled = enabled;
         SaveState(state);
         if (enabled && Load().FirstOrDefault(a => a.Manifest.Id == id)?.Manifest.Theme != null) DisableOtherThemes(id);
+    }
+
+    /// <summary>Shows or hides one counter of an add-on on the overlay ("Configure" button).</summary>
+    public void SetCounterShown(string id, string label, bool shown)
+    {
+        var state = LoadState();
+        if (!state.TryGetValue(id, out var entry)) return;
+        var hidden = entry.HiddenCounters ?? new List<string>();
+        hidden.RemoveAll(l => l == label);
+        if (!shown) hidden.Add(label);
+        entry.HiddenCounters = hidden.Count > 0 ? hidden : null;
+        SaveState(state);
     }
 
     public void Remove(string id)
@@ -322,7 +341,7 @@ public static class AddonRuntime
     {
         var active = store.Load().Where(a => a.IsActive).ToList();
         var counters = active.Where(a => a.Manifest.Permissions.Contains(AddonRules.OverlayRows))
-            .SelectMany(a => a.Manifest.Counters).Take(10).ToList();
+            .SelectMany(a => a.Manifest.Counters.Where(a.IsCounterShown)).Take(10).ToList();
         _counters = counters;
         var addonIcons = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
         foreach (var addon in active)
@@ -400,7 +419,7 @@ public static class AddonRuntime
 
     private static string? DefaultMetricIcon(string metric) => metric switch
     {
-        "chests" or "opened" => "Chest.png",
+        "chests" or "opened" or "buried" => "Chest.png",
         "destroyed" => "break_chest.png",
         "sprites" => "Esprit_Chest.png",
         "wanted" => "Wanted_Card.png",
@@ -416,6 +435,7 @@ public static class AddonRuntime
         "opened" => matches.Sum(m => m.ChestsOpened),
         "destroyed" => matches.Sum(m => m.ChestsDestroyed),
         "sprites" => matches.Sum(m => m.SpriteChests),
+        "buried" => matches.Sum(m => m.BuriedChests),
         "wanted" => matches.Any(m => m.WantedMaps != null) ? matches.Sum(m => m.WantedMaps?.Count ?? 0) : null,
         "cannons" => matches.Sum(m => m.LootCannons),
         "treasures" => matches.Sum(m => m.TreasureFinds.Count),

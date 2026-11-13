@@ -258,14 +258,17 @@ L'overlay est une fenêtre Win32 dessinée par `NativeOverlay.cs`. Son **contenu
 Tout se passe dans `OverlayModel.Build` : chaque `rows.Add(…)` est une ligne, dans l'ordre d'affichage.
 
 ```csharp
-rows.Add(new OverlayRow(L.T("Session", "Session", "Sesión", "Sitzung", "Сессия", "セッション"), L.Chests(sessionTotal), Detail: sessionDetail));
+rows.Add(new OverlayRow(L.T("Session", "Session", "Sesión", "Sitzung", "Сессия", "セッション"), L.Chests(sessionTotal), Detail: sessionDetail, Icon: "Chest.png"));
 ```
 
-`OverlayRow(libellé, valeur, Treasure: couleur trésor, Detail: texte gris, Color: "#RRGGBB")`.
+`OverlayRow(libellé, valeur, Treasure: couleur trésor, Detail: texte gris, Color: "#RRGGBB", Icon: "nom.png", Separator: trait au-dessus)`.
 
 - **Supprimer** une ligne : supprime son `rows.Add(…)`.
 - **Renommer** : change le premier texte de `L.T(…)`.
 - **Réordonner** : déplace les `rows.Add(…)`.
+- **Icône** : passe un nom d'icône intégrée (`Chest.png`, `Treasures.png`, `Pirate_Token.png`, `break_chest.png`,
+  `Esprit_Chest.png`, `Wanted_Card.png`, `Loot_Cannons.png`) via `Icon`, ou ajoute un `.png` embarqué dans
+  `TrackChest.csproj` et enregistré dans `OverlayIcons` (`NativeOverlay.cs`).
 - **Ajouter** une ligne, par exemple les éliminations :
 
   ```csharp
@@ -322,16 +325,26 @@ Le premier nombre est la taille (`-S(38)` = 38 px, multiplié par la taille choi
 Les espacements sont des constantes : `MinWidth = 240` (largeur minimale), `Pad = 16` (marge intérieure),
 `ColGap = 36` (écart entre les deux grands chiffres). Le rayon des coins est le `S(18)` de `CreateRoundRectRgn`.
 
-### Tailles et opacités proposées
+### Tailles, opacités et redimensionnement à la souris
 
 `OverlayAppearance` (en haut de `OverlayModel.cs`) :
 
 ```csharp
-public static readonly int[] Sizes = { 70, 80, 90, 100, 115, 130, 150, 175 };
+public const int MinSize = 50, MaxSize = 300;
+public static readonly int[] Sizes = { 50, 60, 70, 80, 90, 100, 115, 130, 150, 175, 200, 250, 300 };
 public static readonly int[] Opacities = { 100, 90, 80, 70, 60, 50, 40, 30 };
 ```
 
 Les boutons − et + de la fenêtre Paramètres passent d'une valeur à la suivante de ces listes.
+
+Quand l'overlay est déverrouillé (`NativeOverlay.cs`), `DrawEdgeHandles` dessine des traits neutres à l'extérieur de la
+bordure :
+
+- **4 bords** (`HTLEFT`, `HTRIGHT`, `HTTOP`, `HTBOTTOM`) : changent indépendamment la largeur (`_customWidth`) ou la
+  hauteur (`_customHeight`) sans changer la taille des polices (enregistrées dans `Config.OverlayWidth` /
+  `Config.OverlayHeight`).
+- **4 coins** (`HTTOPLEFT`, `HTTOPRIGHT`, `HTBOTTOMLEFT`, `HTBOTTOMRIGHT`) : redimensionnent globalement tout l'overlay
+  au pourcent près entre `MinSize` (50 %) et `MaxSize` (300 %) (enregistré dans `Config.OverlaySize`).
 
 ### Les raccourcis clavier
 
@@ -503,7 +516,17 @@ texte de `--help` et à [Ligne de commande](ligne-de-commande.md).
 
 ## 11. Add-ons
 
-Le fonctionnement complet est dans [Fonctionnement et sécurité](add-ons.md). Voici les modifications courantes.
+Le fonctionnement complet est dans [Fonctionnement et sécurité](add-ons.md), et le guide pas-à-pas côté auteur est
+dans [Créer un add-on](creer-un-addon.md). Voici les modifications courantes dans TrackChest et dans le catalogue :
+
+### Icônes intégrées et configuration par compteur
+
+- **Icônes intégrées** (`NativeOverlay.cs` → `OverlayIcons`) : associe un PNG embarqué dans `TrackChest.csproj` à un
+  nom ou à une métrique (`DefaultMetricIcon` dans `AddonStore.cs`). Les add-ons peuvent aussi embarquer leurs propres
+  `.png` (≤ 32 Ko chacun, 10 fichiers max dans le `.zip`) et les référencer dans `counters[].icon` ou `row.icon`.
+- **Affichage par ligne** (`CounterWindow.AddonConfig.cs` → `AddonConfigForm`) : permet au joueur d'activer ou masquer
+  individuellement chaque compteur d'un add-on installé (`AddonStore.SetCounterShown`), dans la limite de 10 lignes
+  d'add-ons affichées au total (`AddonRuntime.Load`).
 
 ### Ajouter une `metric` (une statistique pour les compteurs)
 
@@ -512,7 +535,7 @@ Exemple : `rares`, le nombre de coffres rares (§ 6).
 | Étape | Fichier | Modification |
 |---|---|---|
 | 1 | `src/ChestCounter/Addons.cs` | ajouter `"rares"` dans `AddonRules.Metrics` |
-| 2 | `src/ChestCounter/AddonStore.cs` | dans `AddonRuntime.Compute` : `"rares" => matches.Sum(m => m.RareChests),` |
+| 2 | `src/ChestCounter/AddonStore.cs` | dans `AddonRuntime.Compute` : `"rares" => matches.Sum(m => m.RareChests),` et son icône dans `DefaultMetricIcon` si besoin |
 | 3 | `addons-registry/scripts/Validate-Addon.ps1` | ajouter `'rares'` dans `$metrics` |
 | 4 | `addons-registry/site-src/addon-rules.js` | ajouter `'rares'` dans `METRICS` |
 | 5 | `addons-registry/site-src/creer.html` | ajouter `rares: 'Coffres rares'` dans `METRIC_TEXT` |
@@ -524,15 +547,16 @@ refuseront les add-ons qui utilisent `rares` : attends que les joueurs aient la 
 
 ### Donner plus d'informations aux scripts
 
-Les données reçues par `overlay(view, data)` sont construites par `AddonScript.DataJson` (`AddonScript.cs`). Ajoute un
-champ à l'objet `Match(…)` ou à l'objet racine :
+Les données reçues par `overlay(view, data)` sont construites par `AddonScript.DataJson` (`AddonScript.cs`, qui inclut
+notamment `buried` et `chestList`). Ajoute un champ à l'objet `Match(…)` ou à l'objet racine :
 
 ```csharp
 rares = m.RareChests,
 ```
 
-Ce que le script peut renvoyer est lu par `AddonScript.ViewFromJson` : chaque champ a une longueur maximale. Documente
-tout ajout dans [Créer un add-on → Scripts](creer-un-addon.md).
+Ce que le script peut renvoyer est lu par `AddonScript.ViewFromJson` (`label`, `value`, `detail`, `color`, `treasure`,
+`icon`, `separator`) : chaque champ a une longueur ou une règle maximale. Documente tout ajout dans
+[Créer un add-on → Scripts](creer-un-addon.md).
 
 ### Les limites du bac à sable
 

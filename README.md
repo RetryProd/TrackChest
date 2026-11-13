@@ -11,8 +11,8 @@ overlay par-dessus le jeu. L'historique est gardé par compte Epic, partie par p
 - **Overlay en jeu** : total de coffres, dernière partie, session, trésors et chance cumulée d'obtenir le jeton pirate,
   affichés par-dessus Fortnite. L'overlay est dessiné directement par Windows, sans composant navigateur à installer,
   et il laisse passer les clics quand il est verrouillé.
-- **Plus que des coffres** : coffres ouverts, coffres cassés, coffres d'esprit, cartes Wanted et canons à butin tirés
-  sont tous détectés dans les replays.
+- **Plus que des coffres** : coffres ouverts, coffres cassés, coffres enterrés, coffres d'esprit, cartes Wanted et
+  canons à butin tirés sont tous détectés dans les replays.
 - **Historique détaillé** : une page locale qui déroule chaque partie (type et moment de chaque coffre, cartes Wanted,
   trésors).
 - **Plusieurs comptes** : chaque compte Epic qui a enregistré des replays sur le PC a son propre profil.
@@ -41,7 +41,7 @@ D'autres compteurs de coffres existent. TrackChest va plus loin sur plusieurs po
 | | TrackChest |
 |---|---|
 | Langues | 36, là où d'autres outils s'arrêtent au français, à l'anglais et à l'espagnol |
-| Ce qui est compté | coffres ouverts, coffres cassés, coffres d'esprit, cartes Wanted **et** canons à butin |
+| Ce qui est compté | coffres ouverts, coffres cassés, coffres enterrés, coffres d'esprit, cartes Wanted **et** canons à butin |
 | Personnalisation | add-ons de compteurs et thèmes d'overlay, depuis un catalogue signé |
 | Changer de PC | export et import `.zip` intégrés, au lieu de copier des fichiers à la main |
 | Installation | installateur `.msi` ou version portable, au choix |
@@ -71,8 +71,10 @@ outils se limitent en général à ces trois-là.
 | **Ctrl+Maj+O** | afficher ou masquer l'overlay |
 | **Ctrl+Maj+L** | déverrouiller l'overlay pour le déplacer (verrouillé, il laisse passer les clics) |
 
-Le bouton **Paramètres** règle la taille et l'opacité de l'overlay, le dossier des replays et l'ouverture automatique
-avec Fortnite.
+Le bouton **Paramètres** règle la taille (de 50 % à 300 %) et l'opacité de l'overlay, le dossier des replays et
+l'ouverture automatique avec Fortnite. Overlay déverrouillé, tu peux aussi le redimensionner librement à la souris :
+les **4 bords** changent uniquement la largeur ou la hauteur, et les **4 coins** redimensionnent tout l'overlay de façon
+fluide (au pourcent près). Les dimensions et la taille choisies sont enregistrées automatiquement.
 
 Fortnite ne garde qu'un nombre limité de replays et supprime les plus anciens. Un replay importé reste compté dans
 TrackChest, même après sa suppression par Fortnite.

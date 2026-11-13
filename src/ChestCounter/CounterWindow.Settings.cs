@@ -53,7 +53,11 @@ internal sealed partial class CounterWindow
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing) _languageMenu.Dispose();
+            if (disposing)
+            {
+                NativeOverlay.SizeDragged -= OnOverlaySizeDragged;
+                _languageMenu.Dispose();
+            }
             base.Dispose(disposing);
         }
 
@@ -166,12 +170,14 @@ internal sealed partial class CounterWindow
             var versionRow = SideRow();
             versionRow.Controls.Add(TextLabel($"{L.T("Version", "Version", "Versión", "Version", "Версия", "バージョン", "Versione", "Versão", "Wersja", "Versie", "Sürüm", "버전", "版本", "Версія", "Version", "Verze")} {Updater.CurrentText}", 9.5f, Muted), 0, 0);
             var check = new PillButton(L.T("Rechercher", "Check now", "Buscar", "Suchen", "Проверить", "確認", "Controlla ora", "Verificar agora", "Sprawdź teraz", "Nu controleren", "Şimdi denetle", "지금 확인", "立即检查", "Перевірити зараз", "Sök nu", "Zkontrolovat nyní"));
+            check.Margin = new Padding(0, 0, 0, 4);
             check.Click += (_, _) => checkUpdate();
             versionRow.Controls.Add(check, 1, 0);
             updateGrid.Controls.Add(versionRow, 0, 1);
             var autoRow = SideRow();
             autoRow.Controls.Add(TextLabel(L.T("Vérifier au démarrage", "Check at startup", "Comprobar al iniciar", "Beim Start prüfen", "Проверять при запуске", "起動時に確認", "Controlla all'avvio", "Verificar ao iniciar", "Sprawdzaj przy uruchomieniu", "Controleren bij opstarten", "Başlangıçta denetle", "시작 시 확인", "启动时检查", "Перевіряти під час запуску", "Sök vid start", "Kontrolovat při spuštění"), 9.5f, Muted), 0, 0);
             _autoCheck.Click += (_, _) => { _config.CheckUpdates = !_config.CheckUpdates; _save(); RefreshAutoCheck(); };
+            _autoCheck.Margin = new Padding(0, 4, 0, 0);
             autoRow.Controls.Add(_autoCheck, 1, 0);
             updateGrid.Controls.Add(autoRow, 0, 2);
             updates.Controls.Add(updateGrid);
@@ -183,6 +189,13 @@ internal sealed partial class CounterWindow
             RefreshStartup();
             RefreshAutoCheck();
             RefreshIgnoreBots();
+            // The overlay can be resized by dragging its edge while this window is open: show the new size.
+            NativeOverlay.SizeDragged += OnOverlaySizeDragged;
+        }
+
+        private void OnOverlaySizeDragged(int percent)
+        {
+            if (IsHandleCreated && !IsDisposed) BeginInvoke(() => { _config.OverlaySize = percent; RefreshValues(); });
         }
 
         /// <summary>True when the bot games setting differs from when the window opened (the counts must be redrawn).</summary>

@@ -241,7 +241,8 @@ internal sealed partial class CounterWindow
                 var scriptError = addon.IsActive ? AddonRuntime.ScriptError(addon.Manifest.Id) : null;
                 _list.Controls.Add(Row(addon.Manifest.Name, addon.Manifest.Version,
                     scriptError != null ? L.T($"Erreur du script : {scriptError}", $"Script error: {scriptError}", $"Error del script: {scriptError}", $"Skriptfehler: {scriptError}", $"Ошибка скрипта: {scriptError}", $"スクリプトエラー: {scriptError}", $"Errore dello script: {scriptError}", $"Erro de script: {scriptError}", $"Błąd skryptu: {scriptError}", $"Scriptfout: {scriptError}", $"Betik hatası: {scriptError}", $"스크립트 오류: {scriptError}", $"脚本错误：{scriptError}", $"Помилка скрипту: {scriptError}", $"Skriptfel: {scriptError}", $"Chyba skriptu: {scriptError}") : $"{state}{TierText(addon.Tier)}{kind}",
-                    scriptError != null ? Gold : TierColor(addon.Tier), addon.Manifest.Description, toggle, remove));
+                    scriptError != null ? Gold : TierColor(addon.Tier), addon.Manifest.Description,
+                    addon.Manifest.Counters.Count > 0 ? ConfigureButton(addon) : toggle, remove));
             }
 
             _list.Controls.Add(Header(L.T("Catalogue", "Catalog", "Catálogo", "Katalog", "Каталог", "カタログ", "Catalogo", "Catálogo", "Katalog", "Catalogus", "Katalog", "카탈로그", "目录", "Каталог", "Katalog", "Katalog")));
@@ -273,6 +274,18 @@ internal sealed partial class CounterWindow
             }
             _list.ResumeLayout(true);
             FitRows();
+        }
+
+        /// <summary>"Configure" replaces "Disable" for an add-on with counters: on/off for the add-on and for each counter.</summary>
+        private PillButton ConfigureButton(InstalledAddon addon)
+        {
+            var button = new PillButton(L.T("Configurer", "Configure", "Configurar", "Konfigurieren", "Настроить", "設定", "Configura", "Configurar", "Konfiguruj", "Configureren", "Yapılandır", "구성", "配置", "Налаштувати", "Konfigurera", "Nastavit"), Tone.Primary);
+            button.Click += (_, _) =>
+            {
+                using (var form = new AddonConfigForm(_addons, addon.Manifest.Id, _changed)) form.ShowDialog(this);
+                Rebuild();
+            };
+            return button;
         }
 
         private static string TierText(AddonTier tier) => tier switch { AddonTier.Verified => L.T("✓ Vérifié", "✓ Verified", "✓ Verificado", "✓ Geprüft", "✓ Проверено", "✓ 検証済み", "✓ Verificato", "✓ Verificado", "✓ Zweryfikowany", "✓ Geverifieerd", "✓ Doğrulandı", "✓ 검증됨", "✓ 已验证", "✓ Перевірено", "✓ Verifierat", "✓ Ověřeno"), AddonTier.Community => L.T("Communauté", "Community", "Comunidad", "Community", "Сообщество", "コミュニティ", "Community", "Comunidade", "Społeczność", "Community", "Topluluk", "커뮤니티", "社区", "Спільнота", "Community", "Komunita"), _ => L.T("Local, non vérifié", "Local, unverified", "Local, sin verificar", "Lokal, nicht geprüft", "Локальное, не проверено", "ローカル、未検証", "Locale, non verificato", "Local, não verificado", "Lokalny, niezweryfikowany", "Lokaal, niet geverifieerd", "Yerel, doğrulanmamış", "로컬, 검증 안 됨", "本地，未验证", "Локальне, неперевірене", "Lokalt, overifierat", "Místní, neověřený") };

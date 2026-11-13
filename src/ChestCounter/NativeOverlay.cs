@@ -96,9 +96,27 @@ public static class NativeOverlay
     private static string CaptionTotal => L.T("total", "total", "total", "gesamt", "всего", "合計", "totale", "total", "łącznie", "totaal", "toplam", "합계", "总计", "усього", "totalt", "celkem");
     private static Action<int, int>? _onMoved;
     private static Action<bool>? _onLockChanged;
+
+    /// <summary>Raised (on the overlay thread) when the player resizes the overlay by dragging a corner; the argument is the new size in percent.</summary>
+    public static event Action<int>? SizeDragged;
+
+    /// <summary>Raised (on the overlay thread) when the player widens/narrows the overlay horizontally; null = back to automatic width.</summary>
+    public static event Action<int?>? WidthDragged;
+
+    /// <summary>Raised (on the overlay thread) when the player resizes the overlay vertically; null = back to automatic height.</summary>
+    public static event Action<int?>? HeightDragged;
+
+    // Resizing by dragging the edges or corners (unlocked overlay only).
+    private static int _dragHit, _dragStartPercent, _dragStartW, _dragStartH;
+    private static POINT _dragStartCursor;
+    private static RECT _dragStartRect;
+    private static bool DragLeft => _dragHit is HTLEFT or HTTOPLEFT or HTBOTTOMLEFT;
+    private static bool DragRight => _dragHit is HTRIGHT or HTTOPRIGHT or HTBOTTOMRIGHT;
+    private static bool DragTop => _dragHit is HTTOP or HTTOPLEFT or HTTOPRIGHT;
+    private static bool DragBottom => _dragHit is HTBOTTOM or HTBOTTOMLEFT or HTBOTTOMRIGHT;
     private static volatile bool _locked;
     private static bool _offscreen;
-    private static int _stableW;
+    private static int _stableW, _autoW, _autoH;
     private static RECT _lockRect; // lock button, client coordinates
     private static IntPtr _fontIcon;
     private static WndProcDelegate? _wndProc; // keep the delegate alive
@@ -108,6 +126,8 @@ public static class NativeOverlay
     private static float _dpiScale = 1f; // display scaling only
     private static volatile int _sizePercent = 100;
     private static volatile int _opacityPercent = 100;
+    private static volatile int _customWidth;  // unscaled logical minimum width (0 = auto)
+    private static volatile int _customHeight; // unscaled logical minimum height (0 = auto)
 
     private const int MinWidth = 240, Pad = 16, ColGap = 36;
 
@@ -119,6 +139,26 @@ public static class NativeOverlay
         if (_hwnd != IntPtr.Zero)
         {
             PostMessageW(_hwnd, WM_APP_APPEARANCE, IntPtr.Zero, IntPtr.Zero);
+        }
+    }
+
+    /// <summary>Custom minimum width of the overlay in logical pixels (null or &lt;= 0 = automatic fit).</summary>
+    public static void SetWidth(int? width)
+    {
+        _customWidth = width is > 0 ? width.Value : 0;
+        if (_hwnd != IntPtr.Zero)
+        {
+            PostMessageW(_hwnd, WM_APP_RELAYOUT, IntPtr.Zero, IntPtr.Zero);
+        }
+    }
+
+    /// <summary>Custom minimum height of the overlay in logical pixels (null or &lt;= 0 = automatic fit).</summary>
+    public static void SetHeight(int? height)
+    {
+        _customHeight = height is > 0 ? height.Value : 0;
+        if (_hwnd != IntPtr.Zero)
+        {
+            PostMessageW(_hwnd, WM_APP_RELAYOUT, IntPtr.Zero, IntPtr.Zero);
         }
     }
 
@@ -320,15 +360,145 @@ public static class NativeOverlay
                 GetWindowRect(hwnd, out var wr);
                 var px = (short)((long)lParam & 0xFFFF) - wr.Left;
                 var py = (short)(((long)lParam >> 16) & 0xFFFF) - wr.Top;
+                // Resize band along every edge (it wins over the padlock, which touches the top-right corner);
+                // corners are wider so that the rounded corners stay easy to grab.
+                var w = wr.Right - wr.Left;
+                var h = wr.Bottom - wr.Top;
+                var grip = (int)Math.Round(8 * _dpiScale);
+                var corner = (int)Math.Round(20 * _dpiScale);
+                var left = px < grip;
+                var right = px >= w - grip;
+                var top = py < grip;
+                var bottom = py >= h - grip;
                 var onButton = px >= _lockRect.Left && px < _lockRect.Right && py >= _lockRect.Top && py < _lockRect.Bottom;
-                return (IntPtr)(onButton ? HTCLIENT : HTCAPTION);
+                if (onButton && !(left || right || top || bottom)) return (IntPtr)HTCLIENT;
+                // A whole square in each corner, the rounded shape cutting off the thin bands there.
+                if ((!onButton || left || right || top || bottom) && (px < corner || px >= w - corner) && (py < corner || py >= h - corner))
+                {
+                    left = px < corner; right = !left; top = py < corner; bottom = !top;
+                }
+                if (!(left || right || top || bottom)) return (IntPtr)HTCAPTION;
+                return (IntPtr)(top ? (left ? HTTOPLEFT : right ? HTTOPRIGHT : HTTOP)
+                    : bottom ? (left ? HTBOTTOMLEFT : right ? HTBOTTOMRIGHT : HTBOTTOM)
+                    : left ? HTLEFT : HTRIGHT);
             }
 
-            case WM_SETCURSOR:
-                if (((long)lParam & 0xFFFF) == HTCLIENT)
+            case WM_NCLBUTTONDOWN when (long)wParam is >= HTLEFT and <= HTBOTTOMRIGHT:
+            {
+                GetWindowRect(hwnd, out _dragStartRect);
+                _dragHit = (int)(long)wParam;
+                _dragStartPercent = _sizePercent;
+                _dragStartW = Math.Max(1, _dragStartRect.Right - _dragStartRect.Left);
+                _dragStartH = Math.Max(1, _dragStartRect.Bottom - _dragStartRect.Top);
+                GetCursorPos(out _dragStartCursor);
+                SetCapture(hwnd);
+                return IntPtr.Zero;
+            }
+
+            case WM_MOUSEMOVE when _dragHit != 0:
+            {
+                GetCursorPos(out var cursor);
+                var dx = cursor.X - _dragStartCursor.X;
+                var ox = DragLeft ? -dx : dx;
+                if (_dragHit is HTLEFT or HTRIGHT)
                 {
-                    SetCursor(LoadCursorW(IntPtr.Zero, IDC_HAND));
-                    return (IntPtr)1;
+                    // Horizontal edge drag: widen or narrow without changing height or font scale.
+                    var targetW = _dragStartW + ox;
+                    var mi = new MONITORINFO { cbSize = (uint)Marshal.SizeOf<MONITORINFO>() };
+                    if (!_offscreen && GetMonitorInfoW(MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST), ref mi))
+                    {
+                        var maxW = DragLeft ? _dragStartRect.Right - mi.rcWork.Left : mi.rcWork.Right - _dragStartRect.Left;
+                        targetW = Math.Min(targetW, Math.Max(_autoW, maxW));
+                    }
+                    var nextWidth = targetW <= _autoW ? 0 : Math.Max(1, (int)Math.Round(targetW / _scale));
+                    if (nextWidth != _customWidth)
+                    {
+                        _customWidth = nextWidth;
+                        Relayout(hwnd);
+                    }
+                    return IntPtr.Zero;
+                }
+                if (_dragHit is HTTOP or HTBOTTOM)
+                {
+                    // Vertical edge drag: resize height without changing width or font scale.
+                    var dyV = cursor.Y - _dragStartCursor.Y;
+                    var oyV = DragTop ? -dyV : dyV;
+                    var targetH = _dragStartH + oyV;
+                    var mi = new MONITORINFO { cbSize = (uint)Marshal.SizeOf<MONITORINFO>() };
+                    if (!_offscreen && GetMonitorInfoW(MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST), ref mi))
+                    {
+                        var maxH = DragTop ? _dragStartRect.Bottom - mi.rcWork.Top : mi.rcWork.Bottom - _dragStartRect.Top;
+                        targetH = Math.Min(targetH, Math.Max(_autoH, maxH));
+                    }
+                    var nextHeight = targetH <= _autoH ? 0 : Math.Max(1, (int)Math.Round(targetH / _scale));
+                    if (nextHeight != _customHeight)
+                    {
+                        _customHeight = nextHeight;
+                        Relayout(hwnd);
+                    }
+                    return IntPtr.Zero;
+                }
+
+                // Corner drag: scale the whole overlay smoothly along the diagonal (1 % steps, no 5 % jump).
+                var dy = (cursor.Y - _dragStartCursor.Y) * _dragStartW / (double)_dragStartH; // same ratio as the width
+                var oy = DragTop ? -dy : dy;
+                var delta = (ox + oy) / 2.0;
+                var percent = _dragStartPercent * (_dragStartW + delta) / _dragStartW;
+                var nextPercent = OverlayAppearance.ClampSize((int)Math.Round(percent));
+                if (nextPercent != _sizePercent)
+                {
+                    _sizePercent = nextPercent;
+                    CreateFonts();
+                    _stableW = 0;
+                    Relayout(hwnd);
+                }
+                return IntPtr.Zero;
+            }
+
+            case WM_LBUTTONUP when _dragHit != 0:
+                var hit = _dragHit;
+                _dragHit = 0;
+                ReleaseCapture();
+                if (hit is HTLEFT or HTRIGHT)
+                {
+                    WidthDragged?.Invoke(_customWidth > 0 ? _customWidth : null);
+                }
+                else if (hit is HTTOP or HTBOTTOM)
+                {
+                    HeightDragged?.Invoke(_customHeight > 0 ? _customHeight : null);
+                }
+                else
+                {
+                    SizeDragged?.Invoke(_sizePercent);
+                }
+                if (GetWindowRect(hwnd, out var dropped))
+                {
+                    _onMoved?.Invoke(dropped.Left, dropped.Top); // pulling the left or top edge moves the overlay
+                }
+                return IntPtr.Zero;
+
+            case WM_CAPTURECHANGED:
+                _dragHit = 0;
+                break;
+
+            case WM_SETCURSOR:
+                switch ((long)lParam & 0xFFFF)
+                {
+                    case HTCLIENT:
+                        SetCursor(LoadCursorW(IntPtr.Zero, IDC_HAND));
+                        return (IntPtr)1;
+                    case HTLEFT or HTRIGHT:
+                        SetCursor(LoadCursorW(IntPtr.Zero, IDC_SIZEWE));
+                        return (IntPtr)1;
+                    case HTTOP or HTBOTTOM:
+                        SetCursor(LoadCursorW(IntPtr.Zero, IDC_SIZENS));
+                        return (IntPtr)1;
+                    case HTTOPLEFT or HTBOTTOMRIGHT:
+                        SetCursor(LoadCursorW(IntPtr.Zero, IDC_SIZENWSE));
+                        return (IntPtr)1;
+                    case HTTOPRIGHT or HTBOTTOMLEFT:
+                        SetCursor(LoadCursorW(IntPtr.Zero, IDC_SIZENESW));
+                        return (IntPtr)1;
                 }
                 break;
 
@@ -377,6 +547,9 @@ public static class NativeOverlay
                 ApplyLock(hwnd, _locked, notify: false); // also applies the opacity
                 Relayout(hwnd);
                 return IntPtr.Zero;
+
+            case WM_ERASEBKGND:
+                return (IntPtr)1;
 
             case WM_PAINT:
                 Paint(hwnd);
@@ -510,16 +683,19 @@ public static class NativeOverlay
             }
             var rowsW = v.Rows.Count > 0 ? _labelW + S(12) + valueW : 0;
 
-            // Never shrinks: the overlay keeps the same size between a match in progress and the end of the match.
-            var w = Math.Max(_stableW, Math.Max(S(MinWidth), Math.Max(headerW, Math.Max(countersW, rowsW)) + 2 * S(Pad)));
-            _stableW = w;
-            var h = S(12) + _headerH + S(6) + _bigH + _captionH + S(12);
+            // Never shrinks below content: _stableW prevents jumping when a live badge disappears; _customWidth/_customHeight resize independently.
+            var autoW = Math.Max(_stableW, Math.Max(S(MinWidth), Math.Max(headerW, Math.Max(countersW, rowsW)) + 2 * S(Pad)));
+            _stableW = autoW;
+            _autoW = autoW;
+            var w = _customWidth > 0 ? Math.Max(autoW, S(_customWidth)) : autoW;
+            var autoH = S(12) + _headerH + S(6) + _bigH + _captionH + S(12);
             if (v.Rows.Count > 0)
             {
                 var sepCount = v.Rows.Skip(1).Count(r => r.Separator);
-                h += 1 + S(10) + v.Rows.Count * (_rowH + S(4)) + sepCount * (1 + S(12)) + S(4);
+                autoH += 1 + S(10) + v.Rows.Count * (_rowH + S(4)) + sepCount * (1 + S(12)) + S(4);
             }
-            _lockRect = new RECT { Left = w - S(Pad) - S(18), Top = S(6), Right = w - S(6), Bottom = S(12) + _headerH + S(6) };
+            _autoH = autoH;
+            var h = _customHeight > 0 ? Math.Max(autoH, S(_customHeight)) : autoH;
             // Keep it fully on its screen: on the right half of the screen it grows to the left, and it is
             // pushed back inside when it would overflow (a wider overlay used to be cut by the screen edge).
             GetWindowRect(hwnd, out var cur);
@@ -528,13 +704,22 @@ public static class NativeOverlay
             if (!_offscreen && GetMonitorInfoW(MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST), ref mi))
             {
                 var work = mi.rcWork;
-                if (cur.Right - cur.Left > 0 && (cur.Left + cur.Right) / 2 > (work.Left + work.Right) / 2)
+                w = Math.Min(w, Math.Max(autoW, work.Right - work.Left));
+                h = Math.Min(h, Math.Max(autoH, work.Bottom - work.Top));
+                if (_dragHit != 0)
+                {
+                    // Resizing with the mouse: the edge opposite the one being pulled stays where it was.
+                    nx = DragLeft ? _dragStartRect.Right - w : _dragStartRect.Left;
+                    ny = DragTop ? _dragStartRect.Bottom - h : _dragStartRect.Top;
+                }
+                else if (cur.Right - cur.Left > 0 && (cur.Left + cur.Right) / 2 > (work.Left + work.Right) / 2)
                 {
                     nx = cur.Right - w; // anchored on the right edge
                 }
                 nx = Math.Max(work.Left, Math.Min(nx, work.Right - w));
                 ny = Math.Max(work.Top, Math.Min(ny, work.Bottom - h));
             }
+            _lockRect = new RECT { Left = w - S(Pad) - S(20), Top = S(7), Right = w - S(9), Bottom = S(12) + _headerH + S(6) };
             SetWindowPos(hwnd, HWND_TOPMOST, nx, ny, w, h, SWP_NOACTIVATE);
             SetWindowRgn(hwnd, CreateRoundRectRgn(0, 0, w + 1, h + 1, S(18), S(18)), true); // window owns the region
             if (nx != cur.Left || ny != cur.Top)
@@ -546,7 +731,7 @@ public static class NativeOverlay
         {
             ReleaseDC(hwnd, hdc);
         }
-        InvalidateRect(hwnd, IntPtr.Zero, true);
+        InvalidateRect(hwnd, IntPtr.Zero, false);
         UpdateWindow(hwnd); // paint now (one repaint per update, no timer)
     }
 
@@ -563,12 +748,73 @@ public static class NativeOverlay
         var hdc = BeginPaint(hwnd, out var ps);
         try
         {
-            PaintTo(hwnd, hdc);
+            GetClientRect(hwnd, out var rc);
+            int w = rc.Right - rc.Left, h = rc.Bottom - rc.Top;
+            if (w > 0 && h > 0)
+            {
+                var mem = CreateCompatibleDC(hdc);
+                var bmp = CreateCompatibleBitmap(hdc, w, h);
+                var old = SelectObject(mem, bmp);
+                PaintTo(hwnd, mem);
+                BitBlt(hdc, 0, 0, w, h, mem, 0, 0, SRCCOPY);
+                SelectObject(mem, old);
+                DeleteObject(bmp);
+                DeleteDC(mem);
+            }
         }
         finally
         {
             EndPaint(hwnd, ref ps);
         }
+    }
+
+    private static void DrawEdgeHandles(IntPtr hdc, RECT rc)
+    {
+        static byte Ch(uint c, int shift) => (byte)((c >> shift) & 0xFF);
+        var r = (byte)((Ch(_theme.Muted, 0) + Ch(_theme.Text, 0)) / 2);
+        var gr = (byte)((Ch(_theme.Muted, 8) + Ch(_theme.Text, 8)) / 2);
+        var b = (byte)((Ch(_theme.Muted, 16) + Ch(_theme.Text, 16)) / 2);
+        var thickness = Math.Max(2f, 2f * _scale);
+        var halfLen = 14f * _scale;
+        var inset = Math.Max(1.5f, 1.5f * _scale); // flush along the outer border without clipping on the rounded region
+        var cx = rc.Right / 2f;
+        var cy = rc.Bottom / 2f;
+        var rx = rc.Right - inset;
+        var by = rc.Bottom - inset;
+
+        using var g = Graphics.FromHdc(hdc);
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+        using var pen = new Pen(Color.FromArgb(215, r, gr, b), thickness)
+        {
+            StartCap = LineCap.Round,
+            EndCap = LineCap.Round,
+            LineJoin = LineJoin.Round,
+        };
+        // Edge traits: width only (left/right) and height only (top/bottom).
+        g.DrawLine(pen, cx - halfLen, inset, cx + halfLen, inset);
+        g.DrawLine(pen, cx - halfLen, by, cx + halfLen, by);
+        g.DrawLine(pen, inset, cy - halfLen, inset, cy + halfLen);
+        g.DrawLine(pen, rx, cy - halfLen, rx, cy + halfLen);
+
+        // Corner traits: full proportional scale (text + width + height).
+        var cornerR = Math.Max(4f, 8.5f * _scale - inset);
+        var diam = 2f * cornerR;
+        var arm = 5f * _scale;
+
+        void Corner(float sx, float sy, float arcX, float arcY, float startAngle, float p1x, float p1y, float p2x, float p2y, float ex, float ey)
+        {
+            using var path = new GraphicsPath();
+            path.AddLine(sx, sy, p1x, p1y);
+            path.AddArc(arcX, arcY, diam, diam, startAngle, 90f);
+            path.AddLine(p2x, p2y, ex, ey);
+            g.DrawPath(pen, path);
+        }
+
+        Corner(inset, inset + cornerR + arm, inset, inset, 180f, inset, inset + cornerR, inset + cornerR, inset, inset + cornerR + arm, inset);
+        Corner(rx - cornerR - arm, inset, rx - diam, inset, 270f, rx - cornerR, inset, rx, inset + cornerR, rx, inset + cornerR + arm);
+        Corner(rx, by - cornerR - arm, rx - diam, by - diam, 0f, rx, by - cornerR, rx - cornerR, by, rx - cornerR - arm, by);
+        Corner(inset + cornerR + arm, by, inset, by - diam, 90f, inset + cornerR, by, inset, by - cornerR, inset, by - cornerR - arm);
     }
 
     private static void PaintTo(IntPtr hwnd, IntPtr hdc)
@@ -584,10 +830,16 @@ public static class NativeOverlay
             var right = rc.Right - S(Pad);
             var y = S(12);
 
-            // Thin border following the rounded shape.
+            // Thin subtle border following the rounded shape.
             var border = CreateRoundRectRgn(0, 0, rc.Right + 1, rc.Bottom + 1, S(18), S(18));
             FrameRgn(hdc, border, _brushBorder, 1, 1);
             DeleteObject(border);
+
+            // Unlocked: subtle pill-shaped grip traits on the 4 edges (no full outline).
+            if (!_locked)
+            {
+                DrawEdgeHandles(hdc, rc);
+            }
 
             // Header
             var headerX = x;
@@ -613,11 +865,20 @@ public static class NativeOverlay
             DrawTextW(hdc, _locked ? "" : "", -1, ref lr, DT_SINGLELINE | DT_CENTER | DT_VCENTER | DT_NOPREFIX);
             y += _headerH + S(6);
 
-            // Counters: total | match in progress
-            var x2 = x + _col1W + S(ColGap);
+            var extraH = _autoH > 0 ? Math.Max(0, rc.Bottom - _autoH) : 0;
+            if (v.Rows.Count == 0 && extraH > 0)
+            {
+                y += extraH / 2;
+            }
+
+            // Counters: total | match in progress (balanced across width when widened).
+            var minSep = x + _col1W + S(ColGap) / 2;
+            var maxSep = right - _col2W - S(ColGap) / 2;
+            var sepX = Math.Clamp(x + (right - x) / 2, minSep, Math.Max(minSep, maxSep));
+            var x2 = sepX + S(ColGap) / 2;
             Text(hdc, _fontBig, _theme.Accent, v.Total, x - S(1), y, x + _col1W + S(4), y + _bigH);
             Text(hdc, _fontBig, v.Current == null ? Rgb(71, 85, 105) : v.CurrentLive ? _theme.Accent : _theme.Text, v.Current ?? "—", x2 - S(1), y, right + S(4), y + _bigH);
-            var sep = new RECT { Left = x + _col1W + S(ColGap) / 2, Top = y + S(8), Right = x + _col1W + S(ColGap) / 2 + 1, Bottom = y + _bigH + _captionH };
+            var sep = new RECT { Left = sepX, Top = y + S(8), Right = sepX + 1, Bottom = y + _bigH + _captionH };
             FillRect(hdc, ref sep, _brushLine);
             y += _bigH;
             Text(hdc, _fontCaption, _theme.Muted, v.TotalCaption ?? CaptionTotal, x, y, x + _col1W + S(4), y + _captionH);
@@ -626,9 +887,16 @@ public static class NativeOverlay
 
             if (v.Rows.Count > 0)
             {
+                var slots = v.Rows.Count + 1;
+                var slotBase = extraH / slots;
+                var slotRem = extraH % slots;
+                int Slot(int idx) => slotBase + (idx < slotRem ? 1 : 0);
+
+                var lead = Slot(0);
+                y += lead / 2;
                 var line = new RECT { Left = x, Top = y, Right = right, Bottom = y + 1 };
                 FillRect(hdc, ref line, _brushLine);
-                y += 1 + S(10);
+                y += 1 + S(10) + (lead - lead / 2);
                 var iconSize = S(16);
                 var iconGap = S(6);
                 for (var i = 0; i < v.Rows.Count; i++)
@@ -636,10 +904,11 @@ public static class NativeOverlay
                     var row = v.Rows[i];
                     if (i > 0 && row.Separator)
                     {
-                        y += S(4);
+                        var prevGap = Slot(i);
+                        y += S(4) + prevGap / 2;
                         var sepLine = new RECT { Left = x, Top = y, Right = right, Bottom = y + 1 };
                         FillRect(hdc, ref sepLine, _brushLine);
-                        y += 1 + S(8);
+                        y += 1 + S(8) + (prevGap - prevGap / 2);
                     }
                     var labelX = x;
                     if (OverlayIcons.Get(row.Icon) is { } icon)
@@ -660,6 +929,11 @@ public static class NativeOverlay
                         Text(hdc, _fontCaption, _theme.Muted, row.Detail, dx, y, right + S(4), y + _rowH - S(2), DT_BOTTOM);
                     }
                     y += _rowH + S(4);
+                    // When the next row draws a separator, its slot is split around the separator above.
+                    if (i + 1 >= v.Rows.Count || !v.Rows[i + 1].Separator)
+                    {
+                        y += Slot(i + 1);
+                    }
                 }
             }
         }
@@ -690,10 +964,14 @@ public static class NativeOverlay
     private static readonly IntPtr IDC_HAND = new(32649);
     private const uint LWA_ALPHA = 0x2;
     private const int SW_HIDE = 0, SW_SHOWNOACTIVATE = 4;
-    private const uint WM_DESTROY = 0x0002, WM_PAINT = 0x000F, WM_NCHITTEST = 0x0084, WM_NCRBUTTONUP = 0x00A5,
+    private const uint WM_DESTROY = 0x0002, WM_PAINT = 0x000F, WM_ERASEBKGND = 0x0014, WM_NCHITTEST = 0x0084, WM_NCRBUTTONUP = 0x00A5,
         WM_TIMER = 0x0113, WM_EXITSIZEMOVE = 0x0232, WM_APP_TOGGLE = 0x8001, WM_PRINTCLIENT = 0x0318, WM_APP_RELAYOUT = 0x8002, WM_HOTKEY = 0x0312, WM_APP_APPEARANCE = 0x8004;
+    private const uint SRCCOPY = 0x00CC0020;
     private const uint MOD_CONTROL = 0x2, MOD_SHIFT = 0x4, MOD_NOREPEAT = 0x4000, VK_O = 0x4F;
-    private const int HTCAPTION = 2;
+    private const int HTCAPTION = 2, HTLEFT = 10, HTRIGHT = 11, HTTOP = 12, HTTOPLEFT = 13, HTTOPRIGHT = 14,
+        HTBOTTOM = 15, HTBOTTOMLEFT = 16, HTBOTTOMRIGHT = 17;
+    private const uint WM_NCLBUTTONDOWN = 0x00A1, WM_MOUSEMOVE = 0x0200, WM_CAPTURECHANGED = 0x0215;
+    private static readonly IntPtr IDC_SIZEWE = new(32644), IDC_SIZENS = new(32645), IDC_SIZENWSE = new(32642), IDC_SIZENESW = new(32643);
     private const int TRANSPARENT = 1, LOGPIXELSY = 90;
     private const uint DT_LEFT = 0x0, DT_CENTER = 0x1, DT_RIGHT = 0x2, DT_VCENTER = 0x4, DT_BOTTOM = 0x8, DT_SINGLELINE = 0x20, DT_CALCRECT = 0x400, DT_NOPREFIX = 0x800;
     private const uint SWP_NOSIZE = 0x1, SWP_NOMOVE = 0x2, SWP_NOACTIVATE = 0x10;
@@ -768,6 +1046,9 @@ public static class NativeOverlay
     [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")] private static extern IntPtr GetWindowLongPtrW(IntPtr hwnd, int index);
     [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")] private static extern IntPtr SetWindowLongPtrW(IntPtr hwnd, int index, IntPtr value);
     [DllImport("user32.dll")] private static extern IntPtr SetCursor(IntPtr cursor);
+    [DllImport("user32.dll")] private static extern IntPtr SetCapture(IntPtr hwnd);
+    [DllImport("user32.dll")] private static extern bool ReleaseCapture();
+    [DllImport("user32.dll")] private static extern bool GetCursorPos(out POINT point);
     [DllImport("user32.dll")] private static extern bool RegisterHotKey(IntPtr hwnd, int id, uint modifiers, uint vk);
     [DllImport("user32.dll")] private static extern bool UnregisterHotKey(IntPtr hwnd, int id);
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)] private static extern IntPtr GetModuleHandleW(string? name);
@@ -798,6 +1079,7 @@ public static class NativeOverlay
     [DllImport("user32.dll")] private static extern bool PrintWindow(IntPtr hwnd, IntPtr hdc, uint flags);
     [DllImport("gdi32.dll")] private static extern IntPtr CreateCompatibleDC(IntPtr hdc);
     [DllImport("gdi32.dll")] private static extern IntPtr CreateCompatibleBitmap(IntPtr hdc, int w, int h);
+    [DllImport("gdi32.dll")] private static extern bool BitBlt(IntPtr hdc, int x, int y, int cx, int cy, IntPtr hdcSrc, int x1, int y1, uint rop);
     [DllImport("gdi32.dll")] private static extern bool DeleteDC(IntPtr hdc);
     [DllImport("gdi32.dll")] private static extern int GetDIBits(IntPtr hdc, IntPtr bmp, uint start, uint lines, byte[] bits, ref BITMAPINFOHEADER bi, uint usage);
     [DllImport("gdi32.dll")] private static extern bool FrameRgn(IntPtr hdc, IntPtr rgn, IntPtr brush, int w, int h);

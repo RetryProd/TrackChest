@@ -28,8 +28,10 @@ Il y a deux façons de créer un add-on :
 
 ## 1. Le fichier manifest.json
 
-Dans le dépôt du catalogue, crée un dossier `addons/mon-addon/` avec un seul fichier, `manifest.json`, enregistré en
-UTF-8 **sans BOM**. Le nom du dossier est identique à l'`id`.
+Dans le dépôt du catalogue, crée un dossier `addons/mon-addon/` avec `manifest.json`, enregistré en UTF-8 **sans BOM**.
+Le nom du dossier est identique à l'`id`. Tu peux aussi y placer un script `script.js` (voir
+[Scripts](#6-scripts--tout-modifier)) et des icônes `.png` (32 Ko maximum chacune, 10 fichiers au maximum dans tout le
+paquet).
 
 ### Exemple : un compteur
 
@@ -79,7 +81,7 @@ UTF-8 **sans BOM**. Le nom du dossier est identique à l'`id`.
 | `description` | 200 caractères maximum |
 | `permissions` | la liste de ce que l'add-on utilise (voir ci-dessous). Une permission inutilisée est refusée |
 | `counters` | jusqu'à 8 compteurs (facultatif) |
-| `theme` | des couleurs (facultatif). Il faut au moins un compteur ou un thème |
+| `theme` | des couleurs (facultatif). Il faut au moins un compteur, un thème ou un script (`script.js`) |
 
 Toute autre clé est refusée.
 
@@ -103,19 +105,28 @@ Les compteurs demandent `stats.read` et `overlay.rows`. Un thème demande `overl
 | `metric` | ce qu'on compte, voir le tableau suivant |
 | `scope` | `total` (toutes les parties), `session` (depuis le lancement de TrackChest), `last` (la dernière partie) |
 | `showLast` | `true` ajoute « · n dernière partie » après le total (avec `scope` = `total`) |
+| `icon` | facultatif : nom d'une icône intégrée ou d'un fichier `.png` placé dans le dossier de l'add-on (lettres, chiffres, `_` et `-`, 32 caractères max avant `.png`) |
 
-| `metric` | Ce que ça compte |
-|---|---|
-| `chests` | coffres ouverts ou cassés, plus les canons à butin (le total de TrackChest) |
-| `opened` | coffres ouverts |
-| `destroyed` | coffres cassés |
-| `sprites` | coffres d'esprit |
-| `wanted` | cartes Wanted ramassées |
-| `cannons` | canons à butin tirés |
-| `treasures` | trésors trouvés |
-| `matches` | nombre de parties |
+| `metric` | Ce que ça compte | Icône par défaut (si `icon` est absent) |
+|---|---|---|
+| `chests` | coffres ouverts ou cassés, plus les canons à butin (le total de TrackChest) | `Chest.png` |
+| `opened` | coffres ouverts | `Chest.png` |
+| `destroyed` | coffres cassés | `break_chest.png` |
+| `buried` | coffres enterrés | `Chest.png` |
+| `sprites` | coffres d'esprit | `Esprit_Chest.png` |
+| `wanted` | cartes Wanted ramassées | `Wanted_Card.png` |
+| `cannons` | canons à butin tirés | `Loot_Cannons.png` |
+| `treasures` | trésors trouvés | `Treasures.png` |
+| `matches` | nombre de parties | aucune |
 
-L'overlay affiche au plus 10 lignes d'add-ons au total, tous add-ons confondus.
+Icônes intégrées disponibles sans rien ajouter au `.zip` : `Chest.png`, `Treasures.png`, `Pirate_Token.png`,
+`break_chest.png`, `Esprit_Chest.png`, `Wanted_Card.png`, `Loot_Cannons.png`. Pour une icône personnalisée, place
+simplement ton fichier (par exemple `mon_icone.png`, ≤ 32 Ko) à côté de `manifest.json` et écris
+`"icon": "mon_icone.png"`.
+
+L'overlay affiche au plus 10 lignes de compteurs d'add-ons au total, tous add-ons confondus. Depuis la fenêtre
+**Add-on**, le bouton **Configurer** sur un add-on à compteurs permet au joueur d'afficher ou masquer chaque ligne
+individuellement.
 
 ### Thème
 
@@ -214,7 +225,14 @@ function overlay(view, data) {
 
   var record = 0;
   data.matches.forEach(function (m) { if (m.chests > record) record = m.chests; });
-  view.rows.push({ label: "Record", value: String(record), detail: "· en une partie", color: "#FFC860" });
+  view.rows.push({
+    label: "Record",
+    value: String(record),
+    detail: "· en une partie",
+    color: "#FFC860",
+    icon: "Chest.png",
+    separator: true
+  });
 
   return view;
 }
@@ -236,7 +254,9 @@ le thème d'autres add-ons sont appliqués avant les scripts.
 | `rows` | lignes de l'overlay, dans l'ordre d'affichage | 16 lignes au maximum |
 
 Chaque ligne de `rows` : `label` (24 caractères), `value` (32), `detail` (48, texte gris après la valeur, `null` =
-aucun), `color` (couleur de la valeur, `#RRGGBB`, facultatif), `treasure` (`true` = couleur de la ligne Trésors).
+aucun), `color` (couleur de la valeur, `#RRGGBB`, facultatif), `treasure` (`true` = couleur de la ligne Trésors),
+`icon` (nom d'icône intégrée ou `.png` du paquet, `null` = aucune) et `separator` (`true` = dessine un trait horizontal
+au-dessus de la ligne).
 
 Pour **supprimer** une ligne, retire-la de `rows` ; pour l'**ajouter**, ajoute un objet ; pour la **modifier**, change
 ses champs ; pour **réordonner**, change l'ordre du tableau. Un champ absent du résultat garde sa valeur. Les textes
@@ -254,8 +274,9 @@ trop longs sont coupés, les caractères de contrôle retirés.
 | `matches` | les parties, **la plus récente en premier** (500 au maximum) |
 
 Chaque partie de `matches` : `start` (date ISO), `durationSeconds`, `playlist`, `placement`, `totalPlayers`,
-`eliminations`, `chests` (total TrackChest), `opened`, `destroyed`, `sprites`, `cannons`, `wanted` (`null` si inconnu),
-`treasures`, `inSession`, et `chestList` : chaque coffre avec `time` (secondes), `kind` (type) et `destroyed`.
+`eliminations`, `chests` (total TrackChest), `opened`, `destroyed`, `sprites`, `buried`, `cannons`, `wanted` (`null`
+si inconnu), `treasures`, `inSession`, et `chestList` : chaque coffre avec `time` (secondes), `kind` (type) et
+`destroyed`.
 
 ### Bac à sable et limites
 

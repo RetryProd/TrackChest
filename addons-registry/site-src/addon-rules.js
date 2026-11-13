@@ -3,7 +3,7 @@
 // scripts/Validate-Addon.ps1 : si une règle change, modifie les trois.
 
 export const PERMISSIONS = ['stats.read', 'overlay.rows', 'overlay.theme', 'overlay.script'];
-export const METRICS = ['chests', 'opened', 'destroyed', 'sprites', 'wanted', 'cannons', 'treasures', 'matches'];
+export const METRICS = ['chests', 'opened', 'destroyed', 'sprites', 'buried', 'wanted', 'cannons', 'treasures', 'matches'];
 export const SCOPES = ['total', 'last', 'session'];
 export const THEME_KEYS = ['background', 'border', 'line', 'muted', 'text', 'accent', 'treasure'];
 export const LIMITS = { zip: 64 * 1024, manifest: 16 * 1024, script: 32 * 1024, counters: 8 };

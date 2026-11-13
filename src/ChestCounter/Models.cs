@@ -98,6 +98,10 @@ public sealed class MatchRecord
 
     [JsonIgnore]
     public int SpriteChests => Chests.Count(chest => chest.Kind == ChestKinds.PosterChest);
+
+    /// <summary>Buried chests dug up (opened or broken).</summary>
+    [JsonIgnore]
+    public int BuriedChests => Chests.Count(chest => chest.Kind == ChestKinds.Buried);
 }
 
 public sealed class Config
@@ -116,6 +120,12 @@ public sealed class Config
 
     /// <summary>Opacity of the overlay in percent (100 = opaque).</summary>
     public int OverlayOpacity { get; set; } = 100;
+
+    /// <summary>Custom minimum width of the overlay in logical pixels (null = automatic fit to content).</summary>
+    public int? OverlayWidth { get; set; }
+
+    /// <summary>Custom minimum height of the overlay in logical pixels (null = automatic fit to content).</summary>
+    public int? OverlayHeight { get; set; }
 
     /// <summary>Address of the add-on catalog (index.json). Empty = the one built into the exe, if any. Only a catalog signed with the built-in key is trusted.</summary>
     public string? AddonCatalogUrl { get; set; }

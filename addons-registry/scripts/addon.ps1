@@ -75,7 +75,7 @@ function New-Script {
 // Modifie, ajoute ou supprime ce que tu veux, puis renvoie view.
 //   view : header, total, totalCaption, current, currentCaption, badge,
 //          rows : [{ label, value, detail, color: "#RRGGBB", treasure }]
-//   data : player, inProgress, total, session, matches : [{ start, chests, opened, destroyed, sprites,
+//   data : player, inProgress, total, session, matches : [{ start, chests, opened, destroyed, sprites, buried,
 //          cannons, wanted, treasures, placement, eliminations, inSession, chestList, ... }]
 // Bac à sable : pas d'accès aux fichiers ni à Internet ; 1 seconde au maximum par affichage.
 

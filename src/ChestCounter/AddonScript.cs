@@ -74,6 +74,7 @@ public static class AddonScript
             opened = m.ChestsOpened,
             destroyed = m.ChestsDestroyed,
             sprites = m.SpriteChests,
+            buried = m.BuriedChests,
             cannons = m.LootCannons,
             wanted = m.WantedMaps?.Count,
             treasures = m.TreasureFinds.Count,

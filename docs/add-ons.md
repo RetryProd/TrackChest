@@ -7,7 +7,8 @@ Cette page décrit le système d'add-ons du point de vue du code de TrackChest. 
 
 ## Principe : des données, et des scripts dans un bac à sable
 
-Un add-on est un paquet `.zip` qui contient `manifest.json`, et `script.js` pour un add-on à script. Il peut déclarer :
+Un add-on est un paquet `.zip` qui contient `manifest.json`, éventuellement `script.js` pour un add-on à script, et
+d'éventuelles icônes `.png`. Il peut déclarer :
 
 - des **compteurs** : des lignes ajoutées à l'overlay, calculées par TrackChest à partir de l'historique ;
 - un **thème** : les couleurs de l'overlay ;
@@ -23,17 +24,23 @@ le réseau, ni lancer un programme. La signature du catalogue et la relecture vi
   "schema": 1,
   "id": "stats-detail",
   "name": "Statistiques détaillées",
-  "version": "1.0.0",
-  "description": "Ajoute à l'overlay les coffres cassés, les coffres d'esprit, les cartes Wanted et les canons à butin.",
+  "version": "1.0.2",
+  "description": "Ajoute à l'overlay les coffres ouverts, les coffres cassés, les coffres enterrés, les coffres d'esprit, les cartes Wanted et les canons à butin.",
   "permissions": ["stats.read", "overlay.rows"],
   "counters": [
-    { "label": "Cassés", "metric": "destroyed", "scope": "total", "showLast": true }
+    { "label": "Ouverts", "metric": "opened", "scope": "total", "showLast": true },
+    { "label": "Cassés", "metric": "destroyed", "scope": "total", "showLast": true, "icon": "break_chest.png" },
+    { "label": "Enterrés", "metric": "buried", "scope": "total", "showLast": true },
+    { "label": "Esprits", "metric": "sprites", "scope": "total", "showLast": true, "icon": "Esprit_Chest.png" },
+    { "label": "Cartes Wanted", "metric": "wanted", "scope": "total", "showLast": true, "icon": "Wanted_Card.png" },
+    { "label": "Canons à butin", "metric": "cannons", "scope": "total", "showLast": true, "icon": "Loot_Cannons.png" }
   ]
 }
 ```
 
-La référence complète des champs est dans le guide développeur et dans le schéma
-`addons-registry/site-src/addon.schema.json`.
+La référence complète des champs est dans [Créer un add-on](creer-un-addon.md) et dans le schéma
+`addons-registry/site-src/addon.schema.json`. Tu trouveras aussi `addons-registry/addons/theme-nuit/` (thème) et
+`addons-registry/addons/boost-weekend/` (script).
 
 ## Validation (`Addons.cs`)
 
@@ -41,12 +48,12 @@ La référence complète des champs est dans le guide développeur et dans le sc
 
 | Contrôle | Règle |
 |---|---|
-| Taille | paquet ≤ 64 Ko, manifeste ≤ 16 Ko, `script.js` ≤ 32 Ko (la lecture s'arrête au-delà, contre les bombes zip) |
-| Contenu | `manifest.json`, et `script.js` seulement avec la permission `overlay.script` : pas de dossier, pas de `../`, pas d'autre fichier |
+| Taille | paquet ≤ 64 Ko, manifeste ≤ 16 Ko, `script.js` ≤ 32 Ko, chaque `.png` ≤ 32 Ko (10 entrées au maximum) |
+| Contenu | `manifest.json`, `script.js` seulement avec `overlay.script`, et éventuelles icônes `.png` à la racine (`^[A-Za-z0-9_-]{1,32}\.png$`) : pas de dossier, pas de `../`, pas d'autre fichier |
 | Script | UTF-8 sans BOM ; compilé et exécuté une fois dans le bac à sable ; doit définir `overlay()` |
 | JSON | lecture stricte : une clé inconnue est une erreur (`UnmappedMemberHandling.Disallow`), pas de BOM |
 | Champs | `id` en minuscules, chiffres et tirets ; version `x.y.z` ; longueurs maximales ; pas de caractères de contrôle |
-| Valeurs | `metric`, `scope`, permissions et couleurs prises dans des listes fixes |
+| Valeurs | `metric`, `scope`, `icon`, permissions et couleurs prises dans des listes ou motifs fixes |
 | Cohérence | chaque fonction demande sa permission, et chaque permission doit servir |
 
 Les mêmes règles sont appliquées par `addons-registry/scripts/Validate-Addon.ps1` (dépôt du catalogue), par
@@ -58,12 +65,13 @@ fonction `validateManifest`). Si une règle change, modifie les quatre, ainsi qu
 | Permission | Effet dans le code |
 |---|---|
 | `stats.read` | autorise le calcul des compteurs à partir des parties |
-| `overlay.rows` | `AddonRuntime.CounterRows` ajoute les lignes de l'add-on à l'overlay |
+| `overlay.rows` | `AddonRuntime.CounterRows` ajoute les lignes de l'add-on à l'overlay (filtrables par ligne dans `CounterWindow.AddonConfig.cs`) |
 | `overlay.theme` | `AddonRuntime.Load` passe le thème à `NativeOverlay.SetTheme` |
 | `overlay.script` | `AddonRuntime.ApplyScripts` passe la vue construite par `OverlayModel` à chaque script, dans l'ordre d'installation |
 
-Au plus 10 lignes de compteurs d'add-ons sont ajoutées en tout. Un seul thème est actif : en activer un désactive les
-autres. Les compteurs sont ajoutés avant les scripts, qui peuvent donc aussi les modifier.
+Au plus 10 lignes de compteurs d'add-ons sont ajoutées en tout. `AddonRuntime.Load` charge également les icônes `.png`
+des add-ons actifs via `OverlayIcons.SetAddonIcons`. Un seul thème est actif : en activer un désactive les autres.
+Les compteurs sont ajoutés avant les scripts, qui peuvent donc aussi les modifier.
 
 ## Scripts (`AddonScript.cs`)
 
@@ -74,9 +82,10 @@ en .NET, référencé dans `TrackChest.csproj`.
 
 - Aucun accès à .NET : l'interopérabilité CLR de Jint est désactivée (option par défaut). Le script n'a ni fichiers,
   ni réseau, ni registre, ni processus : `fetch`, `require`, `XMLHttpRequest` n'existent pas.
-- Seul du JSON traverse la frontière : la vue (`view`) et les statistiques (`data`) entrent sous forme de texte JSON,
-  le résultat ressort sous forme de texte JSON, puis `ViewFromJson` ne garde que les champs connus, coupe les textes
-  trop longs, retire les caractères de contrôle, limite les lignes à 16 et refuse une couleur mal formée.
+- Seul du JSON traverse la frontière : la vue (`view`) et les statistiques (`data`, incluant `buried` et `chestList`)
+  entrent sous forme de texte JSON, le résultat ressort sous forme de texte JSON, puis `ViewFromJson` ne garde que
+  les champs connus (`label`, `value`, `detail`, `color`, `treasure`, `icon`, `separator`), coupe les textes trop longs,
+  retire les caractères de contrôle, limite les lignes à 16 et refuse une couleur mal formée ou une icône invalide.
 - Un nouveau moteur est créé à chaque exécution : rien ne persiste d'une mise à jour à l'autre.
 - Limites : 1 seconde, 2 millions d'instructions, 64 Mo, récursion 64. À l'installation, le script est compilé et son
   code de premier niveau exécuté une fois sous les mêmes limites (`AddonScript.Check`).
@@ -141,9 +150,9 @@ l'installation : un paquet modifié après coup est ignoré.
 Par exemple une nouvelle `metric` :
 
 1. `Addons.cs` : ajoute la valeur dans `AddonRules.Metrics`.
-2. `AddonStore.cs` : calcule-la dans `AddonRuntime.Compute`.
-3. `addons-registry/scripts/Validate-Addon.ps1` : ajoute-la dans `$metrics`.
-4. `addons-registry/site-src/addon.schema.json` et `index.html` : documente-la.
+2. `AddonStore.cs` : calcule-la dans `AddonRuntime.Compute` (et associe éventuellement une icône dans `DefaultMetricIcon`).
+3. `addons-registry/scripts/Validate-Addon.ps1` et `addons-registry/site-src/addon-rules.js` : ajoute-la dans `$metrics` et `METRICS`.
+4. `addons-registry/site-src/addon.schema.json`, `creer.html` et `docs/creer-un-addon.md` : documente-la.
 5. Republie le catalogue pour mettre en ligne le guide à jour.
 
 Une nouvelle **permission** demande plus de prudence : elle doit rester limitée à des données ou à de l'affichage, et

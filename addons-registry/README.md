@@ -23,7 +23,7 @@ un programme, ni lire des fichiers, ni utiliser Internet. Un add-on ne peut util
 | `overlay.theme` | changer les couleurs de l'overlay |
 | `overlay.script` | exécuter `script.js`, qui peut tout changer dans l'overlay |
 
-Les valeurs possibles sont fixées par TrackChest : `metric` = `chests`, `opened`, `destroyed`, `sprites`, `wanted`,
+Les valeurs possibles sont fixées par TrackChest : `metric` = `chests`, `opened`, `destroyed`, `sprites`, `buried`, `wanted`,
 `cannons`, `treasures`, `matches` ; `scope` = `total`, `session`, `last`. Regarde `addons/stats-detail` et
 `addons/theme-nuit` pour des exemples complets.
 

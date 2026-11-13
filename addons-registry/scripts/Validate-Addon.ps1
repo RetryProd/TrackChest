@@ -6,7 +6,7 @@ param([string]$Id)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $allPermissions = 'stats.read', 'overlay.rows', 'overlay.theme', 'overlay.script'
-$metrics = 'chests', 'opened', 'destroyed', 'sprites', 'wanted', 'cannons', 'treasures', 'matches'
+$metrics = 'chests', 'opened', 'destroyed', 'sprites', 'buried', 'wanted', 'cannons', 'treasures', 'matches'
 $scopes = 'total', 'last', 'session'
 $manifestKeys = 'schema', 'id', 'name', 'version', 'description', 'permissions', 'counters', 'theme'
 $counterKeys = 'label', 'metric', 'scope', 'showLast', 'icon'

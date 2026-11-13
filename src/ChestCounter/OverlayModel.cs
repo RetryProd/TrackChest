@@ -3,12 +3,13 @@ namespace ChestCounter;
 /// <summary>Size and opacity choices of the overlay window (percent), offered in the settings.</summary>
 public static class OverlayAppearance
 {
-    public static readonly int[] Sizes = { 70, 80, 90, 100, 115, 130, 150, 175 };
+    public const int MinSize = 50, MaxSize = 300;
+    public static readonly int[] Sizes = { 50, 60, 70, 80, 90, 100, 115, 130, 150, 175, 200, 250, 300 };
 
     /// <summary>Below 30 % the numbers can no longer be read.</summary>
     public static readonly int[] Opacities = { 100, 90, 80, 70, 60, 50, 40, 30 };
 
-    public static int ClampSize(int percent) => Math.Clamp(percent, Sizes[0], Sizes[^1]);
+    public static int ClampSize(int percent) => Math.Clamp(percent, MinSize, MaxSize);
     public static int ClampOpacity(int percent) => Math.Clamp(percent, Opacities[^1], 100);
 
     /// <summary>Next value of the list, back to the first one after the last (or for a value edited by hand).</summary>

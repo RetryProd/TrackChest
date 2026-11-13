@@ -166,6 +166,12 @@ internal sealed partial class CounterWindow : Form
     {
         if (_overlayStarted) return;
         NativeOverlay.SetAppearance(_config.OverlaySize, _config.OverlayOpacity);
+        NativeOverlay.SetWidth(_config.OverlayWidth);
+        NativeOverlay.SetHeight(_config.OverlayHeight);
+        // The player dragged the overlay's edge: keep that size (the same setting as Settings → Size) and custom width/height.
+        NativeOverlay.SizeDragged += percent => OnUi(() => { _config.OverlaySize = percent; _store.SaveConfig(_config); });
+        NativeOverlay.WidthDragged += width => OnUi(() => { _config.OverlayWidth = width; _store.SaveConfig(_config); });
+        NativeOverlay.HeightDragged += height => OnUi(() => { _config.OverlayHeight = height; _store.SaveConfig(_config); });
         NativeOverlay.Start(_config.OverlayX, _config.OverlayY, _config.OverlayLocked,
             (x, y) => OnUi(() => { _config.OverlayX = x; _config.OverlayY = y; _store.SaveConfig(_config); }),
             locked => OnUi(() => { _config.OverlayLocked = locked; _store.SaveConfig(_config); }));

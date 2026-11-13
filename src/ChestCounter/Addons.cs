@@ -76,7 +76,7 @@ public static class AddonRules
 {
     public const string StatsRead = "stats.read", OverlayRows = "overlay.rows", OverlayTheme = "overlay.theme", OverlayScript = "overlay.script";
     public static readonly string[] AllPermissions = [StatsRead, OverlayRows, OverlayTheme, OverlayScript];
-    public static readonly string[] Metrics = ["chests", "opened", "destroyed", "sprites", "wanted", "cannons", "treasures", "matches"];
+    public static readonly string[] Metrics = ["chests", "opened", "destroyed", "sprites", "buried", "wanted", "cannons", "treasures", "matches"];
     public static readonly string[] Scopes = ["total", "last", "session"];
     public const int MaxCounters = 8, MaxZipBytes = 64 * 1024, MaxManifestBytes = 16 * 1024, MaxIconBytes = 32 * 1024;
 
