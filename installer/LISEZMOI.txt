@@ -1,0 +1,57 @@
+TrackChest - compteur de coffres Fortnite
+==========================================
+
+Ce que fait TrackChest
+----------------------
+TrackChest lit les fichiers de replay que Fortnite enregistre sur ton PC, compte les coffres ouverts
+dans chaque partie et affiche le total dans une petite fenetre (overlay) par-dessus le jeu :
+Session, Derniere partie, Tresors et Jeton pirate. Il compte aussi les canons a butin.
+Tout se passe sur ton PC : TrackChest ne lit pas la memoire de Fortnite, ne modifie aucun fichier
+du jeu et n'envoie aucune donnee de partie.
+
+Demarrer (version portable de ce .zip)
+--------------------------------------
+1. Decompresse tout le dossier ou tu veux (pas besoin d'etre administrateur).
+2. Lance TrackChest.exe. Au premier lancement, il propose le dossier des replays Fortnite :
+   %LOCALAPPDATA%\FortniteGame\Saved\Demos
+3. Lance une partie : l'overlay se met a jour apres chaque partie terminee.
+   (Fortnite doit avoir "Enregistrer les replays" active dans ses options.)
+
+Installer (fichier .msi)
+------------------------
+Le .msi installe TrackChest pour ton compte Windows (sans droits administrateur) dans
+%LOCALAPPDATA%\Programs\TrackChest, avec un raccourci dans le menu Demarrer. Installer une
+version plus recente remplace l'ancienne et garde tes donnees. Desinstalle-le depuis
+Parametres > Applications.
+
+Utiliser
+--------
+- Boutons de la fenetre : analyser, ouvrir l'historique (page web locale), afficher/masquer
+  l'overlay, deplacer l'overlay (Ctrl+Maj+L le verrouille), sauvegarder / restaurer les donnees.
+- Parametres : taille et opacite de l'overlay, dossier des replays, demarrage avec Fortnite,
+  mises a jour.
+- Add-on : ajoute des compteurs, des themes ou des scripts a l'overlay. Le catalogue est signe ;
+  un add-on demande toujours ton accord avant d'etre installe.
+
+Mises a jour
+------------
+Au demarrage, TrackChest regarde s'il existe une version plus recente sur GitHub
+(github.com/RetryProd/TrackChest/releases). L'annonce est signee : si la signature ne correspond
+pas a la cle integree a l'application, elle est ignoree. Rien n'est installe sans ta confirmation.
+Tu peux desactiver la verification dans Parametres > Mises a jour.
+La version portable se met a jour en telechargeant le nouveau .zip ou en installant le .msi.
+
+Tes donnees
+-----------
+Elles sont dans %APPDATA%\TrackChest : historique (data.json), reglages (config.json), page
+Historique (report.html) et add-ons. Le bouton Exporter cree une sauvegarde pour changer de PC.
+
+Ligne de commande
+-----------------
+TrackChest.exe --once            analyse puis affiche un resume dans le terminal
+TrackChest.exe --demos DOSSIER   utilise un autre dossier de replays
+TrackChest.exe --data DOSSIER    utilise un autre dossier de donnees
+TrackChest.exe --help            liste des options
+
+Licences : LICENSE-ChestCounter.txt, LICENSE-FortniteReplayDecompressor.txt, LICENSE-GPL-3.0.txt, CREDITS.md
+Documentation complete et code source : https://github.com/RetryProd/TrackChest

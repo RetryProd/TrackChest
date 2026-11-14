@@ -108,6 +108,9 @@ public sealed class Config
     /// <summary>Address of the add-on catalog (index.json). Empty = the one built into the exe, if any. Only a catalog signed with the built-in key is trusted.</summary>
     public string? AddonCatalogUrl { get; set; }
 
+    /// <summary>Look for a newer version on GitHub when the app starts (the installation itself always asks first).</summary>
+    public bool CheckUpdates { get; set; } = true;
+
 }
 
 public sealed class TrackerData

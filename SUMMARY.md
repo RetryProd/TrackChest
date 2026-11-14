@@ -6,6 +6,7 @@
 
 * [Données et sauvegarde](docs/donnees.md)
 * [Ligne de commande](docs/ligne-de-commande.md)
+* [Mises à jour et installateur](docs/mises-a-jour.md)
 
 ## Add-ons
 

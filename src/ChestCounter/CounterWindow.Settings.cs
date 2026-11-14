@@ -8,7 +8,7 @@ internal sealed partial class CounterWindow
 
     private void ShowSettings()
     {
-        using var form = new SettingsForm(_config, () => _store.SaveConfig(_config), () => _browse.PerformClick());
+        using var form = new SettingsForm(_config, () => _store.SaveConfig(_config), () => _browse.PerformClick(), () => _ = RunUpdate(manual: true));
         form.ShowDialog(this);
     }
 
@@ -25,8 +25,9 @@ internal sealed partial class CounterWindow
             Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, AccessibleName = "Dossier des fichiers replay",
         };
         private readonly PillButton _startup = new("");
+        private readonly PillButton _autoCheck = new("");
 
-        public SettingsForm(Config config, Action save, Action browse)
+        public SettingsForm(Config config, Action save, Action browse, Action checkUpdate)
         {
             _config = config;
             _save = save;
@@ -34,7 +35,7 @@ internal sealed partial class CounterWindow
             Icon = AppIcon(SystemInformation.IconSize.Width) ?? Icon;
             AutoScaleDimensions = new SizeF(96, 96);
             AutoScaleMode = AutoScaleMode.Dpi;
-            ClientSize = new Size(580, 484);
+            ClientSize = new Size(580, 628);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = MinimizeBox = false;
             ShowInTaskbar = false;
@@ -44,7 +45,7 @@ internal sealed partial class CounterWindow
             ForeColor = Ink;
 
             var root = new GlowPanel { Dock = DockStyle.Fill };
-            var layout = Grid([100], 44, 144, 110, 102, 40);
+            var layout = Grid([100], 44, 144, 110, 102, 144, 40);
             layout.BackColor = Color.Transparent;
             layout.Dock = DockStyle.Fill;
             layout.Padding = new Padding(22);
@@ -93,16 +94,41 @@ internal sealed partial class CounterWindow
             start.Controls.Add(startGrid);
             layout.Controls.Add(start, 0, 3);
 
+            // Updates
+            var updates = Card(new Padding(18, 12, 18, 10), new Padding(0, 0, 0, 14));
+            var updateGrid = Grid([100], 28, 38, 38);
+            updateGrid.Controls.Add(TextLabel("Mises à jour", 13, Ink, FontStyle.Bold), 0, 0);
+            var versionRow = SideRow();
+            versionRow.Controls.Add(TextLabel($"Version {Updater.CurrentText}", 9.5f, Muted), 0, 0);
+            var check = new PillButton("Rechercher");
+            check.Click += (_, _) => checkUpdate();
+            versionRow.Controls.Add(check, 1, 0);
+            updateGrid.Controls.Add(versionRow, 0, 1);
+            var autoRow = SideRow();
+            autoRow.Controls.Add(TextLabel("Vérifier au démarrage", 9.5f, Muted), 0, 0);
+            _autoCheck.Click += (_, _) => { _config.CheckUpdates = !_config.CheckUpdates; _save(); RefreshAutoCheck(); };
+            autoRow.Controls.Add(_autoCheck, 1, 0);
+            updateGrid.Controls.Add(autoRow, 0, 2);
+            updates.Controls.Add(updateGrid);
+            layout.Controls.Add(updates, 0, 4);
+
             var closeRow = SideRow();
             var close = new PillButton("Fermer", Tone.Primary);
             close.Click += (_, _) => Close();
             closeRow.Controls.Add(close, 1, 0);
-            layout.Controls.Add(closeRow, 0, 4);
+            layout.Controls.Add(closeRow, 0, 5);
 
             AcceptButton = close;
             _folder.Text = _config.DemosFolder;
             RefreshValues();
             RefreshStartup();
+            RefreshAutoCheck();
+        }
+
+        private void RefreshAutoCheck()
+        {
+            _autoCheck.Text = _config.CheckUpdates ? "Activé" : "Désactivé";
+            _autoCheck.Tone = _config.CheckUpdates ? Tone.Primary : Tone.Normal;
         }
 
         private void RefreshValues()

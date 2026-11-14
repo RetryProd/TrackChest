@@ -5,6 +5,8 @@
     <OutputType>WinExe</OutputType>
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>TrackChest</AssemblyName>
+    <!-- Version of the app: compared with the latest GitHub release by the updater. Change it with Publier-Version.ps1. -->
+    <Version>1.1.0</Version>
     <RootNamespace>ChestCounter</RootNamespace>
     <PublishTrimmed>false</PublishTrimmed>
     <ApplicationIcon>..\..\assets\TrackChest.ico</ApplicationIcon>

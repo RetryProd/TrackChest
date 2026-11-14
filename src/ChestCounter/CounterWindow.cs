@@ -37,6 +37,7 @@ internal sealed partial class CounterWindow : Form
             StartOverlay();
             RefreshStats();
             await Scan();
+            if (_config.CheckUpdates && !_startMinimized) await RunUpdate(manual: false);
         };
         _timer.Tick += async (_, _) => await Scan();
         _browse.Click += async (_, _) =>

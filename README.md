@@ -53,6 +53,7 @@ L'exécutable autonome est produit dans `dist\`. Les détails sont dans [docs/co
 | [docs/architecture.md](docs/architecture.md) | organisation du code, rôle de chaque fichier, chemin d'un replay jusqu'à l'overlay |
 | [docs/modifier-trackchest.md](docs/modifier-trackchest.md) | guide pour tout modifier : textes, couleurs, fenêtres, overlay, statistiques, analyse, add-ons, site |
 | [docs/compilation.md](docs/compilation.md) | prérequis, compilation, icône, ressources intégrées, débogage |
+| [docs/mises-a-jour.md](docs/mises-a-jour.md) | mises à jour automatiques, installateur .msi, .zip portable, publier une version |
 | [docs/donnees.md](docs/donnees.md) | fichiers de données, format de l'historique, sauvegarde, migration |
 | [docs/ligne-de-commande.md](docs/ligne-de-commande.md) | options de l'exécutable et scripts PowerShell |
 | [docs/creer-un-addon.md](docs/creer-un-addon.md) | guide pour écrire et proposer un add-on |

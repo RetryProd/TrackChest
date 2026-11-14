@@ -1,3 +1,4 @@
+param([string]$Sortie = (Join-Path $PSScriptRoot 'dist'))
 $ErrorActionPreference = 'Stop'
 $sdk = Join-Path $env:LOCALAPPDATA 'TrackChest\sdk\dotnet.exe'
 if (-not (Test-Path -LiteralPath $sdk)) {
@@ -8,7 +9,7 @@ if (-not (& $sdk --list-sdks | Where-Object { $_ -match '^10\.' })) {
 }
 
 $project = Join-Path $PSScriptRoot 'src\ChestCounter\TrackChest.csproj'
-$output = Join-Path $PSScriptRoot 'dist'
+$output = $Sortie
 & $sdk publish $project -c Release -r win-x64 --self-contained true `
     -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
     -p:EnableCompressionInSingleFile=true -p:DebugType=none -o $output

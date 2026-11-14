@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Installateur de TrackChest (WiX). Installation pour l'utilisateur courant : aucun droit administrateur requis.
+     Variables : Version (x.y.z), Assets (dossier assets) et Source (dossier qui contient TrackChest.exe), données par Publier-Version.ps1.
+     Ne change jamais UpgradeCode : c'est lui qui permet à une nouvelle version de remplacer l'ancienne. -->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="TrackChest" Manufacturer="TrackChest" Version="$(Version)" Language="1036" Codepage="65001"
+           Scope="perUser" UpgradeCode="6B3E2C5A-91D4-4F7A-8C0E-5D2A7B91F3E4" InstallerVersion="500">
+    <SummaryInformation Description="Compteur de coffres Fortnite" />
+    <MajorUpgrade DowngradeErrorMessage="Une version plus récente de TrackChest est déjà installée." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Icon Id="TrackChest.ico" SourceFile="$(Assets)\TrackChest.ico" />
+    <Property Id="ARPPRODUCTICON" Value="TrackChest.ico" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/RetryProd/TrackChest" />
+
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="ProgramsDir" Name="Programs">
+        <Directory Id="INSTALLFOLDER" Name="TrackChest" />
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="MenuFolder" Name="TrackChest" />
+    </StandardDirectory>
+
+    <Feature Id="Main" Title="TrackChest" Level="1">
+      <Component Id="AppExe" Directory="INSTALLFOLDER" Guid="*">
+        <File Id="TrackChestExe" Source="$(Source)\TrackChest.exe" KeyPath="yes" />
+      </Component>
+      <Component Id="C_LicApp" Directory="INSTALLFOLDER" Guid="*">
+        <File Id="LicApp" Source="$(Source)\LICENSE-ChestCounter.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="C_LicReplay" Directory="INSTALLFOLDER" Guid="*">
+        <File Id="LicReplay" Source="$(Source)\LICENSE-FortniteReplayDecompressor.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="C_LicGpl" Directory="INSTALLFOLDER" Guid="*">
+        <File Id="LicGpl" Source="$(Source)\LICENSE-GPL-3.0.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="C_Credits" Directory="INSTALLFOLDER" Guid="*">
+        <File Id="Credits" Source="$(Source)\CREDITS.md" KeyPath="yes" />
+      </Component>
+      <Component Id="MenuShortcut" Directory="MenuFolder" Guid="*">
+        <Shortcut Id="StartMenuShortcut" Name="TrackChest" Description="Compteur de coffres Fortnite"
+                  Target="[INSTALLFOLDER]TrackChest.exe" WorkingDirectory="INSTALLFOLDER" />
+        <RemoveFolder Id="RemoveMenuFolder" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\TrackChest" Name="Shortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </Feature>
+  </Package>
+</Wix>

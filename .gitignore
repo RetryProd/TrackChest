@@ -18,3 +18,6 @@ addons-registry/site/*
 # Outils et fichiers temporaires
 .wrangler/
 *.tmp
+
+# Versions fabriquées par Publier-Version.ps1
+dist/release/
