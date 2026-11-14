@@ -57,10 +57,26 @@ public static class OverlayIcons
         var next = new Dictionary<string, Bitmap>(StringComparer.OrdinalIgnoreCase);
         foreach (var (name, bytes) in icons)
         {
+            // Only small, real PNG files reach GDI+: a 32 KB file can announce a 30 000 × 30 000 image (gigabytes once
+            // decoded), and GDI+ image parsing is a classic attack surface.
+            if (!IsSmallPng(bytes)) continue;
             try { next[name] = new Bitmap(new MemoryStream(bytes)); }
             catch { /* ignore invalid image */ }
         }
         _addonBitmaps = next;
+    }
+
+    private const int MaxAddonIconSide = 256;
+
+    /// <summary>PNG signature, IHDR as first chunk, and a width and height of 1 to 256 pixels.</summary>
+    internal static bool IsSmallPng(byte[] bytes)
+    {
+        ReadOnlySpan<byte> signature = [137, 80, 78, 71, 13, 10, 26, 10];
+        if (bytes.Length < 33 || !bytes.AsSpan(0, 8).SequenceEqual(signature)) return false;
+        if (bytes[12] != (byte)'I' || bytes[13] != (byte)'H' || bytes[14] != (byte)'D' || bytes[15] != (byte)'R') return false;
+        var width = System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(bytes.AsSpan(16, 4));
+        var height = System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(bytes.AsSpan(20, 4));
+        return width is >= 1 and <= MaxAddonIconSide && height is >= 1 and <= MaxAddonIconSide;
     }
 
     public static Bitmap? Get(string? key)

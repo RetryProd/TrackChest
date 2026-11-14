@@ -1,4 +1,9 @@
 {
   "verified": ["stats-detail", "theme-nuit"],
-  "revoked": []
+  "revoked": [],
+  "authors": {
+    "boost-weekend": "Voyzix",
+    "stats-detail": "Voyzix",
+    "theme-coffre-or": "Voyzix"
+  }
 }

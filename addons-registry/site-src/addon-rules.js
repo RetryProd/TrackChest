@@ -136,11 +136,14 @@ export async function readZip(buffer, limits = { [`manifest.json`]: LIMITS.manif
     p += 46 + nameLength + extraLength + commentLength;
     if (name.endsWith('/')) continue; // dossier vide ignoré, refusé plus bas s'il contient des fichiers
     if (flags & 1) throw new Error('les .zip chiffrés ne sont pas acceptés');
-    if (!(name in limits)) throw new Error(`fichier non autorisé dans le .zip : ${name} (seulement manifest.json et script.js, à la racine)`);
+    // Object.hasOwn : « toString », « __proto__ »… ne sont pas des noms autorisés (sinon la limite de taille sautait).
+    if (!Object.hasOwn(limits, name) || typeof limits[name] !== 'number')
+      throw new Error(`fichier non autorisé dans le .zip : ${name} (seulement manifest.json et script.js, à la racine)`);
     if (files.has(name)) throw new Error(`fichier en double : ${name}`);
-    if (size > limits[name]) throw new Error(`${name} est trop gros`);
-    if (view.getUint32(localOffset, true) !== 0x04034b50) throw new Error('.zip endommagé');
+    if (size > limits[name] || compressed > bytes.length) throw new Error(`${name} est trop gros`);
+    if (localOffset + 30 > bytes.length || view.getUint32(localOffset, true) !== 0x04034b50) throw new Error('.zip endommagé');
     const start = localOffset + 30 + view.getUint16(localOffset + 26, true) + view.getUint16(localOffset + 28, true);
+    if (start + compressed > bytes.length) throw new Error('.zip endommagé');
     const raw = bytes.subarray(start, start + compressed);
     let data;
     if (method === 0) data = raw.slice();

@@ -7,11 +7,19 @@ on:
       - 'registry.json'
       - 'scripts/**'
 
+# Le contrôle lit seulement le dépôt : aucun droit d'écriture pour le jeton du workflow (une proposition venue d'un
+# fork exécute son propre code ici).
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: windows-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Contrôles automatiques
         shell: powershell
         run: ./scripts/Validate-Addon.ps1

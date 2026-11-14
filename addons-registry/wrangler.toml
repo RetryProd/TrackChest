@@ -1,0 +1,7 @@
+name = "trackchest-addons"
+pages_build_output_dir = "site"
+compatibility_date = "2024-11-01"
+
+[[kv_namespaces]]
+binding = "USERS_KV"
+id = "6e01a75f289540f3911dfa7e6b5f7b75"

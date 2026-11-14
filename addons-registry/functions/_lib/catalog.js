@@ -44,12 +44,15 @@ async function blobText(env, repo, sha) {
   return decodeText(response.data.content);
 }
 
-/** Lit registry.json : { verified: [...], revoked: [...] }. */
+/** Lit registry.json : { verified: [...], revoked: [...], authors: { [id]: pseudo } }. */
 export function parseRegistry(text) {
   let data = {};
   try { data = JSON.parse(text); } catch { /* fichier absent ou illisible */ }
   const list = (value) => (Array.isArray(value) ? value.filter((x) => typeof x === 'string') : []);
-  return { verified: list(data.verified), revoked: list(data.revoked) };
+  const authors = (data && typeof data.authors === 'object' && !Array.isArray(data.authors) && data.authors !== null)
+    ? Object.fromEntries(Object.entries(data.authors).filter(([k, v]) => typeof k === 'string' && typeof v === 'string' && v.trim() !== ''))
+    : {};
+  return { verified: list(data.verified), revoked: list(data.revoked), authors };
 }
 
 export async function buildCatalog(env, origin) {
@@ -61,7 +64,7 @@ export async function buildCatalog(env, origin) {
 
   const files = new Map();
   for (const item of tree.data.tree) if (item.type === 'blob') files.set(item.path, item.sha);
-  const registry = files.has('registry.json') ? parseRegistry(await blobText(env, repo, files.get('registry.json'))) : { verified: [], revoked: [] };
+  const registry = files.has('registry.json') ? parseRegistry(await blobText(env, repo, files.get('registry.json'))) : { verified: [], revoked: [], authors: {} };
 
   const ids = [...new Set([...files.keys()].map((p) => /^addons\/([^/]+)\/(?:manifest\.json|script\.js)$/.exec(p)?.[1]).filter(Boolean))].sort();
   const entries = [], invalid = [], zips = new Map();
@@ -96,10 +99,12 @@ export async function buildCatalog(env, origin) {
     const m = item.manifest;
     const file = `${m.id}-${m.version}.zip`;
     zips.set(file, item.zip);
+    const author = registry.authors?.[m.id] || undefined;
     entries.push({
       id: m.id,
       name: m.name,
       version: m.version,
+      ...(author ? { author } : {}),
       description: m.description ?? '',
       permissions: m.permissions,
       tier: registry.verified.includes(m.id) ? 'verified' : 'community',

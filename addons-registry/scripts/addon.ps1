@@ -210,6 +210,9 @@ switch ($Commande.ToLowerInvariant()) {
         foreach ($secret in 'GITHUB_TOKEN', 'ADMIN_PASSWORD', 'SIGNING_KEY') {
             if ($secrets -notmatch $secret) { throw "Le secret $secret n'est pas configuré sur Cloudflare : voir README.md, section « Administration »." }
         }
+        if ($secrets -notmatch 'USER_SESSION_SECRET') {
+            Write-Warning "Le secret USER_SESSION_SECRET n'est pas configuré : les sessions des créateurs sont signées avec ADMIN_PASSWORD. Voir README.md, section « Sécurité »."
+        }
         if (-not $Oui) {
             $reponse = Read-Host "Mettre en ligne le site sur $BaseUrl (projet Cloudflare $Projet) ? (o/N)"
             if ($reponse -notmatch '^(o|oui|y|yes)$') { Write-Output 'Annulé.'; exit 0 }

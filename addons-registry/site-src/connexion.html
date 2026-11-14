@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Connexion · Add-ons TrackChest</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <header class="top">
+    <a class="brand" href="./">TrackChest <span>Add-ons</span></a>
+    <nav class="nav">
+      <a class="btn" href="./">Catalogue</a>
+      <a class="btn" href="creer.html">Créer un add-on</a>
+      <a class="btn" href="poster.html">Poster un add-on</a>
+      <a class="btn active" id="navAuth" href="connexion.html">Connexion</a>
+    </nav>
+  </header>
+
+  <section id="guestView" class="auth-wrap">
+    <h1>Compte créateur</h1>
+    <p class="lead">Connecte-toi ou crée un compte pour signer tes propositions d'add-ons avec ton pseudo et mettre à jour tes add-ons publiés.</p>
+
+    <div class="tabs">
+      <button type="button" class="btn active" id="tabLogin">Se connecter</button>
+      <button type="button" class="btn" id="tabRegister">Créer un compte</button>
+    </div>
+
+    <div class="card" id="loginBox">
+      <form id="loginForm" autocomplete="on">
+        <div class="field">
+          <label for="loginId">Pseudo ou adresse e-mail</label>
+          <input type="text" id="loginId" autocomplete="username" placeholder="mon_pseudo ou nom@exemple.fr" required maxlength="120">
+        </div>
+        <div class="field">
+          <label for="loginPassword">Mot de passe</label>
+          <input type="password" id="loginPassword" autocomplete="current-password" required maxlength="200">
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn primary" id="btnLogin">Se connecter</button>
+        </div>
+        <p class="errors" id="loginError" style="padding-left:0;list-style:none"></p>
+      </form>
+    </div>
+
+    <div class="card hidden" id="registerBox">
+      <form id="registerForm" autocomplete="on">
+        <div class="field">
+          <label for="regUsername">Pseudo créateur (affiché sur tes add-ons)</label>
+          <input type="text" id="regUsername" autocomplete="username" placeholder="MonPseudo" required minlength="3" maxlength="24" pattern="[A-Za-z0-9_-]{3,24}">
+        </div>
+        <div class="field">
+          <label for="regEmail">Adresse e-mail (facultative — permet aussi de te connecter)</label>
+          <input type="email" id="regEmail" autocomplete="email" placeholder="nom@exemple.fr" maxlength="120">
+        </div>
+        <div class="field">
+          <label for="regPassword">Mot de passe (8 caractères minimum)</label>
+          <input type="password" id="regPassword" autocomplete="new-password" required minlength="8" maxlength="200">
+        </div>
+        <div class="field">
+          <label for="regConfirm">Confirmer le mot de passe</label>
+          <input type="password" id="regConfirm" autocomplete="new-password" required minlength="8" maxlength="200">
+        </div>
+        <div class="trap" aria-hidden="true">
+          <label>Ne pas remplir <input type="text" id="site_web" tabindex="-1" autocomplete="off"></label>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn primary" id="btnRegister">Créer mon compte</button>
+        </div>
+        <p class="errors" id="registerError" style="padding-left:0;list-style:none"></p>
+      </form>
+    </div>
+  </section>
+
+  <section id="accountView" class="hidden">
+    <h1>Mon compte</h1>
+    <p class="lead">Ton pseudo est automatiquement associé aux add-ons que tu postes sur le site.</p>
+
+    <div class="card">
+      <dl class="summary">
+        <dt>Pseudo</dt>
+        <dd><strong id="accUsername"></strong></dd>
+        <dt id="accEmailLabel" class="hidden">E-mail</dt>
+        <dd id="accEmail" class="hidden"></dd>
+      </dl>
+      <div class="actions">
+        <a class="btn primary" href="poster.html">Poster un add-on</a>
+        <a class="btn" href="creer.html">Créer un add-on</a>
+        <button type="button" class="btn" id="btnLogout">Se déconnecter</button>
+      </div>
+    </div>
+
+    <h2>Mes add-ons publiés</h2>
+    <div class="addons" id="myAddons"><p class="empty">Chargement…</p></div>
+  </section>
+</main>
+
+<script type="module" src="page-connexion.js"></script>
+</body>
+</html>

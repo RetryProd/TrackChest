@@ -87,9 +87,13 @@ Trois secrets Cloudflare, que toi seul crées (les commandes te demandent la val
 | `GITHUB_TOKEN` | jeton GitHub limité au dépôt du catalogue : *Contents* et *Pull requests* en lecture et écriture (voir [Envoi sans compte](#envoi-sans-compte-configuration)) |
 | `ADMIN_PASSWORD` | le mot de passe de l'administration : **long** (une phrase de 4 mots ou plus), unique, dans un gestionnaire de mots de passe |
 | `SIGNING_KEY` | ta clé privée de signature : le contenu du fichier `addon-private.key` |
+| `USER_SESSION_SECRET` | (recommandé) clé de signature des sessions des créateurs : 32 caractères aléatoires ou plus. Sans elle, `ADMIN_PASSWORD` sert aussi à signer ces sessions |
 
 ```powershell
 npx.cmd wrangler pages secret put ADMIN_PASSWORD --project-name trackchest-addons
+# Clé de session des créateurs : 48 octets aléatoires, jamais affichés
+$b = New-Object byte[] 48; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b)
+[Convert]::ToBase64String($b) | npx.cmd wrangler pages secret put USER_SESSION_SECRET --project-name trackchest-addons
 Get-Content "$env:USERPROFILE\TrackChest-cles\addon-private.key" -Raw | npx.cmd wrangler pages secret put SIGNING_KEY --project-name trackchest-addons
 ```
 
@@ -132,6 +136,29 @@ après 5 échecs en 10 minutes depuis une même adresse les essais sont refusés
 8 heures, `HttpOnly`, `Secure` et `SameSite=Strict` ; toute action qui modifie quelque chose doit venir d'une page du
 site ; la validation exige que la proposition n'ait pas changé depuis son affichage.
 
+Autres protections du site :
+
+- **Limites d'essais partagées** : les compteurs sont gardés dans Cloudflare KV (`USERS_KV`), donc valables pour toutes
+  les instances du site : 8 échecs de connexion par adresse en 10 min, 10 échecs sur un même compte en 15 min,
+  3 comptes créés par adresse et par heure, 10 propositions par compte et par heure.
+- **En-têtes de sécurité** sur toutes les réponses (`functions/_middleware.js`) : `Content-Security-Policy` stricte
+  (aucun script en ligne ni externe : chaque page charge son `page-*.js`), interdiction d'afficher le site dans un cadre
+  (`frame-ancestors 'none'`, contre le clic détourné sur « Valider »), HSTS, `nosniff`, `Referrer-Policy`.
+  Ne remets pas de `<script>` en ligne dans les pages : la politique le bloquerait.
+- **Auteur d'un add-on** : le marqueur `tc-author` n'est lu que sur une proposition créée par le site (branche
+  `proposition/…` du dépôt) ; une mise à jour d'un add-on qui a déjà un auteur ne peut être validée que si elle vient
+  de ce compte. Le nom et la description de l'add-on sont neutralisés dans la proposition (pas de Markdown, de lien
+  ni de mention `@`).
+- **Sessions des créateurs** : un compte supprimé n'est plus accepté, même avec un cookie encore valable.
+
+Pour aller plus loin (fortement conseillé) : protège `/admin.html` et `/api/admin/*` avec **Cloudflare Access**
+(Zero Trust, gratuit) pour ajouter une double authentification devant le mot de passe ; active la **protection de
+branche** sur `main` dans GitHub ; et si les inscriptions sont abusées, ajoute **Cloudflare Turnstile** au formulaire.
+
+Si tu ajoutes `USER_SESSION_SECRET` alors que les comptes sont dans le repli chiffré GitHub (ni `DB` ni `USERS_KV`),
+la clé de chiffrement change : le site refuse alors de lire le stockage (au lieu de l'écraser). Avec `USERS_KV`, ce
+n'est pas un problème : les créateurs doivent seulement se reconnecter.
+
 Si la clé fuit : crée-en une nouvelle (`--addon-keygen`), mets la clé publique dans `assets\addon-public.key`,
 recompile et distribue une nouvelle version de TrackChest, puis remplace le secret `SIGNING_KEY`. Si seul le mot de
 passe fuit : change-le avec la commande ci-dessus.
@@ -148,14 +175,26 @@ Pour changer un add-on déjà publié, **augmente sa `version`** (sinon les joue
 
 ## Proposer un add-on (créateurs)
 
-Le point d'entrée est le site du catalogue (<https://trackchest-addons.pages.dev/>), **sans compte** :
+Le point d'entrée est le site du catalogue (<https://trackchest-addons.pages.dev/>) :
 
-- **Créer un add-on** (`creer.html`) construit et vérifie l'add-on, puis le télécharge en `.zip` ou le poste ;
-- **Poster un add-on** (`poster.html`) reçoit un `.zip` fait ailleurs (par exemple avec `addon.ps1 empaqueter`).
+- **Connexion** (`connexion.html`) permet de créer un compte créateur (pseudo, e-mail facultatif et mot de passe) ou de se connecter ;
+- **Créer un add-on** (`creer.html`) construit et vérifie l'add-on, puis le télécharge en `.zip` (sans compte) ou le poste (connecté) ;
+- **Poster un add-on** (`poster.html`) reçoit un `.zip` fait ailleurs (par exemple avec `addon.ps1 empaqueter`) et l'associe au pseudo du créateur connecté.
 
 Le site vérifie le `.zip`, puis la fonction `functions/api/proposer.js` crée elle-même la proposition (pull request) sur
-ce dépôt, avec le jeton GitHub du site (voir [Envoi sans compte](#envoi-sans-compte-configuration)). Le créateur reçoit
-le lien de sa proposition.
+ce dépôt, avec le jeton GitHub du site et le pseudo du créateur. À la validation, l'auteur est enregistré dans
+`registry.json` (`authors`) et affiché sur la carte de l'add-on ; seul l'auteur d'un add-on peut ensuite en proposer une
+mise à jour depuis le site.
+
+### Stockage des comptes (Cloudflare D1 ou KV)
+
+Les fonctions d'authentification (`functions/api/auth/*` et `functions/_lib/users.js`) prennent en charge automatiquement :
+
+1. **Cloudflare D1** : lie une base D1 sous le nom `DB` dans **Cloudflare Pages → Settings → Bindings** (la table `users` est créée automatiquement au premier appel) ;
+2. **Cloudflare KV** : ou lie un espace KV sous le nom `USERS_KV` ;
+3. **Repli chiffré automatique** : si ni `DB` ni `USERS_KV` n'est lié, les comptes sont stockés chiffrés en AES-GCM-256 (clé dérivée du secret serveur) dans `refs/meta/users` sur le dépôt via `GITHUB_TOKEN`.
+
+Les mots de passe sont hachés avec **PBKDF2-HMAC-SHA256** (100 000 itérations, sel aléatoire de 16 octets) et la session est maintenue par un cookie signé `tc_user` (`HttpOnly`, `SameSite=Lax`, 30 jours).
 
 Pour travailler sur son PC, la commande `addon.ps1` fait le reste :
 
@@ -221,7 +260,9 @@ Le site est dans `site-src/` et `Build-Index.ps1` copie tout son contenu à la r
 |---|---|
 | `index.html` | catalogue : tous les add-ons de `index.json`, recherche, téléchargement |
 | `creer.html` | formulaire de création (compteurs, thème, script), téléchargement du `.zip`, envoi |
-| `poster.html` | envoi d'un `.zip` |
+| `poster.html` | envoi d'un `.zip` (associé au compte créateur connecté) |
+| `connexion.html` | inscription, connexion, profil créateur et liste de ses add-ons publiés |
+| `auth-client.js` | client d'authentification partagé par les pages du site |
 | `addon-rules.js` | règles de validation, lecture et création de `.zip` ; utilisé par les pages **et** par la fonction d'envoi |
 | `style.css` | style commun |
 | `addon.schema.json` | schéma pour l'autocomplétion dans VS Code |

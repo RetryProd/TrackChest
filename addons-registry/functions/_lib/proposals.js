@@ -21,10 +21,16 @@ export async function loadProposal(env, number) {
   const pull = await gh(env, 'GET', `/repos/${repo}/pulls/${number}`);
   if (!pull.ok) return { error: pull.status === 404 ? 'Proposition introuvable.' : `GitHub : lecture impossible (${pull.status}).` };
   const pr = pull.data;
+  const sameRepo = pr.head.repo?.full_name === repo;
+  const fromSite = sameRepo && pr.head.ref.startsWith('proposition/');
+  // Le créateur (compte TrackChest) n'est lu que sur une proposition ouverte PAR LE SITE (branche du dépôt créée
+  // avec le jeton du site) : n'importe qui peut écrire « tc-author » dans une pull request venue d'un fork.
+  const marker = fromSite ? /^Proposition envoyée depuis le site par \*\*([A-Za-z0-9_-]{3,24})\*\*\.\n<!-- tc-author: \1 -->/.exec(pr.body || '') : null;
+  const creator = marker?.[1] || null;
   const result = {
-    number: pr.number, title: pr.title, url: pr.html_url, author: pr.user?.login ?? '?', createdAt: pr.created_at,
+    number: pr.number, title: pr.title, url: pr.html_url, author: pr.user?.login ?? '?', creator, createdAt: pr.created_at,
     state: pr.state, headSha: pr.head.sha, headRef: pr.head.ref,
-    sameRepo: pr.head.repo?.full_name === repo, fromSite: pr.head.ref.startsWith('proposition/'),
+    sameRepo, fromSite,
     mergeable: pr.mergeable, files: [], errors: [], warnings: [], id: null, manifest: null, manifestText: null, script: null,
     existing: null, ci: 'none', canApprove: false,
   };
@@ -81,6 +87,19 @@ export async function loadProposal(env, number) {
       if (manifest && JSON.stringify(manifest.permissions ?? []) !== JSON.stringify(current.permissions ?? []))
         result.warnings.push('Les permissions ont changé par rapport à la version publiée.');
     } catch { /* ancienne version illisible : ignorée */ }
+
+    // Propriétaire de l'add-on : une mise à jour ne peut pas changer d'auteur depuis cette page.
+    const registryFile = await gh(env, 'GET', `/repos/${repo}/contents/registry.json?ref=main`);
+    if (!registryFile.ok && registryFile.status !== 404) {
+      result.errors.push(`registry.json illisible (${registryFile.status}) : impossible de vérifier l’auteur.`);
+    } else {
+      const owner = registryFile.ok ? parseRegistry(decodeText(registryFile.data.content)).authors[id] : undefined;
+      result.owner = owner || null;
+      if (owner && (!result.creator || owner.toLowerCase() !== result.creator.toLowerCase()))
+        result.errors.push(`Cet add-on appartient à ${owner} : seule une proposition envoyée par ce compte depuis le site peut le mettre à jour.`);
+      else if (!owner && result.creator)
+        result.warnings.push(`Cet add-on publié n’a pas encore d’auteur : valider en fera la propriété de ${result.creator}.`);
+    }
   }
 
   // Contrôle automatique GitHub (facultatif : le jeton peut ne pas avoir le droit de le lire).
@@ -107,15 +126,23 @@ export async function listProposals(env) {
   return Promise.all(list.data.map((pr) => loadProposal(env, pr.number)));
 }
 
-/** Modifie registry.json (verified, revoked) avec un commit. mutate reçoit { verified, revoked } et les modifie. */
+/** Modifie registry.json (verified, revoked, authors) avec un commit. mutate reçoit { verified, revoked, authors } et les modifie. */
 export async function editRegistry(env, message, mutate) {
   const repo = repoOf(env);
   for (let attempt = 0; attempt < 2; attempt++) {
     const current = await gh(env, 'GET', `/repos/${repo}/contents/registry.json?ref=main`);
-    const registry = current.ok ? parseRegistry(decodeText(current.data.content)) : { verified: [], revoked: [] };
+    const registry = current.ok ? parseRegistry(decodeText(current.data.content)) : { verified: [], revoked: [], authors: {} };
+    if (!registry.authors) registry.authors = {};
     mutate(registry);
     const clean = (list) => [...new Set(list)].sort();
-    const text = JSON.stringify({ verified: clean(registry.verified), revoked: clean(registry.revoked) }, null, 2) + '\n';
+    const authors = Object.fromEntries(
+      Object.entries(registry.authors)
+        .filter(([k, v]) => typeof k === 'string' && typeof v === 'string' && v.trim() !== '')
+        .sort(([a], [b]) => a.localeCompare(b))
+    );
+    const payload = { verified: clean(registry.verified), revoked: clean(registry.revoked) };
+    if (Object.keys(authors).length > 0) payload.authors = authors;
+    const text = JSON.stringify(payload, null, 2) + '\n';
     const put = await gh(env, 'PUT', `/repos/${repo}/contents/registry.json`, {
       message, branch: 'main', content: toBase64(new TextEncoder().encode(text)), ...(current.ok ? { sha: current.data.sha } : {}),
     });
@@ -125,7 +152,7 @@ export async function editRegistry(env, message, mutate) {
   throw new Error('Impossible de modifier registry.json sur GitHub.');
 }
 
-/** Valide : fusionne la proposition (le catalogue la publie ensuite), la marque « Vérifié » si demandé. */
+/** Valide : fusionne la proposition (le catalogue la publie ensuite), la marque « Vérifié » si demandé et associe l'auteur. */
 export async function approveProposal(env, number, reviewedSha, verified) {
   const repo = repoOf(env);
   const p = await loadProposal(env, number);
@@ -137,14 +164,19 @@ export async function approveProposal(env, number, reviewedSha, verified) {
   const merged = await gh(env, 'PUT', `/repos/${repo}/pulls/${number}/merge`, {
     merge_method: 'squash',
     sha: p.headSha,
-    commit_title: `${p.existing ? 'Mise à jour' : 'Ajout'} de l'add-on ${id} ${version}`,
+    commit_title: `${p.existing ? 'Mise à jour' : 'Ajout'} de l'add-on ${id} ${version}${p.creator ? ` (${p.creator})` : ''}`,
   });
   if (!merged.ok) return { status: 502, error: `GitHub a refusé la fusion (${merged.status}) : ${merged.data?.message ?? 'raison inconnue'}.` };
   clearCatalogCache();
 
   if (p.sameRepo && p.fromSite) await gh(env, 'DELETE', `/repos/${repo}/git/refs/heads/${p.headRef}`);
-  if (verified) await editRegistry(env, `Add-on ${id} marqué comme vérifié`, (r) => { r.verified.push(id); });
-  return { status: 200, ok: true, id, version, verified: Boolean(verified) };
+  if (verified || p.creator) {
+    await editRegistry(env, `Add-on ${id} : mise à jour du registre`, (r) => {
+      if (verified) r.verified.push(id);
+      if (p.creator) r.authors[id] = p.creator;
+    });
+  }
+  return { status: 200, ok: true, id, version, verified: Boolean(verified), author: p.creator };
 }
 
 /** Refuse : ferme la proposition (avec un commentaire facultatif) et supprime sa branche. */
@@ -180,6 +212,7 @@ export async function deleteAddon(env, id) {
   await editRegistry(env, `Add-on ${id} : révoqué après suppression`, (r) => {
     r.verified = r.verified.filter((x) => x !== id);
     r.revoked.push(id);
+    if (r.authors) delete r.authors[id];
   });
   clearCatalogCache();
   return { status: 200, ok: true };
