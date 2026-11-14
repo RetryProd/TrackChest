@@ -149,6 +149,7 @@ public static class ReportWriter
         .axis{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:6px}
         footer{margin-top:28px;color:var(--muted);font-size:13px}
         .profiles{margin:-12px 0 20px;font-size:13px}
+        .boost{color:var(--accent);font-weight:600}
         """;
 
     private static string Report(TrackerData data, IReadOnlyList<Profile> profiles)
@@ -222,6 +223,9 @@ public static class ReportWriter
                 $"Odhadovaná šance najít alespoň jeden žeton při {L.N(opened)} otevřeních se zvolenou šancí 1 z {L.N(PirateTokenOdds.DropDenominator)} na truhlu.")}</p>
             """);
 
+        var dayFormat = L.T("ddd dd/MM", "ddd d MMM", "ddd dd/MM", "ddd dd.MM.", "ddd dd.MM", "M/d (ddd)", "ddd d MMM", "ddd d MMM", "ddd d MMM", "ddd d MMM", "d MMM ddd", "M월 d일 (ddd)", "M月d日 ddd", "ddd d MMM", "ddd d MMM", "ddd d. M.");
+        AppendBoosts(sb, matches, opened, dayFormat);
+
         // Last 30 days, one bar per day.
         var today = DateTime.Now.Date;
         var days = Enumerable.Range(0, 30).Select(i => today.AddDays(i - 29)).ToList();
@@ -232,7 +236,7 @@ public static class ReportWriter
         {
             var v = perDay[i];
             var h = (int)Math.Round(100.0 * v / max);
-            var tip = $"{days[i].ToString(L.T("ddd dd/MM", "ddd d MMM", "ddd dd/MM", "ddd dd.MM.", "ddd dd.MM", "M/d (ddd)", "ddd d MMM", "ddd d MMM", "ddd d MMM", "ddd d MMM", "d MMM ddd", "M월 d일 (ddd)", "M月d日 ddd", "ddd d MMM", "ddd d MMM", "ddd d. M."), Fr)}{L.T(" : ", ": ", ": ", ": ", ": ", "：", ": ", ": ", ": ", ": ", ": ", ": ", "： ", ": ", ": ", ": ")}{L.Chests(v)}";
+            var tip = $"{days[i].ToString(dayFormat, Fr)}{L.T(" : ", ": ", ": ", ": ", ": ", "：", ": ", ": ", ": ", ": ", ": ", ": ", "： ", ": ", ": ", ": ")}{L.Chests(v)}";
             // Tooltip sits just above the bar top (bar height is a % of the 112px plot area).
             sb.Append($"<div class=\"col\" aria-label=\"{H(tip)}\"><span class=\"tip\" style=\"bottom:calc({Math.Max(h, 3)}% + 6px)\">{H(tip)}</span><div class=\"bar{(v == 0 ? " zero" : "")}\" style=\"height:{h}%\"></div></div>");
         }
@@ -315,7 +319,7 @@ public static class ReportWriter
             sb.Append("</table></div>");
         }
 
-        sb.Append($"<h2>{L.T("Historique des parties", "Match history", "Historial de partidas", "Match-Verlauf", "История матчей", "試合履歴", "Cronologia delle partite", "Histórico de partidas", "Historia meczów", "Potjesgeschiedenis", "Maç geçmişi", "경기 기록", "比赛记录", "Історія матчів", "Matchhistorik", "Historie zápasů")}</h2><div class=\"card\"><table><tr><th>{L.T("Date", "Date", "Fecha", "Datum", "Дата", "日時", "Data", "Data", "Data", "Datum", "Tarih", "날짜", "日期", "Дата", "Datum", "Datum")}</th><th>{L.T("Mode", "Mode", "Modo", "Modus", "Режим", "モード", "Modalità", "Modo", "Tryb", "Modus", "Mod", "모드", "模式", "Режим", "Läge", "Režim")}</th><th>{L.T("Place", "Placement", "Puesto", "Platz", "Место", "順位", "Piazzamento", "Colocação", "Miejsce", "Plaats", "Sıralama", "순위", "名次", "Місце", "Placering", "Umístění")}</th><th>{Img("Chest.png")}{L.T("Coffres", "Chests", "Cofres", "Truhen", "Сундуки", "宝箱", "Forzieri", "Baús", "Skrzynie", "Kisten", "Sandıklar", "상자", "宝箱", "Скрині", "Kistor", "Truhly")}</th><th>{Img("break_chest.png")}{L.T("Cassés", "Broken", "Rotos", "Zerstört", "Разбито", "破壊", "Rotti", "Quebrados", "Rozbite", "Kapot", "Kırılan", "부숨", "打破", "Розбито", "Krossade", "Rozbité")}</th><th>{Img("Esprit_Chest.png")}{L.T("Esprits", "Sprites", "Espíritus", "Geister", "Духи", "スプライト", "Spiriti", "Espíritos", "Duszki", "Geesten", "Ruhlar", "스프라이트", "精灵", "Духи", "Andar", "Skřítci")}</th><th>{Img("Wanted_Card.png")}Wanted</th><th>{Img("Treasures.png")}{L.T("Trésor", "Treasure", "Tesoro", "Schatz", "Сокровище", "宝", "Tesoro", "Tesouro", "Skarb", "Schat", "Hazine", "보물", "宝藏", "Скарб", "Skatt", "Poklad")}</th></tr>");
+        sb.Append($"<h2>{L.T("Historique des parties", "Match history", "Historial de partidas", "Match-Verlauf", "История матчей", "試合履歴", "Cronologia delle partite", "Histórico de partidas", "Historia meczów", "Potjesgeschiedenis", "Maç geçmişi", "경기 기록", "比赛记录", "Історія матчів", "Matchhistorik", "Historie zápasů")}</h2><div class=\"card\"><table><tr><th>{L.T("Date", "Date", "Fecha", "Datum", "Дата", "日時", "Data", "Data", "Data", "Datum", "Tarih", "날짜", "日期", "Дата", "Datum", "Datum")}</th><th>{L.T("Mode", "Mode", "Modo", "Modus", "Режим", "モード", "Modalità", "Modo", "Tryb", "Modus", "Mod", "모드", "模式", "Режим", "Läge", "Režim")}</th><th>{L.T("Place", "Placement", "Puesto", "Platz", "Место", "順位", "Piazzamento", "Colocação", "Miejsce", "Plaats", "Sıralama", "순위", "名次", "Місце", "Placering", "Umístění")}</th><th>{Img("Chest.png")}{L.T("Coffres", "Chests", "Cofres", "Truhen", "Сундуки", "宝箱", "Forzieri", "Baús", "Skrzynie", "Kisten", "Sandıklar", "상자", "宝箱", "Скрині", "Kistor", "Truhly")}</th><th>{Img("break_chest.png")}{L.T("Cassés", "Broken", "Rotos", "Zerstört", "Разбито", "破壊", "Rotti", "Quebrados", "Rozbite", "Kapot", "Kırılan", "부숨", "打破", "Розбито", "Krossade", "Rozbité")}</th><th>{Img("Esprit_Chest.png")}{L.T("Esprits", "Sprites", "Espíritus", "Geister", "Духи", "スプライト", "Spiriti", "Espíritos", "Duszki", "Geesten", "Ruhlar", "스프라이트", "精灵", "Духи", "Andar", "Skřítci")}</th><th>{Img("Wanted_Card.png")}Wanted</th><th>{Img("Treasures.png")}{L.T("Trésor", "Treasure", "Tesoro", "Schatz", "Сокровище", "宝", "Tesoro", "Tesouro", "Skarb", "Schat", "Hazine", "보물", "宝藏", "Скарб", "Skatt", "Poklad")}</th><th>{Img("Pirate_Token.png")}{BoostHeader}</th></tr>");
         foreach (var m in matches)
         {
             var treasure = string.Join("<br>", m.TreasureFinds.Select(f => $"<span class=\"star\">{(f.FromGoldenChest ? "★★" : "★")} {H(f.DisplayName)}</span>"));
@@ -340,7 +344,9 @@ public static class ReportWriter
             {
                 sb.Append(m.WantedMaps == null ? "—" : "0");
             }
-            sb.Append($"</td><td class=\"items\">{treasure}</td></tr>");
+            var boostCells = Boosts.BoostedChests(m).GroupBy(w => w.Multiplier).OrderBy(g => g.Key)
+                .Select(g => $"<span class=\"boost\">{L.Chests(g.Count())} {Boosts.Label(g.Key)}</span>");
+            sb.Append($"</td><td class=\"items\">{treasure}</td><td class=\"nw\">{string.Join("<br>", boostCells)}</td></tr>");
         }
         sb.Append("</table></div>");
 
@@ -474,6 +480,64 @@ public static class ReportWriter
             </main></body></html>
             """));
         return sb.ToString();
+    }
+
+    private static string BoostHeader => L.T("Boost", "Boost", "Potenciador", "Boost", "Буст", "ブースト", "Boost", "Boost", "Boost", "Boost", "Takviye", "부스트", "加成", "Буст", "Boost", "Boost");
+
+    /// <summary>Pirate token boosts: chests opened during a boost, the estimate counting them, and one row per boost.</summary>
+    private static void AppendBoosts(StringBuilder sb, List<MatchRecord> matches, int opened, string dayFormat)
+    {
+        var boosted = matches.SelectMany(m => Boosts.BoostedChests(m).Select(w => (m, w))).ToList();
+        sb.Append($"<h2>{L.T("Boosts du jeton pirate", "Pirate token boosts", "Potenciadores de la ficha pirata", "Piraten-Token-Boosts", "Бусты пиратского жетона", "海賊トークンのブースト", "Boost del gettone pirata", "Boosts da ficha pirata", "Boosty pirackiego żetonu", "Piratenmunt-boosts", "Korsan jetonu takviyeleri", "해적 토큰 부스트", "海盗代币加成", "Бусти піратського жетона", "Piratpollett-boostar", "Boosty pirátského žetonu")}</h2>");
+
+        if (boosted.Count > 0)
+        {
+            var effective = opened + boosted.Sum(x => x.w.Multiplier - 1);
+            var gain = PirateTokenOdds.Chance(effective) - PirateTokenOdds.Chance(opened);
+            sb.Append($"""
+                <section class="tiles">
+                  <div class="tile main"><div class="v">{PirateTokenOdds.Format(effective)}</div><div class="l">{Img("Pirate_Token.png")}{L.T("jeton pirate avec les boosts", "pirate token with boosts", "ficha pirata con potenciadores", "Piraten-Token mit Boosts", "пиратский жетон с бустами", "ブースト込みの海賊トークン", "gettone pirata con i boost", "ficha pirata com boosts", "piracki żeton z boostami", "piratenmunt met boosts", "takviyelerle korsan jetonu", "부스트 포함 해적 토큰", "含加成的海盗代币", "піратський жетон із бустами", "piratpollett med boostar", "pirátský žeton s boosty")}</div></div>
+                  <div class="tile"><div class="v">+{gain.ToString("P2", L.Culture)}</div><div class="l">{L.T("de chance en plus grâce aux boosts", "extra chance from boosts", "de probabilidad extra por los potenciadores", "zusätzliche Chance durch Boosts", "дополнительный шанс от бустов", "ブーストで増えた確率", "di probabilità in più grazie ai boost", "de chance extra graças aos boosts", "dodatkowej szansy dzięki boostom", "extra kans dankzij boosts", "takviyelerden gelen ek şans", "부스트로 늘어난 확률", "加成带来的额外概率", "додаткового шансу завдяки бустам", "extra chans tack vare boostar", "šance navíc díky boostům")}</div></div>
+                  <div class="tile"><div class="v">{L.N(boosted.Count)}</div><div class="l">{Img("Chest.png")}{L.T("coffres ouverts pendant un boost", "chests opened during a boost", "cofres abiertos durante un potenciador", "während eines Boosts geöffnete Truhen", "сундуков открыто во время буста", "ブースト中に開けた宝箱", "forzieri aperti durante un boost", "baús abertos durante um boost", "skrzynie otwarte podczas boosta", "kisten geopend tijdens een boost", "takviye sırasında açılan sandık", "부스트 중 연 상자", "加成期间打开的宝箱", "скринь відкрито під час буста", "kistor öppnade under en boost", "truhel otevřených během boostu")}</div></div>
+                  <div class="tile"><div class="v">{effective.ToString("#,0.#", L.Culture)}</div><div class="l">{L.T("coffres équivalents avec les boosts", "equivalent chests with boosts", "cofres equivalentes con potenciadores", "gleichwertige Truhen mit Boosts", "эквивалент сундуков с бустами", "ブースト換算の宝箱数", "forzieri equivalenti con i boost", "baús equivalentes com boosts", "równoważne skrzynie z boostami", "gelijkwaardige kisten met boosts", "takviyelerle eşdeğer sandık", "부스트 환산 상자 수", "含加成的等效宝箱", "еквівалент скринь із бустами", "motsvarande kistor med boostar", "ekvivalent truhel s boosty")}</div></div>
+                </section>
+                """);
+
+            var header = $"<tr><th>{L.T("Date", "Date", "Fecha", "Datum", "Дата", "日時", "Data", "Data", "Data", "Datum", "Tarih", "날짜", "日期", "Дата", "Datum", "Datum")}</th><th>{BoostHeader}</th>"
+                + $"<th style=\"text-align:right\">{L.T("Parties", "Matches", "Partidas", "Matches", "Матчи", "試合", "Partite", "Partidas", "Mecze", "Potjes", "Maçlar", "경기", "比赛", "Матчі", "Matcher", "Zápasy")}</th>"
+                + $"<th style=\"text-align:right\">{L.T("Coffres", "Chests", "Cofres", "Truhen", "Сундуки", "宝箱", "Forzieri", "Baús", "Skrzynie", "Kisten", "Sandıklar", "상자", "宝箱", "Скрині", "Kistor", "Truhly")}</th>"
+                + $"<th style=\"text-align:right\">{L.T("Équivalent", "Equivalent", "Equivalente", "Gleichwertig", "Эквивалент", "換算", "Equivalente", "Equivalente", "Równoważnik", "Gelijkwaardig", "Eşdeğer", "환산", "等效", "Еквівалент", "Motsvarande", "Ekvivalent")}</th></tr>";
+            sb.Append($"<div class=\"card\"><table>{header}");
+            foreach (var g in boosted.GroupBy(x => x.w).OrderByDescending(g => g.Key.Day).ThenByDescending(g => g.Key.Multiplier))
+            {
+                var count = g.Count();
+                sb.Append($"<tr><td class=\"nw\">{H(g.Key.Day.ToString(dayFormat, Fr))}</td><td class=\"boost\">{Boosts.Label(g.Key.Multiplier)}</td>"
+                    + $"<td class=\"n\">{g.Select(x => x.m).Distinct().Count()}</td><td class=\"n\">{count}</td><td class=\"n\">{(count * g.Key.Multiplier).ToString("#,0.#", L.Culture)}</td></tr>");
+            }
+            sb.Append("</table></div>");
+        }
+        else
+        {
+            sb.Append($"<div class=\"card muted\">{L.T("Aucun coffre ouvert pendant un boost pour l'instant.", "No chest opened during a boost yet.", "Todavía ningún cofre abierto durante un potenciador.", "Noch keine Truhe während eines Boosts geöffnet.", "Пока ни одного сундука во время буста.", "ブースト中に開けた宝箱はまだありません。", "Ancora nessun forziere aperto durante un boost.", "Nenhum baú aberto durante um boost ainda.", "Jeszcze żadnej skrzyni otwartej podczas boosta.", "Nog geen kist geopend tijdens een boost.", "Henüz takviye sırasında açılan sandık yok.", "아직 부스트 중에 연 상자가 없습니다.", "目前还没有在加成期间打开的宝箱。", "Поки жодної скрині під час буста.", "Ingen kista öppnad under en boost ännu.", "Zatím žádná truhla otevřená během boostu.")}</div>");
+        }
+
+        sb.Append($"<p class=\"muted\">{L.T(
+            "Boosts : samedi de 20h à 22h (x1,5) et dimanche de 3h à 5h (x2), à l'heure du PC. Un coffre ouvert pendant un boost compte pour 1,5 ou 2 coffres dans l'estimation du jeton pirate. Les coffres cassés ne comptent pas.",
+            "Boosts: Saturday 8–10 PM (x1.5) and Sunday 3–5 AM (x2), PC time. A chest opened during a boost counts as 1.5 or 2 chests in the pirate token estimate. Broken chests do not count.",
+            "Potenciadores: sábado de 20:00 a 22:00 (x1,5) y domingo de 3:00 a 5:00 (x2), hora del PC. Un cofre abierto durante un potenciador cuenta como 1,5 o 2 cofres en la estimación de la ficha pirata. Los cofres rotos no cuentan.",
+            "Boosts: Samstag 20–22 Uhr (x1,5) und Sonntag 3–5 Uhr (x2), PC-Zeit. Eine während eines Boosts geöffnete Truhe zählt in der Piraten-Token-Schätzung als 1,5 oder 2 Truhen. Zerstörte Truhen zählen nicht.",
+            "Бусты: суббота с 20:00 до 22:00 (x1,5) и воскресенье с 3:00 до 5:00 (x2), по времени ПК. Сундук, открытый во время буста, считается за 1,5 или 2 сундука в оценке пиратского жетона. Разбитые сундуки не учитываются.",
+            "ブースト：土曜 20:00〜22:00（x1.5）と日曜 3:00〜5:00（x2）、PC の時刻。ブースト中に開けた宝箱は、海賊トークンの推定で 1.5 個または 2 個として数えます。壊した宝箱は数えません。",
+            "Boost: sabato dalle 20 alle 22 (x1,5) e domenica dalle 3 alle 5 (x2), ora del PC. Un forziere aperto durante un boost conta come 1,5 o 2 forzieri nella stima del gettone pirata. I forzieri rotti non contano.",
+            "Boosts: sábado das 20h às 22h (x1,5) e domingo das 3h às 5h (x2), horário do PC. Um baú aberto durante um boost conta como 1,5 ou 2 baús na estimativa da ficha pirata. Baús quebrados não contam.",
+            "Boosty: sobota 20:00–22:00 (x1,5) i niedziela 3:00–5:00 (x2), czas komputera. Skrzynia otwarta podczas boosta liczy się jako 1,5 lub 2 skrzynie w szacunku pirackiego żetonu. Rozbite skrzynie się nie liczą.",
+            "Boosts: zaterdag 20–22 uur (x1,5) en zondag 3–5 uur (x2), pc-tijd. Een kist geopend tijdens een boost telt als 1,5 of 2 kisten in de schatting van de piratenmunt. Kapotte kisten tellen niet.",
+            "Takviyeler: cumartesi 20:00–22:00 (x1,5) ve pazar 3:00–5:00 (x2), bilgisayar saati. Takviye sırasında açılan bir sandık, korsan jetonu tahmininde 1,5 veya 2 sandık sayılır. Kırılan sandıklar sayılmaz.",
+            "부스트: 토요일 20:00~22:00 (x1.5), 일요일 3:00~5:00 (x2), PC 시간 기준. 부스트 중에 연 상자는 해적 토큰 추정에서 1.5개 또는 2개로 계산됩니다. 부순 상자는 계산되지 않습니다.",
+            "加成：周六 20:00–22:00（x1.5）和周日 3:00–5:00（x2），以电脑时间为准。加成期间打开的宝箱在海盗代币估算中算作 1.5 或 2 个宝箱。打破的宝箱不计入。",
+            "Бусти: субота з 20:00 до 22:00 (x1,5) і неділя з 3:00 до 5:00 (x2), за часом ПК. Скриня, відкрита під час буста, рахується як 1,5 або 2 скрині в оцінці піратського жетона. Розбиті скрині не рахуються.",
+            "Boostar: lördag 20–22 (x1,5) och söndag 3–5 (x2), datorns tid. En kista som öppnas under en boost räknas som 1,5 eller 2 kistor i uppskattningen av piratpolletten. Krossade kistor räknas inte.",
+            "Boosty: sobota 20:00–22:00 (x1,5) a neděle 3:00–5:00 (x2), čas počítače. Truhla otevřená během boostu se v odhadu pirátského žetonu počítá jako 1,5 nebo 2 truhly. Rozbité truhly se nepočítají.")}</p>");
     }
 
     private static string ProfilesLine(IReadOnlyList<Profile> profiles, string player)
