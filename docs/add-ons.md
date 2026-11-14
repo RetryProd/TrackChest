@@ -118,8 +118,9 @@ Le catalogue est un site statique : `index.json`, sa signature `index.json.sig`,
    le catalogue, le valide, puis vérifie que l'identifiant, la version et les **permissions** du manifeste sont
    exactement ceux annoncés par le catalogue (ceux que le joueur a vus).
 
-La clé privée ne quitte jamais le PC du mainteneur : la signature se fait en local avec `--addon-sign`. Un attaquant qui
-modifie l'hébergement ne peut pas produire une signature valide.
+La signature est faite par le site (`functions/_lib/catalog.js`, WebCrypto) avec la clé privée stockée dans le secret
+Cloudflare `SIGNING_KEY` ; l'outil `--addon-sign` reste disponible pour signer un catalogue à la main. Un attaquant qui
+modifie un fichier ou le dépôt d'hébergement ne peut pas produire de signature valide sans cette clé.
 
 Sans `assets/addon-public.key` à la compilation, `AddonTrust.IsConfigured` est faux : le catalogue est désactivé et seuls
 les fichiers locaux peuvent être installés.
@@ -156,12 +157,13 @@ Résumé (procédure complète dans [addons-registry/README.md](../addons-regist
 ```powershell
 # une seule fois : clés, puis clé publique et adresse dans assets\, puis recompilation
 .\dist\TrackChest.exe --addon-keygen "$env:USERPROFILE\TrackChest-cles"
-
-# à chaque mise à jour, dans le dépôt du catalogue : contrôle, construction, signature, publication
-.\scripts\addon.ps1 publier -Exe <chemin>\TrackChest.exe
 ```
 
-`addon.ps1 publier` enchaîne `Build-Index.ps1`, `TrackChest.exe --addon-sign` et `wrangler pages deploy`.
+Ensuite, **publier un add-on = valider sa proposition** sur la page Administration du site (`/admin.html`, protégée par
+mot de passe) : la proposition est fusionnée sur GitHub et le site fabrique, signe et sert le catalogue à partir de la
+branche `main`. `addon.ps1 publier` ne met en ligne que les pages et les fonctions du site. La configuration (secrets
+`GITHUB_TOKEN`, `ADMIN_PASSWORD`, `SIGNING_KEY`) et la sécurité sont décrites dans le
+[README du catalogue](../addons-registry/README.md).
 
 Si la clé privée est perdue, il faut créer une nouvelle paire, mettre la nouvelle clé publique dans `assets\`, publier
 une nouvelle version de TrackChest et signer le catalogue avec la nouvelle clé. Si elle fuit, il faut faire la même
