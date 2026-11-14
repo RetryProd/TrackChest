@@ -102,7 +102,7 @@ L'exécutable autonome est produit dans `dist\`. Les détails sont dans [docs/co
 | [docs/creer-un-addon.md](docs/creer-un-addon.md) | guide pour écrire et proposer un add-on |
 | [docs/add-ons.md](docs/add-ons.md) | système d'add-ons : format, sécurité, catalogue signé, publication |
 | [docs/contribuer.md](docs/contribuer.md) | conventions du code et vérifications avant une modification |
-| [addons-registry/README.md](addons-registry/README.md) | modèle du dépôt public du catalogue d'add-ons |
+| [trackchest-addons](https://github.com/RetryProd/trackchest-addons/blob/main/README.md) | dépôt séparé du catalogue d'add-ons et de son site |
 
 ## Licence et crédits
 

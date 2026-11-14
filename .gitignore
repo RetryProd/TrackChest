@@ -24,3 +24,6 @@ dist/release/
 
 # Dumps de débogage des replays (peuvent contenir des pseudos d'autres joueurs)
 cmds/
+
+# Site et catalogue des add-ons : dépôt séparé (RetryProd/trackchest-addons), jamais dans ce dépôt
+addons-registry/

@@ -16,7 +16,6 @@ bibliothèque `lib/`.
 │   ├── OozSharp/            décompression Oodle Kraken (GPL 3)
 │   └── PATCHES.md           liste des modifications faites aux bibliothèques d'origine
 ├── assets/                  icône, clé publique et adresse du catalogue d'add-ons
-├── addons-registry/         modèle du dépôt public du catalogue d'add-ons
 ├── docs/                    cette documentation
 ├── Construire.ps1           compilation de dist\TrackChest.exe
 └── dist/                    exécutable produit (non versionné)

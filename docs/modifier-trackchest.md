@@ -73,7 +73,7 @@ Pour comprendre d'abord comment le code est organisé, lis [Architecture](archit
 | le dossier des données | `Models.cs` | `Store.DefaultFolder` |
 | une option en ligne de commande | `Program.cs` | le `switch` sur `args` dans `Main` |
 | ce qu'un add-on peut faire | `Addons.cs`, `AddonStore.cs`, `AddonScript.cs` | voir § 11 |
-| le site du catalogue | `addons-registry/site-src/` | voir § 12 |
+| le site du catalogue | `trackchest-addons/site-src/` | voir § 12 |
 
 ## 1. Nom, icône et textes
 
@@ -536,10 +536,10 @@ Exemple : `rares`, le nombre de coffres rares (§ 6).
 |---|---|---|
 | 1 | `src/ChestCounter/Addons.cs` | ajouter `"rares"` dans `AddonRules.Metrics` |
 | 2 | `src/ChestCounter/AddonStore.cs` | dans `AddonRuntime.Compute` : `"rares" => matches.Sum(m => m.RareChests),` et son icône dans `DefaultMetricIcon` si besoin |
-| 3 | `addons-registry/scripts/Validate-Addon.ps1` | ajouter `'rares'` dans `$metrics` |
-| 4 | `addons-registry/site-src/addon-rules.js` | ajouter `'rares'` dans `METRICS` |
-| 5 | `addons-registry/site-src/creer.html` | ajouter `rares: 'Coffres rares'` dans `METRIC_TEXT` |
-| 6 | `addons-registry/site-src/addon.schema.json` | ajouter `"rares"` dans l'`enum` de `metric` |
+| 3 | `trackchest-addons/scripts/Validate-Addon.ps1` | ajouter `'rares'` dans `$metrics` |
+| 4 | `trackchest-addons/site-src/addon-rules.js` | ajouter `'rares'` dans `METRICS` |
+| 5 | `trackchest-addons/site-src/creer.html` | ajouter `rares: 'Coffres rares'` dans `METRIC_TEXT` |
+| 6 | `trackchest-addons/site-src/addon.schema.json` | ajouter `"rares"` dans l'`enum` de `metric` |
 | 7 | `docs/creer-un-addon.md` | ajouter la ligne au tableau des `metric` |
 
 Puis recompile TrackChest et republie le catalogue (`addon.ps1 publier`). Les anciennes versions de TrackChest
@@ -586,7 +586,7 @@ Une permission doit rester limitée à de l'affichage ou à des données. Il fau
 
 ## 12. Site du catalogue
 
-Le site est dans `addons-registry/site-src/` (voir le [README du catalogue](../addons-registry/README.md)) :
+Le site est dans `trackchest-addons/site-src/` (voir le [README du catalogue](https://github.com/RetryProd/trackchest-addons/blob/main/README.md)) :
 
 | Fichier | Contenu |
 |---|---|

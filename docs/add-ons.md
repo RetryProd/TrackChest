@@ -3,7 +3,7 @@
 Cette page décrit le système d'add-ons du point de vue du code de TrackChest. Pour **écrire** un add-on, voir
 [Créer un add-on](creer-un-addon.md) (le générateur de manifeste est publié avec le catalogue :
 <https://trackchest-addons.pages.dev/>, c'est là qu'on propose un add-on). Pour **publier** le catalogue, voir
-[addons-registry/README.md](../addons-registry/README.md).
+[README du dépôt trackchest-addons](https://github.com/RetryProd/trackchest-addons/blob/main/README.md).
 
 ## Principe : des données, et des scripts dans un bac à sable
 
@@ -39,8 +39,8 @@ le réseau, ni lancer un programme. La signature du catalogue et la relecture vi
 ```
 
 La référence complète des champs est dans [Créer un add-on](creer-un-addon.md) et dans le schéma
-`addons-registry/site-src/addon.schema.json`. Tu trouveras aussi `addons-registry/addons/theme-nuit/` (thème) et
-`addons-registry/addons/boost-weekend/` (script).
+`trackchest-addons/site-src/addon.schema.json`. Tu trouveras aussi `trackchest-addons/addons/theme-nuit/` (thème) et
+`trackchest-addons/addons/boost-weekend/` (script).
 
 ## Validation (`Addons.cs`)
 
@@ -56,8 +56,8 @@ La référence complète des champs est dans [Créer un add-on](creer-un-addon.m
 | Valeurs | `metric`, `scope`, `icon`, permissions et couleurs prises dans des listes ou motifs fixes |
 | Cohérence | chaque fonction demande sa permission, et chaque permission doit servir |
 
-Les mêmes règles sont appliquées par `addons-registry/scripts/Validate-Addon.ps1` (dépôt du catalogue), par
-`TrackChest.exe --addon-check`, et par le site et sa fonction d'envoi (`addons-registry/site-src/addon-rules.js`,
+Les mêmes règles sont appliquées par `trackchest-addons/scripts/Validate-Addon.ps1` (dépôt du catalogue), par
+`TrackChest.exe --addon-check`, et par le site et sa fonction d'envoi (`trackchest-addons/site-src/addon-rules.js`,
 fonction `validateManifest`). Si une règle change, modifie les quatre, ainsi que `addon.schema.json`.
 
 ### Permissions
@@ -151,8 +151,8 @@ Par exemple une nouvelle `metric` :
 
 1. `Addons.cs` : ajoute la valeur dans `AddonRules.Metrics`.
 2. `AddonStore.cs` : calcule-la dans `AddonRuntime.Compute` (et associe éventuellement une icône dans `DefaultMetricIcon`).
-3. `addons-registry/scripts/Validate-Addon.ps1` et `addons-registry/site-src/addon-rules.js` : ajoute-la dans `$metrics` et `METRICS`.
-4. `addons-registry/site-src/addon.schema.json`, `creer.html` et `docs/creer-un-addon.md` : documente-la.
+3. `trackchest-addons/scripts/Validate-Addon.ps1` et `trackchest-addons/site-src/addon-rules.js` : ajoute-la dans `$metrics` et `METRICS`.
+4. `trackchest-addons/site-src/addon.schema.json`, `creer.html` et `docs/creer-un-addon.md` : documente-la.
 5. Republie le catalogue pour mettre en ligne le guide à jour.
 
 Une nouvelle **permission** demande plus de prudence : elle doit rester limitée à des données ou à de l'affichage, et
@@ -161,7 +161,7 @@ un chemin de fichier ou une adresse réseau.
 
 ## Publier le catalogue
 
-Résumé (procédure complète dans [addons-registry/README.md](../addons-registry/README.md)) :
+Résumé (procédure complète dans [README du dépôt trackchest-addons](https://github.com/RetryProd/trackchest-addons/blob/main/README.md)) :
 
 ```powershell
 # une seule fois : clés, puis clé publique et adresse dans assets\, puis recompilation
@@ -172,7 +172,7 @@ Ensuite, **publier un add-on = valider sa proposition** sur la page Administrati
 mot de passe) : la proposition est fusionnée sur GitHub et le site fabrique, signe et sert le catalogue à partir de la
 branche `main`. `addon.ps1 publier` ne met en ligne que les pages et les fonctions du site. La configuration (secrets
 `GITHUB_TOKEN`, `ADMIN_PASSWORD`, `SIGNING_KEY`) et la sécurité sont décrites dans le
-[README du catalogue](../addons-registry/README.md).
+[README du catalogue](https://github.com/RetryProd/trackchest-addons/blob/main/README.md).
 
 Si la clé privée est perdue, il faut créer une nouvelle paire, mettre la nouvelle clé publique dans `assets\`, publier
 une nouvelle version de TrackChest et signer le catalogue avec la nouvelle clé. Si elle fuit, il faut faire la même

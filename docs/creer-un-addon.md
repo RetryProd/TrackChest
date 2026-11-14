@@ -166,7 +166,7 @@ Pour vérifier un paquet déjà construit :
 ```
 
 Dans VS Code, le schéma `addon.schema.json` (publié avec le catalogue, source dans
-`addons-registry/site-src/`) donne l'autocomplétion et souligne les erreurs pendant que tu écris. Ajoute dans tes
+`trackchest-addons/site-src/`) donne l'autocomplétion et souligne les erreurs pendant que tu écris. Ajoute dans tes
 réglages :
 
 ```json

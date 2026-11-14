@@ -12,7 +12,7 @@
 
 * [Créer un add-on](docs/creer-un-addon.md)
 * [Fonctionnement et sécurité](docs/add-ons.md)
-* [Publier le catalogue](addons-registry/README.md)
+* [Publier le catalogue](https://github.com/RetryProd/trackchest-addons/blob/main/README.md)
 
 ## Développer
 
