@@ -41,4 +41,12 @@ public static class Boosts
     public static double EffectiveOpened(MatchRecord m) => m.ChestsOpened + BoostedChests(m).Sum(w => w.Multiplier - 1);
 
     public static string Label(double multiplier) => "x" + multiplier.ToString("0.#", L.Culture);
+
+    /// <summary>Boost active right now (1 = none).</summary>
+    public static double Current => Multiplier(DateTime.Now);
+
+    /// <summary>Overlay colour of a boost: gold for x1.5, red for x2.</summary>
+    public static string Color(double multiplier) => multiplier >= 2 ? "#FF6B6B" : "#FFC860";
+
+    public static string Word => L.T("Boost", "Boost", "Potenciador", "Boost", "Буст", "ブースト", "Boost", "Boost", "Boost", "Boost", "Takviye", "부스트", "加成", "Буст", "Boost", "Boost");
 }

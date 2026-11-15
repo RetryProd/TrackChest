@@ -108,8 +108,8 @@ public static class NativeOverlay
     private static int _headerH, _bigH, _captionH, _rowH, _col1W, _col2W, _labelW;
     private static IntPtr _fontHeader, _fontCaption, _fontLabel;
     private static IntPtr _brushBorder, _brushLine;
-    private static string Header => L.T("COFFRES", "CHESTS", "COFRES", "TRUHEN", "СУНДУКИ", "宝箱", "FORZIERI", "BAÚS", "SKRZYNIE", "KISTEN", "SANDIKLAR", "상자", "宝箱", "СКРИНІ", "KISTOR", "TRUHLY");
-    private static string CaptionTotal => L.T("total", "total", "total", "gesamt", "всего", "合計", "totale", "total", "łącznie", "totaal", "toplam", "합계", "总计", "усього", "totalt", "celkem");
+    internal static string HeaderText => L.T("COFFRES", "CHESTS", "COFRES", "TRUHEN", "СУНДУКИ", "宝箱", "FORZIERI", "BAÚS", "SKRZYNIE", "KISTEN", "SANDIKLAR", "상자", "宝箱", "СКРИНІ", "KISTOR", "TRUHLY");
+    internal static string CaptionTotal => L.T("total", "total", "total", "gesamt", "всего", "合計", "totale", "total", "łącznie", "totaal", "toplam", "합계", "总计", "усього", "totalt", "celkem");
     private static Action<int, int>? _onMoved;
     private static Action<bool>? _onLockChanged;
 
@@ -677,7 +677,7 @@ public static class NativeOverlay
         try
         {
             // Header: [chest icon] "COFFRES" ... "● EN DIRECT" [lock]
-            var headerW = S(20) + TextWidth(hdc, _fontHeader, v.HeaderText ?? Header, out _headerH) + S(16) + (v.Badge != null ? TextWidth(hdc, _fontHeader, v.Badge, out _) : 0) + S(30);
+            var headerW = S(20) + TextWidth(hdc, _fontHeader, v.HeaderText ?? HeaderText, out _headerH) + S(16) + (v.Badge != null ? TextWidth(hdc, _fontHeader, v.Badge, out _) : 0) + S(30);
 
             // Two counters side by side.
             _col1W = Math.Max(TextWidth(hdc, _fontBig, v.Total, out _bigH), TextWidth(hdc, _fontCaption, v.TotalCaption ?? CaptionTotal, out _captionH));
@@ -869,7 +869,7 @@ public static class NativeOverlay
                 g.DrawImage(chestIcon, x, y + (_headerH - hIconSize) / 2f, hIconSize, hIconSize);
                 headerX += hIconSize + S(5);
             }
-            Text(hdc, _fontHeader, _theme.Muted, v.HeaderText ?? Header, headerX, y, right, y + _headerH);
+            Text(hdc, _fontHeader, _theme.Muted, v.HeaderText ?? HeaderText, headerX, y, right, y + _headerH);
             if (v.Badge != null)
             {
                 Text(hdc, _fontHeader, _theme.Accent, v.Badge, x, y, _lockRect.Left - S(6), y + _headerH, DT_RIGHT);

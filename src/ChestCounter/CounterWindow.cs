@@ -15,6 +15,7 @@ internal sealed partial class CounterWindow : Form
     private bool _updatingProfiles;
     private bool _scanning;
     private bool _inProgress;
+    private double _shownBoost = 1;
     private bool _overlayStarted;
     private bool _reportDirty = true;
 
@@ -27,6 +28,7 @@ internal sealed partial class CounterWindow : Form
         _startMinimized = launchedByFortnite && !string.IsNullOrWhiteSpace(config.DemosFolder);
 
         BuildLayout();
+        SetupDuo();
         if (_startMinimized) WindowState = FormWindowState.Minimized;
         _folder.Text = string.IsNullOrWhiteSpace(_config.DemosFolder) ? Program.DefaultReplays : _config.DemosFolder;
 
@@ -195,8 +197,11 @@ internal sealed partial class CounterWindow : Form
         {
             var result = await Task.Run(() => _scanner.Scan(_closing.Token, (done, total) => progress.Report((done, total))));
             var liveChanged = SetLiveReplay(result.LiveReplay);
-            if (_reportDirty || result.Changed || liveChanged) RefreshStats();
+            // A boost starting or ending changes the pirate token estimate without any new replay.
+            if (_reportDirty || result.Changed || liveChanged || Boosts.Current != _shownBoost) RefreshStats();
             else if (_inProgress) NativeOverlay.Update(BuildOverlay(Profiles.View(_data, _config)));
+            // Duo: a new match (or one starting / ending) reaches the partner at once, not at the next tick.
+            if (result.Changed || liveChanged) _ = SyncDuo(force: false);
             if (_reportDirty || result.Changed)
             {
                 ReportWriter.WriteAll(_store, _config, _data);
@@ -248,13 +253,20 @@ internal sealed partial class CounterWindow : Form
         var view = BuildOverlay(profileData);
         var last = profileData.Matches
             .OrderByDescending(m => m.MatchStartUtc ?? m.AnalyzedAtUtc).FirstOrDefault();
+        // Duo: the big numbers are both players added up, the own figures go in the small line below.
+        var partner = Duo.PartnerStats;
         _totalValue.Text = view.Total;
-        _lastValue.Text = last == null ? "—" : L.N(last.ChestsTotal);
-        _pirateValue.Text = PirateTokenOdds.Format(profileData.Matches.Sum(m => m.ChestsOpened));
+        _lastValue.Text = last == null && partner?.HasLast != true ? "—" : L.N((last?.ChestsTotal ?? 0) + (partner?.Last ?? 0));
+        _shownBoost = Boosts.Current;
+        // During a boost: the chance with every opened chest counted with the boost, in gold.
+        _pirateValue.Text = PirateTokenOdds.Format(profileData.Matches.Sum(m => m.ChestsOpened) * _shownBoost + (partner?.Pirate ?? 0));
+        ShowDuoDetails(profileData);
+        _pirateValue.ForeColor = _shownBoost > 1 ? Gold : Ink;
+        _tips.SetToolTip(_pirateValue, _shownBoost > 1 ? $"{Boosts.Word} {Boosts.Label(_shownBoost)}" : null);
         NativeOverlay.Update(view);
     }
 
-    private OverlayView BuildOverlay(TrackerData profileData) => OverlayModel.Build(profileData, _inProgress);
+    private OverlayView BuildOverlay(TrackerData profileData) => OverlayModel.Build(profileData, _inProgress, Duo.PartnerStats);
 
     private bool SetLiveReplay(string? path)
     {
@@ -267,6 +279,9 @@ internal sealed partial class CounterWindow : Form
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
         _timer.Stop();
+        _duoTimer.Stop();
+        // The link is temporary: closing the app leaves it (best effort, the relay forgets it after 6 hours anyway).
+        if (!_closing.IsCancellationRequested && Duo.Linked) _ = Duo.Leave(_config);
         _closing.Cancel();
         e.Cancel = _scanning;
         base.OnFormClosing(e);

@@ -38,9 +38,12 @@ internal sealed partial class CounterWindow
     private readonly PillButton _import = new("");
     private readonly PillButton _addons = new("");
     private readonly PillButton _settings = new("");
+    private readonly PillButton _duo = new("");
     private readonly Label _totalValue = TextLabel("—", 26, Gold, FontStyle.Bold);
     private readonly Label _lastValue = TextLabel("—", 26, Ink, FontStyle.Bold);
     private readonly Label _pirateValue = TextLabel("—", 26, Ink, FontStyle.Bold);
+    // Small grey line under each big number (rebuilt with the window); in duo it shows the player's own figure.
+    private Label _totalDetail = new(), _lastDetail = new(), _pirateDetail = new();
     private readonly PillLabel _statusTag = new() { ForeColor = Muted };
     private readonly Label _status = TextLabel("", 9, Muted);
     private readonly ToolTip _tips = new();
@@ -62,6 +65,8 @@ internal sealed partial class CounterWindow
         _import.Text = L.T("Importer", "Import", "Importar", "Importieren", "Импорт", "インポート", "Importa", "Importar", "Importuj", "Importeren", "İçe aktar", "가져오기", "导入", "Імпорт", "Importera", "Importovat");
         _addons.Text = L.T("Add-on", "Add-ons", "Add-ons", "Add-ons", "Дополнения", "アドオン", "Componenti", "Complementos", "Dodatki", "Add-ons", "Eklentiler", "애드온", "插件", "Доповнення", "Tillägg", "Doplňky");
         _settings.Text = L.T("Paramètres", "Settings", "Ajustes", "Einstellungen", "Настройки", "設定", "Impostazioni", "Configurações", "Ustawienia", "Instellingen", "Ayarlar", "설정", "设置", "Налаштування", "Inställningar", "Nastavení");
+        _duo.Text = Duo.Linked ? "Duo ●" : "Duo";
+        _tips.SetToolTip(_duo, Duo.T("Lie-toi avec un ami par un code : vos coffres s’additionnent tant que vous êtes liés", "Link with a friend by a code: your chests add up while you are linked"));
         _tips.SetToolTip(_export, L.T("Sauvegarde l’historique dans un fichier .zip, avant de réinitialiser le PC",
             "Saves the history to a .zip file, before resetting the PC", "Guarda el historial en un archivo .zip, antes de restablecer el PC",
             "Speichert den Verlauf in einer .zip-Datei, bevor du den PC zurücksetzt", "Сохраняет историю в файл .zip перед сбросом ПК",
@@ -141,12 +146,12 @@ internal sealed partial class CounterWindow
 
         var stats = Grid([34, 33, 33], 106);
         stats.Margin = new Padding(0, 0, 0, 18);
-        stats.Controls.Add(Metric(L.T("TOTAL COFFRES", "TOTAL CHESTS", "TOTAL DE COFRES", "TRUHEN GESAMT", "ВСЕГО СУНДУКОВ", "宝箱の合計", "FORZIERI TOTALI", "TOTAL DE BAÚS", "SKRZYNIE ŁĄCZNIE", "TOTAAL KISTEN", "TOPLAM SANDIK", "총 상자", "宝箱总数", "УСЬОГО СКРИНЬ", "KISTOR TOTALT", "TRUHLY CELKEM"), _totalValue,
-            L.T("Coffres et canons à butin", "Chests and loot cannons", "Cofres y cañones de botín", "Truhen und Beutekanonen", "Сундуки и пушки с добычей", "宝箱と戦利品キャノン", "Forzieri e cannoni del bottino", "Baús e canhões de saque", "Skrzynie i działa z łupem", "Kisten en buitkanonnen", "Sandıklar ve ganimet topları", "상자 및 전리품 대포", "宝箱和战利品大炮", "Скрині та гармати зі здобиччю", "Kistor och bytekanoner", "Truhly a kořistní děla"), new Padding(0, 0, 7, 0), "Chest.png"), 0, 0);
-        stats.Controls.Add(Metric(L.T("DERNIÈRE PARTIE", "LAST MATCH", "ÚLTIMA PARTIDA", "LETZTES MATCH", "ПОСЛЕДНИЙ МАТЧ", "前回の試合", "ULTIMA PARTITA", "ÚLTIMA PARTIDA", "OSTATNI MECZ", "LAATSTE POTJE", "SON MAÇ", "마지막 경기", "上一场比赛", "ОСТАННІЙ МАТЧ", "SENASTE MATCHEN", "POSLEDNÍ ZÁPAS"), _lastValue,
-            L.T("Coffres comptés", "Chests counted", "Cofres contados", "Gezählte Truhen", "Подсчитано сундуков", "数えた宝箱", "Forzieri contati", "Baús contados", "Policzone skrzynie", "Getelde kisten", "Sayılan sandıklar", "집계된 상자", "已统计宝箱", "Пораховані скрині", "Räknade kistor", "Započítané truhly"), new Padding(4, 0, 4, 0), "Chest.png"), 1, 0);
-        stats.Controls.Add(Metric(L.T("JETON PIRATE", "PIRATE TOKEN", "FICHA PIRATA", "PIRATEN-TOKEN", "ПИРАТСКИЙ ЖЕТОН", "海賊トークン", "GETTONE PIRATA", "FICHA PIRATA", "PIRACKI ŻETON", "PIRATENMUNT", "KORSAN JETONU", "해적 토큰", "海盗代币", "ПІРАТСЬКИЙ ЖЕТОН", "PIRATPOLLETT", "PIRÁTSKÝ ŽETON"), _pirateValue,
-            L.T("Probabilité cumulée estimée", "Estimated cumulative chance", "Probabilidad acumulada estimada", "Geschätzte Gesamtchance", "Оценочный суммарный шанс", "推定累積確率", "Probabilità cumulativa stimata", "Chance acumulada estimada", "Szacowana łączna szansa", "Geschatte cumulatieve kans", "Tahmini kümülatif şans", "추정 누적 확률", "估计累计概率", "Оцінена сукупна ймовірність", "Uppskattad sammanlagd chans", "Odhadovaná kumulativní šance"), new Padding(7, 0, 0, 0), "Pirate_Token.png"), 2, 0);
+        stats.Controls.Add(Metric(L.T("TOTAL COFFRES", "TOTAL CHESTS", "TOTAL DE COFRES", "TRUHEN GESAMT", "ВСЕГО СУНДУКОВ", "宝箱の合計", "FORZIERI TOTALI", "TOTAL DE BAÚS", "SKRZYNIE ŁĄCZNIE", "TOTAAL KISTEN", "TOPLAM SANDIK", "총 상자", "宝箱总数", "УСЬОГО СКРИНЬ", "KISTOR TOTALT", "TRUHLY CELKEM"), _totalValue, _totalDetail = TextLabel(
+            L.T("Coffres et canons à butin", "Chests and loot cannons", "Cofres y cañones de botín", "Truhen und Beutekanonen", "Сундуки и пушки с добычей", "宝箱と戦利品キャノン", "Forzieri e cannoni del bottino", "Baús e canhões de saque", "Skrzynie i działa z łupem", "Kisten en buitkanonnen", "Sandıklar ve ganimet topları", "상자 및 전리품 대포", "宝箱和战利品大炮", "Скрині та гармати зі здобиччю", "Kistor och bytekanoner", "Truhly a kořistní děla"), 9, Muted), new Padding(0, 0, 7, 0), "Chest.png"), 0, 0);
+        stats.Controls.Add(Metric(L.T("DERNIÈRE PARTIE", "LAST MATCH", "ÚLTIMA PARTIDA", "LETZTES MATCH", "ПОСЛЕДНИЙ МАТЧ", "前回の試合", "ULTIMA PARTITA", "ÚLTIMA PARTIDA", "OSTATNI MECZ", "LAATSTE POTJE", "SON MAÇ", "마지막 경기", "上一场比赛", "ОСТАННІЙ МАТЧ", "SENASTE MATCHEN", "POSLEDNÍ ZÁPAS"), _lastValue, _lastDetail = TextLabel(
+            L.T("Coffres comptés", "Chests counted", "Cofres contados", "Gezählte Truhen", "Подсчитано сундуков", "数えた宝箱", "Forzieri contati", "Baús contados", "Policzone skrzynie", "Getelde kisten", "Sayılan sandıklar", "집계된 상자", "已统计宝箱", "Пораховані скрині", "Räknade kistor", "Započítané truhly"), 9, Muted), new Padding(4, 0, 4, 0), "Chest.png"), 1, 0);
+        stats.Controls.Add(Metric(L.T("JETON PIRATE", "PIRATE TOKEN", "FICHA PIRATA", "PIRATEN-TOKEN", "ПИРАТСКИЙ ЖЕТОН", "海賊トークン", "GETTONE PIRATA", "FICHA PIRATA", "PIRACKI ŻETON", "PIRATENMUNT", "KORSAN JETONU", "해적 토큰", "海盗代币", "ПІРАТСЬКИЙ ЖЕТОН", "PIRATPOLLETT", "PIRÁTSKÝ ŽETON"), _pirateValue, _pirateDetail = TextLabel(
+            L.T("Probabilité cumulée estimée", "Estimated cumulative chance", "Probabilidad acumulada estimada", "Geschätzte Gesamtchance", "Оценочный суммарный шанс", "推定累積確率", "Probabilità cumulativa stimata", "Chance acumulada estimada", "Szacowana łączna szansa", "Geschatte cumulatieve kans", "Tahmini kümülatif şans", "추정 누적 확률", "估计累计概率", "Оцінена сукупна ймовірність", "Uppskattad sammanlagd chans", "Odhadovaná kumulativní šance"), 9, Muted), new Padding(7, 0, 0, 0), "Pirate_Token.png"), 2, 0);
         layout.Controls.Add(stats, 0, 1);
 
         var replays = Card(new Padding(18, 12, 18, 10), new Padding(0, 0, 0, 18));
@@ -209,12 +214,13 @@ internal sealed partial class CounterWindow
         buttons.Controls.Add(_overlay, 2, 0);
         buttons.Controls.Add(_position, 3, 0);
         actionGrid.Controls.Add(buttons, 0, 1);
-        var backupRow = Grid([19, 20, 31, 30], 38);
-        _export.Margin = _import.Margin = _addons.Margin = new Padding(0, 0, 8, 0);
+        var backupRow = Grid([19, 20, 16, 15, 30], 38);
+        _export.Margin = _import.Margin = _addons.Margin = _duo.Margin = new Padding(0, 0, 8, 0);
         backupRow.Controls.Add(_export, 0, 0);
         backupRow.Controls.Add(_import, 1, 0);
         backupRow.Controls.Add(_addons, 2, 0);
-        backupRow.Controls.Add(_settings, 3, 0);
+        backupRow.Controls.Add(_duo, 3, 0);
+        backupRow.Controls.Add(_settings, 4, 0);
         actionGrid.Controls.Add(backupRow, 0, 3);
         actionGrid.Controls.Add(TextLabel(L.T("Plein écran fenêtré  ·  Ctrl+Maj+O pour afficher  ·  Ctrl+Maj+L pour déplacer",
             "Windowed fullscreen  ·  Ctrl+Shift+O to show  ·  Ctrl+Shift+L to move",
@@ -310,13 +316,15 @@ internal sealed partial class CounterWindow
     private static RoundPanel FieldFrame(Padding padding, Padding margin) =>
         new() { Dock = DockStyle.Fill, Padding = padding, Margin = margin, BackColor = Field, Radius = 8 };
 
-    private static RoundPanel Metric(string caption, Label value, string detail, Padding margin, string? icon = null)
+    private static RoundPanel Metric(string caption, Label value, Label detail, Padding margin, string? icon = null)
     {
         var card = Card(new Padding(18, 10, 16, 10), margin);
         var grid = Grid([100], 18, 48, 20);
         grid.Controls.Add(icon != null ? IconCaption(caption, icon) : TextLabel(caption, 8.5f, Muted, FontStyle.Bold), 0, 0);
         grid.Controls.Add(value, 0, 1);
-        grid.Controls.Add(TextLabel(detail, 9, Muted), 0, 2);
+        detail.Tag = detail.Text; // default text, shown again when the duo link ends
+        detail.AutoEllipsis = true;
+        grid.Controls.Add(detail, 0, 2);
         card.Controls.Add(grid);
         return card;
     }

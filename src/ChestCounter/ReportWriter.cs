@@ -319,7 +319,7 @@ public static class ReportWriter
             sb.Append("</table></div>");
         }
 
-        sb.Append($"<h2>{L.T("Historique des parties", "Match history", "Historial de partidas", "Match-Verlauf", "История матчей", "試合履歴", "Cronologia delle partite", "Histórico de partidas", "Historia meczów", "Potjesgeschiedenis", "Maç geçmişi", "경기 기록", "比赛记录", "Історія матчів", "Matchhistorik", "Historie zápasů")}</h2><div class=\"card\"><table><tr><th>{L.T("Date", "Date", "Fecha", "Datum", "Дата", "日時", "Data", "Data", "Data", "Datum", "Tarih", "날짜", "日期", "Дата", "Datum", "Datum")}</th><th>{L.T("Mode", "Mode", "Modo", "Modus", "Режим", "モード", "Modalità", "Modo", "Tryb", "Modus", "Mod", "모드", "模式", "Режим", "Läge", "Režim")}</th><th>{L.T("Place", "Placement", "Puesto", "Platz", "Место", "順位", "Piazzamento", "Colocação", "Miejsce", "Plaats", "Sıralama", "순위", "名次", "Місце", "Placering", "Umístění")}</th><th>{Img("Chest.png")}{L.T("Coffres", "Chests", "Cofres", "Truhen", "Сундуки", "宝箱", "Forzieri", "Baús", "Skrzynie", "Kisten", "Sandıklar", "상자", "宝箱", "Скрині", "Kistor", "Truhly")}</th><th>{Img("break_chest.png")}{L.T("Cassés", "Broken", "Rotos", "Zerstört", "Разбито", "破壊", "Rotti", "Quebrados", "Rozbite", "Kapot", "Kırılan", "부숨", "打破", "Розбито", "Krossade", "Rozbité")}</th><th>{Img("Esprit_Chest.png")}{L.T("Esprits", "Sprites", "Espíritus", "Geister", "Духи", "スプライト", "Spiriti", "Espíritos", "Duszki", "Geesten", "Ruhlar", "스프라이트", "精灵", "Духи", "Andar", "Skřítci")}</th><th>{Img("Wanted_Card.png")}Wanted</th><th>{Img("Treasures.png")}{L.T("Trésor", "Treasure", "Tesoro", "Schatz", "Сокровище", "宝", "Tesoro", "Tesouro", "Skarb", "Schat", "Hazine", "보물", "宝藏", "Скарб", "Skatt", "Poklad")}</th><th>{Img("Pirate_Token.png")}{BoostHeader}</th></tr>");
+        sb.Append($"<h2>{L.T("Historique des parties", "Match history", "Historial de partidas", "Match-Verlauf", "История матчей", "試合履歴", "Cronologia delle partite", "Histórico de partidas", "Historia meczów", "Potjesgeschiedenis", "Maç geçmişi", "경기 기록", "比赛记录", "Історія матчів", "Matchhistorik", "Historie zápasů")}</h2><div class=\"card\"><table><tr><th>{L.T("Date", "Date", "Fecha", "Datum", "Дата", "日時", "Data", "Data", "Data", "Datum", "Tarih", "날짜", "日期", "Дата", "Datum", "Datum")}</th><th>{L.T("Mode", "Mode", "Modo", "Modus", "Режим", "モード", "Modalità", "Modo", "Tryb", "Modus", "Mod", "모드", "模式", "Режим", "Läge", "Režim")}</th><th>{L.T("Place", "Placement", "Puesto", "Platz", "Место", "順位", "Piazzamento", "Colocação", "Miejsce", "Plaats", "Sıralama", "순위", "名次", "Місце", "Placering", "Umístění")}</th><th>{Img("Chest.png")}{L.T("Coffres", "Chests", "Cofres", "Truhen", "Сундуки", "宝箱", "Forzieri", "Baús", "Skrzynie", "Kisten", "Sandıklar", "상자", "宝箱", "Скрині", "Kistor", "Truhly")}</th><th>{Img("break_chest.png")}{L.T("Cassés", "Broken", "Rotos", "Zerstört", "Разбито", "破壊", "Rotti", "Quebrados", "Rozbite", "Kapot", "Kırılan", "부숨", "打破", "Розбито", "Krossade", "Rozbité")}</th><th>{Img("Esprit_Chest.png")}{L.T("Esprits", "Sprites", "Espíritus", "Geister", "Духи", "スプライト", "Spiriti", "Espíritos", "Duszki", "Geesten", "Ruhlar", "스프라이트", "精灵", "Духи", "Andar", "Skřítci")}</th><th>{Img("Wanted_Card.png")}Wanted</th><th>{Img("Treasures.png")}{L.T("Trésor", "Treasure", "Tesoro", "Schatz", "Сокровище", "宝", "Tesoro", "Tesouro", "Skarb", "Schat", "Hazine", "보물", "宝藏", "Скарб", "Skatt", "Poklad")}</th><th>{Img("Pirate_Token.png")}{Boosts.Word}</th></tr>");
         foreach (var m in matches)
         {
             var treasure = string.Join("<br>", m.TreasureFinds.Select(f => $"<span class=\"star\">{(f.FromGoldenChest ? "★★" : "★")} {H(f.DisplayName)}</span>"));
@@ -482,13 +482,22 @@ public static class ReportWriter
         return sb.ToString();
     }
 
-    private static string BoostHeader => L.T("Boost", "Boost", "Potenciador", "Boost", "Буст", "ブースト", "Boost", "Boost", "Boost", "Boost", "Takviye", "부스트", "加成", "Буст", "Boost", "Boost");
 
     /// <summary>Pirate token boosts: chests opened during a boost, the estimate counting them, and one row per boost.</summary>
     private static void AppendBoosts(StringBuilder sb, List<MatchRecord> matches, int opened, string dayFormat)
     {
         var boosted = matches.SelectMany(m => Boosts.BoostedChests(m).Select(w => (m, w))).ToList();
         sb.Append($"<h2>{L.T("Boosts du jeton pirate", "Pirate token boosts", "Potenciadores de la ficha pirata", "Piraten-Token-Boosts", "Бусты пиратского жетона", "海賊トークンのブースト", "Boost del gettone pirata", "Boosts da ficha pirata", "Boosty pirackiego żetonu", "Piratenmunt-boosts", "Korsan jetonu takviyeleri", "해적 토큰 부스트", "海盗代币加成", "Бусти піратського жетона", "Piratpollett-boostar", "Boosty pirátského žetonu")}</h2>");
+
+        // The estimate shown during a boost: every opened chest counts with the boost.
+        var during = L.T("jeton pirate pendant un boost", "pirate token during a boost", "ficha pirata durante un potenciador", "Piraten-Token während eines Boosts", "пиратский жетон во время буста", "ブースト中の海賊トークン", "gettone pirata durante un boost", "ficha pirata durante um boost", "piracki żeton podczas boosta", "piratenmunt tijdens een boost", "takviye sırasında korsan jetonu", "부스트 중 해적 토큰", "加成期间的海盗代币", "піратський жетон під час буста", "piratpollett under en boost", "pirátský žeton během boostu");
+        sb.Append("<section class=\"tiles\" style=\"margin-bottom:12px\">");
+        foreach (var mult in new[] { 1.5, 2.0 })
+        {
+            var active = Boosts.Current == mult ? " main" : "";
+            sb.Append($"<div class=\"tile{active}\"><div class=\"v\">{PirateTokenOdds.Format(opened * mult)}</div><div class=\"l\">{Img("Pirate_Token.png")}{during} <span class=\"boost\">{Boosts.Label(mult)}</span></div></div>");
+        }
+        sb.Append("</section>");
 
         if (boosted.Count > 0)
         {
@@ -503,7 +512,7 @@ public static class ReportWriter
                 </section>
                 """);
 
-            var header = $"<tr><th>{L.T("Date", "Date", "Fecha", "Datum", "Дата", "日時", "Data", "Data", "Data", "Datum", "Tarih", "날짜", "日期", "Дата", "Datum", "Datum")}</th><th>{BoostHeader}</th>"
+            var header = $"<tr><th>{L.T("Date", "Date", "Fecha", "Datum", "Дата", "日時", "Data", "Data", "Data", "Datum", "Tarih", "날짜", "日期", "Дата", "Datum", "Datum")}</th><th>{Boosts.Word}</th>"
                 + $"<th style=\"text-align:right\">{L.T("Parties", "Matches", "Partidas", "Matches", "Матчи", "試合", "Partite", "Partidas", "Mecze", "Potjes", "Maçlar", "경기", "比赛", "Матчі", "Matcher", "Zápasy")}</th>"
                 + $"<th style=\"text-align:right\">{L.T("Coffres", "Chests", "Cofres", "Truhen", "Сундуки", "宝箱", "Forzieri", "Baús", "Skrzynie", "Kisten", "Sandıklar", "상자", "宝箱", "Скрині", "Kistor", "Truhly")}</th>"
                 + $"<th style=\"text-align:right\">{L.T("Équivalent", "Equivalent", "Equivalente", "Gleichwertig", "Эквивалент", "換算", "Equivalente", "Equivalente", "Równoważnik", "Gelijkwaardig", "Eşdeğer", "환산", "等效", "Еквівалент", "Motsvarande", "Ekvivalent")}</th></tr>";
